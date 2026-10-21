@@ -58,8 +58,8 @@ SocialPack AI é um Micro-SaaS construído com **Next.js 16**, **Tailwind CSS v4
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/Jotamunds/socialpack-ai.git
-cd socialpack-ai
+git clone https://github.com/Jotamunds/socialpack.git
+cd socialpack
 
 # 2. Instale as dependências
 npm install
