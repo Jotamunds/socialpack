@@ -27,7 +27,10 @@ export type PostTemplate = {
 
 export type GeneratedPost = {
   id: string;
-  day: string;
+  day: string; // Ex: "Segunda, 26/10"
+  date?: string; // Ex: "2026-10-26"
+  dayOfWeek?: string; // Ex: "Segunda"
+  formattedDate?: string; // Ex: "26/10"
   theme: string;
   headline: string;
   subheadline: string;
@@ -46,6 +49,9 @@ export type GenerateResponse = {
   nicheLabel: string;
   packId?: string;
   createdAt?: string;
+  startDate?: string;
+  endDate?: string;
+  weekRangeLabel?: string;
 };
 
 export type SavedPack = {
@@ -62,5 +68,7 @@ export type SavedPack = {
   brandColors: BrandColors;
   posts: GeneratedPost[];
   source: ContentSource;
+  startDate?: string;
+  endDate?: string;
 };
 

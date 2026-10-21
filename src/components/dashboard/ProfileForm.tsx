@@ -3,6 +3,7 @@
 import { useId, useMemo, useState } from "react";
 import {
   BuildingIcon,
+  CalendarIcon,
   CheckIcon,
   MapPinIcon,
   MicIcon,
@@ -13,6 +14,11 @@ import {
   TagIcon,
 } from "@/components/icons";
 import { categories, tones } from "@/lib/catalog";
+import {
+  formatWeekRange,
+  getMondayOfWeek,
+  getNextMonday,
+} from "@/lib/date-utils";
 import type { BrandColors, CompanyProfile } from "@/lib/types";
 
 const COLOR_PRESETS: { name: string; colors: BrandColors }[] = [
@@ -45,8 +51,10 @@ const COLOR_PRESETS: { name: string; colors: BrandColors }[] = [
 type Props = {
   initialProfile: CompanyProfile | null;
   onProfileSaved: (profile: CompanyProfile) => void;
-  onGenerate: () => Promise<void>;
+  onGenerate: (startDate?: string) => Promise<void>;
   isGenerating: boolean;
+  startDate: string;
+  onStartDateChange: (date: string) => void;
 };
 
 export function ProfileForm({
@@ -54,6 +62,8 @@ export function ProfileForm({
   onProfileSaved,
   onGenerate,
   isGenerating,
+  startDate,
+  onStartDateChange,
 }: Props) {
   const [profile, setProfile] = useState<CompanyProfile>(() => {
     if (initialProfile) return initialProfile;
@@ -90,6 +100,7 @@ export function ProfileForm({
   const cityId = useId();
   const instaId = useId();
   const toneSelectId = useId();
+  const dateInputId = useId();
 
   const handleCategoryChange = (newCatId: string) => {
     const cat = categories.find((c) => c.id === newCatId);
@@ -132,7 +143,7 @@ export function ProfileForm({
   const handleGenerateClick = async () => {
     const ok = await handleSave(true);
     if (ok) {
-      await onGenerate();
+      await onGenerate(startDate);
     }
   };
 
@@ -465,6 +476,53 @@ export function ProfileForm({
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Calendário Editorial da Semana (7 Dias com Datas Reais) */}
+      <div className="pt-4 border-t border-[#e5e5ea] space-y-3">
+        <div className="flex items-center justify-between">
+          <label
+            htmlFor={dateInputId}
+            className="field-label mb-0 flex items-center gap-1.5 text-xs font-semibold text-[#1d1d1f]"
+          >
+            <CalendarIcon className="size-3.5 text-[#0071e3]" /> Início da Semana (7 Dias)
+          </label>
+          <span className="text-[11px] font-medium text-[#0071e3] bg-[#0071e3]/10 px-2.5 py-0.5 rounded-full">
+            {formatWeekRange(startDate)}
+          </span>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <input
+            id={dateInputId}
+            type="date"
+            value={startDate}
+            onChange={(e) => onStartDateChange(e.target.value)}
+            className="field-input text-xs sm:text-sm py-2 flex-1"
+          />
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => onStartDateChange(getMondayOfWeek())}
+              className="btn-ghost text-xs py-2 px-3 flex-1 sm:flex-initial"
+              title="Ajustar para Segunda-feira desta semana"
+            >
+              Semana Atual
+            </button>
+            <button
+              type="button"
+              onClick={() => onStartDateChange(getNextMonday())}
+              className="btn-ghost text-xs py-2 px-3 flex-1 sm:flex-initial"
+              title="Ajustar para a próxima Segunda-feira"
+            >
+              Próxima Semana
+            </button>
+          </div>
+        </div>
+
+        <p className="text-[11px] text-[#86868b]">
+          Gera 7 posts de Segunda a Domingo com datas reais e tags correspondentes.
+        </p>
       </div>
 
       {/* Ações: Salvar e Gerar */}

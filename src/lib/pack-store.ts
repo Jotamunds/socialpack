@@ -46,11 +46,13 @@ function mapFromSupabase(row: Record<string, unknown>): SavedPack {
     }) as SavedPack["brandColors"],
     posts: (row.posts || []) as SavedPack["posts"],
     source: (row.source || "generic") as SavedPack["source"],
+    startDate: row.start_date ? String(row.start_date) : undefined,
+    endDate: row.end_date ? String(row.end_date) : undefined,
   };
 }
 
 /**
- * Salva um pack de 5 posts gerados no Supabase (com fallback seguro local).
+ * Salva um pack de posts gerados no Supabase (com fallback seguro local).
  */
 export async function savePack(pack: SavedPack): Promise<SavedPack> {
   const supabase = getSupabaseServerClient();
@@ -73,6 +75,8 @@ export async function savePack(pack: SavedPack): Promise<SavedPack> {
           brand_colors: pack.brandColors,
           posts: pack.posts,
           source: pack.source,
+          start_date: pack.startDate || null,
+          end_date: pack.endDate || null,
         })
         .select()
         .single();

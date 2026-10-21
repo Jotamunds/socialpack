@@ -75,8 +75,9 @@ export function PostCard({ post, index, profile, registerCanvas }: Props) {
 
   return (
     <article
-      className="apple-card animate-fade-up grid gap-5 p-5 sm:p-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bg-white"
-      style={{ animationDelay: `${index * 80}ms` }}
+      id={`post-card-${post.id}`}
+      className="apple-card animate-fade-up grid gap-5 p-5 sm:p-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bg-white scroll-mt-24"
+      style={{ animationDelay: `${index * 60}ms` }}
       aria-label={`Post de ${post.day}`}
     >
       <div className="group relative">
@@ -98,10 +99,15 @@ export function PostCard({ post, index, profile, registerCanvas }: Props) {
       </div>
 
       <div className="flex min-w-0 flex-col justify-between">
-        <header className="flex items-center justify-between gap-3">
+        <header className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold tracking-wider text-[#86868b] uppercase">{post.day}</p>
-            <h3 className="text-lg font-semibold text-[#1d1d1f]">{post.theme}</h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#0071e3]/10 text-[#0071e3] border border-[#0071e3]/20">
+                {post.day}
+              </span>
+              <span className="text-xs text-[#86868b]">• Post {index + 1} de 7</span>
+            </div>
+            <h3 className="text-lg font-semibold text-[#1d1d1f] mt-1 tracking-tight">{post.theme}</h3>
           </div>
           <span className="grid size-8 place-items-center rounded-full bg-[#f5f5f7] border border-[#d2d2d7] text-xs font-bold text-[#6e6e73]">
             {String(index + 1).padStart(2, "0")}

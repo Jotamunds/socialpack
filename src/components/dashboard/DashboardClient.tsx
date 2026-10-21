@@ -9,6 +9,7 @@ import {
   SparklesIcon,
 } from "@/components/icons";
 import { Logo } from "@/components/Logo";
+import { getMondayOfWeek } from "@/lib/date-utils";
 import type { CompanyProfile, GenerateResponse } from "@/lib/types";
 import { PostsSection } from "./PostsSection";
 import { ProfileForm } from "./ProfileForm";
@@ -21,6 +22,7 @@ type Props = {
 export function DashboardClient({ initialProfile, userEmail }: Props) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"create" | "history">("create");
+  const [startDate, setStartDate] = useState<string>(() => getMondayOfWeek());
   const [profile, setProfile] = useState<CompanyProfile>(
     () =>
       initialProfile || {
@@ -51,11 +53,19 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
     }
   };
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (customDate?: string) => {
     setIsGenerating(true);
     setGenerateError("");
+    const targetDate = customDate || startDate;
     try {
-      const res = await fetch("/api/generate", { method: "POST" });
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profile,
+          startDate: targetDate,
+        }),
+      });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Erro ao gerar posts.");
@@ -106,11 +116,11 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#e5e5ea]">
           <div className="space-y-0.5">
             <h1 className="text-2xl font-semibold text-[#1d1d1f] tracking-tight">
-              {activeTab === "create" ? "Gerador de Conteúdo" : "Galeria de Artes Salvas"}
+              {activeTab === "create" ? "Calendário Editorial Semanal" : "Galeria de Artes Salvas"}
             </h1>
             <p className="text-xs sm:text-sm text-[#6e6e73]">
               {activeTab === "create"
-                ? "Gere 5 posts semanais personalizados para o Instagram dos seus clientes."
+                ? "Gere o calendário semanal completo de 7 posts (Segunda a Domingo) com datas reais para o feed dos seus clientes."
                 : "Acesse o histórico completo de packs gerados e salvos no Supabase."}
             </p>
           </div>
@@ -161,6 +171,8 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
                 onProfileSaved={(p) => setProfile(p)}
                 onGenerate={handleGenerate}
                 isGenerating={isGenerating}
+                startDate={startDate}
+                onStartDateChange={setStartDate}
               />
             </div>
 
@@ -171,6 +183,8 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
                 result={result}
                 isGenerating={isGenerating}
                 onRegenerate={handleGenerate}
+                startDate={startDate}
+                onStartDateChange={setStartDate}
               />
             </div>
           </div>

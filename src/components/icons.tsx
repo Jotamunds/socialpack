@@ -142,3 +142,30 @@ export const SpinnerIcon = ({ className = "", ...p }: IconProps) => (
     <path d="M21 12a9 9 0 1 1-6.2-8.6" />
   </Base>
 );
+
+export const CalendarIcon = (p: IconProps) => (
+  <Base {...p}>
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </Base>
+);
+
+export const TimelineIcon = (p: IconProps) => (
+  <Base {...p}>
+    <line x1="12" y1="3" x2="12" y2="21" />
+    <circle cx="12" cy="7" r="2.5" fill="currentColor" />
+    <circle cx="12" cy="17" r="2.5" fill="currentColor" />
+  </Base>
+);
+
+export const GridIcon = (p: IconProps) => (
+  <Base {...p}>
+    <rect x="3" y="3" width="7" height="7" rx="1.5" />
+    <rect x="14" y="3" width="7" height="7" rx="1.5" />
+    <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    <rect x="3" y="14" width="7" height="7" rx="1.5" />
+  </Base>
+);
+

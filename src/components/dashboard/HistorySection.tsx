@@ -10,6 +10,7 @@ import {
   SpinnerIcon,
 } from "@/components/icons";
 import { downloadNodeAsPng } from "@/lib/export-image";
+import { formatWeekRange } from "@/lib/date-utils";
 import type { CompanyProfile, GeneratedPost, SavedPack } from "@/lib/types";
 import { fileNameFor, ScaledPreview } from "./PostCard";
 
@@ -263,7 +264,9 @@ export function HistorySection({ currentEmail }: Props) {
 
                     <div className="mt-3 flex items-center justify-between text-[11px] text-[#86868b] border-t border-[#f0f0f2] pt-2">
                       <span>{formattedDate}</span>
-                      <span className="font-semibold text-[#0071e3]">5 artes</span>
+                      <span className="font-semibold text-[#0071e3]">
+                        {pack.posts?.length || 7} artes
+                      </span>
                     </div>
                   </div>
                 );
@@ -284,6 +287,11 @@ export function HistorySection({ currentEmail }: Props) {
                       <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#f5f5f7] border border-[#d2d2d7] text-[#6e6e73]">
                         {selectedPack.nicheLabel}
                       </span>
+                      {selectedPack.startDate && (
+                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] border border-[#0071e3]/20 font-medium">
+                          {formatWeekRange(selectedPack.startDate)}
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-[#6e6e73] mt-0.5">
                       Gerado em{" "}
@@ -310,13 +318,13 @@ export function HistorySection({ currentEmail }: Props) {
                       </>
                     ) : (
                       <>
-                        <DownloadIcon className="size-3.5" /> Baixar Todos os 5 PNGs
+                        <DownloadIcon className="size-3.5" /> Baixar Todos os {selectedPack.posts.length} PNGs
                       </>
                     )}
                   </button>
                 </div>
 
-                {/* 5 Cards do Pack */}
+                {/* Cards do Pack */}
                 <div className="space-y-4">
                   {selectedPack.posts.map((post, idx) => {
                     const profile: CompanyProfile = {

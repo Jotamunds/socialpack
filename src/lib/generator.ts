@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { findCategory, findNiche, findTone, type Tone } from "./catalog";
+import { calculateWeekSchedule, formatWeekRange } from "./date-utils";
 import type {
   CompanyProfile,
   ContentSource,
@@ -12,8 +13,7 @@ import type {
 } from "./types";
 
 const TEMPLATES_DIR = path.join(process.cwd(), "content", "templates");
-const WEEK_DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
-const POSTS_PER_WEEK = WEEK_DAYS.length;
+const POSTS_PER_WEEK = 7;
 const LAYOUT_COUNT = 5;
 
 function isValidTemplate(t: unknown): t is PostTemplate {
@@ -63,10 +63,15 @@ function stripEmojis(text: string) {
     .trim();
 }
 
-export async function generateWeek(profile: CompanyProfile): Promise<GenerateResponse> {
+export async function generateWeek(
+  profile: CompanyProfile,
+  startDateInput?: string,
+): Promise<GenerateResponse> {
   const category = findCategory(profile.categoryId)!;
   const niche = findNiche(profile.categoryId, profile.nicheId)!;
   const tone = findTone(profile.toneId) as Tone;
+
+  const schedule = calculateWeekSchedule(startDateInput);
 
   const nichePool = (await loadTemplates(`${category.id}/${niche.id}.json`)).filter(
     matchesTone(tone.id),
@@ -82,6 +87,16 @@ export async function generateWeek(profile: CompanyProfile): Promise<GenerateRes
     if (usedThemes.has(themeKey)) continue;
     usedThemes.add(themeKey);
     picked.push(candidate);
+  }
+
+  // Se ainda faltar algum para completar os 7 posts (ex: nicho muito enxuto):
+  if (picked.length < POSTS_PER_WEEK) {
+    for (const candidate of shuffle(genericPool)) {
+      if (picked.length === POSTS_PER_WEEK) break;
+      if (!picked.includes(candidate)) {
+        picked.push(candidate);
+      }
+    }
   }
 
   const fromNiche = picked.filter((p) => nichePool.includes(p)).length;
@@ -115,9 +130,14 @@ export async function generateWeek(profile: CompanyProfile): Promise<GenerateRes
       ),
     ].filter((t) => t.length > 1);
 
+    const daySchedule = schedule[index];
+
     return {
       id: randomUUID(),
-      day: WEEK_DAYS[index],
+      day: daySchedule.fullDayLabel, // Ex: "Segunda, 26/10"
+      date: daySchedule.isoDate, // Ex: "2026-10-26"
+      dayOfWeek: daySchedule.dayOfWeek, // Ex: "Segunda"
+      formattedDate: daySchedule.formattedDate, // Ex: "26/10"
       theme: template.theme,
       headline: fill(template.headline),
       subheadline: fill(template.subheadline),
@@ -128,5 +148,12 @@ export async function generateWeek(profile: CompanyProfile): Promise<GenerateRes
     };
   });
 
-  return { posts, source, nicheLabel: niche.label };
+  return {
+    posts,
+    source,
+    nicheLabel: niche.label,
+    startDate: schedule[0].isoDate,
+    endDate: schedule[6].isoDate,
+    weekRangeLabel: formatWeekRange(startDateInput),
+  };
 }

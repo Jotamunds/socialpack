@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s | SocialPack AI",
   },
   description:
-    "Cadastre o perfil da sua empresa e gere 5 posts prontos para o Instagram, com artes 1080x1080 e legendas persuasivas.",
+    "Cadastre o perfil da sua empresa e gere o calendário editorial semanal de 7 posts para o Instagram com datas reais, artes 1080x1080 e legendas persuasivas.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

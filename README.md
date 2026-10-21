@@ -8,12 +8,16 @@ SocialPack AI é um Micro-SaaS construído com **Next.js 16**, **Tailwind CSS v4
 
 ## ✨ Funcionalidades Principais
 
+- 📅 **Calendário Editorial Semanal com Datas Reais (7 Dias)**:
+  - Geração completa de 7 posts cobrindo toda a semana de **Segunda a Domingo**, com datas reais formatadas no padrão brasileiro (ex: *Segunda, 26/10*).
+  - Seletor de calendário limpo e atalhos rápidos (*Semana Atual* e *Próxima Semana*) com cálculo automático de ciclo.
+  - Alternância de visualização entre **Linha do Tempo (Timeline Apple)** conectada e **Grade Semanal**, com ribbon de navegação rápida por dias.
 - 🍎 **Design System Padrão Apple**:
   - Interface minimalista com canvas limpo (`#f5f5f7`), cards puros (`#ffffff`) e tipografia tinta escura (`#1d1d1f`).
   - Destaques funcionais em azul Apple (`#0071e3`), bordas sutis (`#d2d2d7`), espaçamento generoso e botões em cápsula/pílula (`rounded-full`).
   - Segmented controls de alternância rápida de abas e seletor de modo.
 - 🗄️ **Salvamento Organizado & Histórico de Packs (Supabase + Fallback)**:
-  - Salvamento automático de cada pack de 5 artes no Supabase (tabela `post_packs`) associado à conta do cliente.
+  - Salvamento automático de cada pack de 7 artes no Supabase (tabela `post_packs`) associado à conta do cliente com intervalo de datas.
   - Abordagem resiliente: fallback transparente para armazenamento local em JSON (`data/packs.json`) caso as credenciais de banco não estejam configuradas.
   - Seção dedicada de **Histórico de Packs**: busca por cliente/tema, filtro por data, visualização de miniaturas e re-download de PNGs em lote.
 - 🔐 **Autenticação Full-Stack**:

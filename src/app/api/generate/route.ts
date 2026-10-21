@@ -12,8 +12,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
 
+  // Extrai body e verifica se veio startDate
+  const body = await request.json().catch(() => null);
+  const startDate =
+    typeof body?.startDate === "string" && body.startDate.trim().length > 0
+      ? body.startDate.trim()
+      : undefined;
+
   // Se vier perfil no body, prioriza e atualiza; senão usa o salvo ou padrão
-  const fromBody = parseProfile(await request.json().catch(() => null));
+  const fromBody = parseProfile(body?.profile || body);
   let profile = fromBody || (await getProfile(email));
 
   if (fromBody) {
@@ -35,7 +42,7 @@ export async function POST(request: Request) {
     await saveProfile(email, profile);
   }
 
-  const week = await generateWeek(profile);
+  const week = await generateWeek(profile, startDate);
   if (week.posts.length === 0) {
     return NextResponse.json(
       { error: "Nenhum texto disponível para este nicho e tom de voz." },
@@ -61,6 +68,8 @@ export async function POST(request: Request) {
     brandColors: profile.colors,
     posts: week.posts,
     source: week.source,
+    startDate: week.startDate,
+    endDate: week.endDate,
   });
 
   return NextResponse.json({

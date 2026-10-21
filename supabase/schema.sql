@@ -15,7 +15,9 @@ create table if not exists public.post_packs (
   tone_id text not null,
   brand_colors jsonb not null,
   posts jsonb not null,
-  source text not null
+  source text not null,
+  start_date text,
+  end_date text
 );
 
 -- Índices para consultas rápidas por usuário e ordenação cronológica
