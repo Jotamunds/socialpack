@@ -1,0 +1,147 @@
+{
+  "categories": [
+    {
+      "id": "alimentacao",
+      "label": "Alimentação",
+      "niches": [
+        { "id": "restaurante", "label": "Restaurante" },
+        { "id": "pizzaria", "label": "Pizzaria" },
+        { "id": "hamburgueria", "label": "Hamburgueria" },
+        { "id": "cafeteria", "label": "Cafeteria" },
+        { "id": "confeitaria", "label": "Confeitaria e Doceria" },
+        { "id": "marmitaria", "label": "Marmitaria e Delivery" }
+      ]
+    },
+    {
+      "id": "beleza",
+      "label": "Beleza e Estética",
+      "niches": [
+        { "id": "salao-de-beleza", "label": "Salão de Beleza" },
+        { "id": "barbearia", "label": "Barbearia" },
+        { "id": "clinica-de-estetica", "label": "Clínica de Estética" },
+        { "id": "nail-designer", "label": "Nail Designer" },
+        { "id": "design-de-sobrancelhas", "label": "Design de Sobrancelhas e Cílios" }
+      ]
+    },
+    {
+      "id": "saude",
+      "label": "Saúde e Bem-estar",
+      "niches": [
+        { "id": "academia", "label": "Academia" },
+        { "id": "clinica-odontologica", "label": "Clínica Odontológica" },
+        { "id": "nutricionista", "label": "Nutricionista" },
+        { "id": "psicologia", "label": "Psicologia" },
+        { "id": "fisioterapia", "label": "Fisioterapia" },
+        { "id": "studio-de-pilates", "label": "Studio de Pilates" }
+      ]
+    },
+    {
+      "id": "servicos",
+      "label": "Serviços Profissionais",
+      "niches": [
+        { "id": "advocacia", "label": "Escritório de Advocacia" },
+        { "id": "contabilidade", "label": "Contabilidade" },
+        { "id": "imobiliaria", "label": "Imobiliária" },
+        { "id": "arquitetura", "label": "Arquitetura e Interiores" },
+        { "id": "agencia-de-marketing", "label": "Agência de Marketing" }
+      ]
+    },
+    {
+      "id": "varejo",
+      "label": "Varejo e Lojas",
+      "niches": [
+        { "id": "loja-de-roupas", "label": "Loja de Roupas" },
+        { "id": "pet-shop", "label": "Pet Shop" },
+        { "id": "otica", "label": "Ótica" },
+        { "id": "floricultura", "label": "Floricultura" },
+        { "id": "loja-de-cosmeticos", "label": "Loja de Cosméticos" }
+      ]
+    },
+    {
+      "id": "educacao",
+      "label": "Educação",
+      "niches": [
+        { "id": "escola-de-idiomas", "label": "Escola de Idiomas" },
+        { "id": "cursos-profissionalizantes", "label": "Cursos Profissionalizantes" },
+        { "id": "escola-infantil", "label": "Escola Infantil" },
+        { "id": "aulas-particulares", "label": "Aulas Particulares e Reforço" }
+      ]
+    },
+    {
+      "id": "automotivo",
+      "label": "Automotivo",
+      "niches": [
+        { "id": "oficina-mecanica", "label": "Oficina Mecânica" },
+        { "id": "estetica-automotiva", "label": "Lava-jato e Estética Automotiva" },
+        { "id": "auto-pecas", "label": "Auto Peças" }
+      ]
+    },
+    {
+      "id": "casa",
+      "label": "Casa e Construção",
+      "niches": [
+        { "id": "materiais-de-construcao", "label": "Materiais de Construção" },
+        { "id": "moveis-planejados", "label": "Móveis Planejados" },
+        { "id": "decoracao", "label": "Loja de Decoração" }
+      ]
+    },
+    {
+      "id": "eventos",
+      "label": "Eventos",
+      "niches": [
+        { "id": "buffet", "label": "Buffet" },
+        { "id": "fotografia", "label": "Fotografia" },
+        { "id": "decoracao-de-festas", "label": "Decoração de Festas" }
+      ]
+    },
+    {
+      "id": "outros",
+      "label": "Outros",
+      "niches": [{ "id": "outro-segmento", "label": "Outro segmento" }]
+    }
+  ],
+  "tones": [
+    {
+      "id": "profissional",
+      "label": "Profissional",
+      "description": "Claro, confiável e direto ao ponto.",
+      "emojis": false,
+      "signoff": "Fale com a nossa equipe e agende seu atendimento."
+    },
+    {
+      "id": "descontraido",
+      "label": "Descontraído",
+      "description": "Leve, próximo e cheio de energia.",
+      "emojis": true,
+      "signoff": "Bora? Chama a gente no direct! 💬"
+    },
+    {
+      "id": "inspirador",
+      "label": "Inspirador",
+      "description": "Motivacional e focado em transformação.",
+      "emojis": true,
+      "signoff": "O próximo passo é seu. Estamos aqui para caminhar junto. ✨"
+    },
+    {
+      "id": "sofisticado",
+      "label": "Sofisticado",
+      "description": "Elegante, exclusivo e refinado.",
+      "emojis": false,
+      "signoff": "Uma experiência pensada em cada detalhe. Agende a sua."
+    },
+    {
+      "id": "acolhedor",
+      "label": "Acolhedor",
+      "description": "Empático, gentil e humano.",
+      "emojis": true,
+      "signoff": "Vai ser um prazer receber você por aqui. 🤍"
+    },
+    {
+      "id": "divertido",
+      "label": "Divertido",
+      "description": "Bem-humorado, criativo e ousado.",
+      "emojis": true,
+      "signoff": "Marca aquele amigo que precisa ver isso! 😂👇"
+    }
+  ]
+}

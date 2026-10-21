@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
@@ -11,6 +10,14 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
+  },
+  // Os textos ficam em /content e são lidos via fs em tempo de execução,
+  // então precisam ser incluídos explicitamente no trace de produção.
+  outputFileTracingIncludes: {
+    "/api/generate": ["./content/**/*"],
+  },
+  async redirects() {
+    return [{ source: "/", destination: "/dashboard", permanent: false }];
   },
 };
 

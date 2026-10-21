@@ -1,0 +1,45 @@
+{
+  "label": "Alimentação › Pizzaria",
+  "posts": [
+    {
+      "theme": "Sabor & Desejo",
+      "headline": "A pizza que o seu dia merece",
+      "subheadline": "Massa artesanal de fermentação lenta, queijo derretido e ingredientes frescos.",
+      "cta": "Pedir Agora",
+      "caption": "Aquele queijo esticando e o aroma inconfundível que só a {nome} tem! 🍕🧀\n\nAqui em {cidade}, cada pizza é preparada com carinho, massa leve de longa fermentação e ingredientes selecionados a dedo para fazer da sua noite um momento especial.\n\nQual é o seu sabor favorito da nossa casa?",
+      "hashtags": ["#pizzalover", "#massaleve", "#pizzacaseira", "#noitedapizza"]
+    },
+    {
+      "theme": "Combinação Perfeita",
+      "headline": "Reunião boa tem que ter pizza",
+      "subheadline": "Chame os amigos e a família: nós cuidamos do jantar hoje à noite.",
+      "cta": "Ver Cardápio",
+      "caption": "Reunir quem a gente gosta com pizza quentinha na mesa é o melhor plano para hoje! ❤️✨\n\nNa {nome}, você encontra opções tradicionais, doces e especiais pensadas para agradar todo mundo aí na sua casa.\n\nPeça pelo delivery ou venha nos visitar em {cidade}.",
+      "hashtags": ["#amigos", "#familia", "#pizzadelivery", "#momentos"]
+    },
+    {
+      "theme": "Diferencial",
+      "headline": "Por que a nossa massa é tão leve?",
+      "subheadline": "Fermentação mínima de 48h para uma digestão suave e crocância incomparável.",
+      "cta": "Experimente",
+      "caption": "Você sabia que a nossa massa passa por até 48 horas de fermentação natural? ⏳\n\nEsse processo garante que a pizza da {nome} seja super crocante por fora, macia por dentro e levinha para a sua digestão.\n\nQuem prova uma vez nunca mais esquece!",
+      "hashtags": ["#fermentacaolenta", "#artesanal", "#altagastronomia"]
+    },
+    {
+      "theme": "Borda Recheada",
+      "headline": "A última mordida é a melhor",
+      "subheadline": "Bordas recheadas de verdade com Catupiry original ou chocolate cremoso.",
+      "cta": "Escolha a Borda",
+      "caption": "A verdade que ninguém pode negar: pizza boa se reconhece pela borda! 🤤\n\nNa {nome}, caprichamos no recheio da primeira até a última fatia. Escolha sua borda recheada favorita e eleve sua experiência hoje.\n\nMarca aqui quem SEMPRE deixa a borda no prato (vai mudar de ideia hoje)! 👇",
+      "hashtags": ["#bordarecheada", "#catupiry", "#gordice", "#amopizza"]
+    },
+    {
+      "theme": "Delivery Rápido",
+      "headline": "Quentinha até a sua porta",
+      "subheadline": "Embalagem térmica exclusiva para manter o queijo derretido e a massa crocante.",
+      "cta": "Pedir no Delivery",
+      "caption": "Seu pedido chega quentinho como se tivesse acabado de sair do forno! 🛵💨\n\nNossa equipe de entregas em {cidade} cuida para que cada fatia chegue perfeita na sua mesa.\n\nBateu aquela fome? Peça pelo link da bio ou chama no direct!",
+      "hashtags": ["#delivery", "#entregarapida", "#pizzahot"]
+    }
+  ]
+}

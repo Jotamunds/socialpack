@@ -1,0 +1,45 @@
+{
+  "label": "Beleza e Estética › Salão de Beleza",
+  "posts": [
+    {
+      "theme": "Transformação",
+      "headline": "O cabelo dos seus sonhos existe",
+      "subheadline": "Coloração, mechas e tratamentos personalizados para realçar a sua beleza natural.",
+      "cta": "Agende seu Horário",
+      "caption": "Seu cabelo merece o melhor cuidado de {cidade}! 💇‍♀️✨\n\nNa {nome}, analisamos a saúde dos seus fios antes de qualquer procedimento para entregar a cor e o corte perfeitos mantendo a vitalidade do seu cabelo.\n\nPronta para se apaixonar pelo espelho de novo? Chama no direct!",
+      "hashtags": ["#loirosaudavel", "#cabeloperfeito", "#salaodebeleza", "#transformacao"]
+    },
+    {
+      "theme": "Autocuidado",
+      "headline": "Um momento só seu nesta semana",
+      "subheadline": "Desconecte da rotina e deixe nossa equipe cuidar de você com todo carinho.",
+      "cta": "Reserve seu Momento",
+      "caption": "Quando foi a última vez que você tirou um tempo só para você? 🌿🤍\n\nAqui na {nome}, nosso espaço em {cidade} foi planejado para você relaxar, tomar um café e sair renovada por dentro e por fora.\n\nVocê merece esse carinho!",
+      "hashtags": ["#autocuidado", "#diadeprincesa", "#bemestar"]
+    },
+    {
+      "theme": "Tratamento",
+      "headline": "Fios fortes, brilhantes e saudáveis",
+      "subheadline": "Cronograma capilar intensivo com produtos profissionais de alta performance.",
+      "cta": "Conheça os Tratamentos",
+      "caption": "Cabelo opaco ou sem vida? A solução é nutrição de verdade! 💆‍♀️\n\nNossos protocolos de tratamento na {nome} repõem massa, selam as cutículas e devolvem o balanço que seu cabelo precisa para brilhar todos os dias.\n\nAgende uma avaliação capilar gratuita com a nossa equipe!",
+      "hashtags": ["#cronogramacapilar", "#nutricaocapilar", "#cabelobrilhoso"]
+    },
+    {
+      "theme": "Antes & Depois",
+      "headline": "O poder de um visual renovado",
+      "subheadline": "Técnicas modernas de corte e iluminação feitas sob medida para o seu rosto.",
+      "cta": "Quero Mudar",
+      "caption": "Pequenas mudanças fazem uma diferença gigante na sua autoestima! ✨\n\nCada cliente que passa pela {nome} tem uma história única, e nós amamos criar visuais que expressam sua melhor versão.\n\nQual visual você sempre teve vontade de testar?",
+      "hashtags": ["#cortefeminino", "#morenailuminada", "#autoestima"]
+    },
+    {
+      "theme": "Agenda da Semana",
+      "headline": "Garanta o seu horário para o final de semana",
+      "subheadline": "Os horários de sexta e sábado costumam esgotar rápido. Não deixe para depois!",
+      "cta": "Ver Disponibilidade",
+      "caption": "Final de semana chegando e sua agenda no salão já está marcada? ⏰🗓️\n\nNossos horários de quinta a sábado na {nome} estão quase lotados em {cidade}.\n\nGaranta sua vaga agora mesmo pelo WhatsApp ou no link da bio!",
+      "hashtags": ["#agendadasemana", "#sextou", "#salaocwb"]
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "label": "Textos genéricos (usados quando o nicho ainda não tem textos próprios)",
+  "posts": [
+    {
+      "theme": "Apresentação",
+      "headline": "Prazer, somos a {nome}",
+      "subheadline": "Nascemos para entregar mais do que você espera, bem aqui em {cidade}.",
+      "cta": "Conheça a gente",
+      "caption": "Se você ainda não conhece a {nome}, deixa a gente se apresentar! 👋\n\nAqui em {cidade}, trabalhamos todos os dias para oferecer um atendimento de verdade, com cuidado em cada detalhe e foco total no que importa para você.\n\nNosso compromisso é simples: fazer você sair daqui com a certeza de que fez a melhor escolha.",
+      "hashtags": ["#conheça", "#negociolocal"]
+    },
+    {
+      "theme": "Autoridade",
+      "headline": "Qualidade não é sorte. É método.",
+      "subheadline": "Cada entrega da {nome} segue um padrão rigoroso para garantir o melhor resultado.",
+      "cta": "Saiba mais",
+      "caption": "Resultado bom não acontece por acaso. ✅\n\nNa {nome}, cada etapa é pensada, testada e revisada para que você tenha sempre a mesma experiência impecável — da primeira à centésima vez.\n\nÉ por isso que tanta gente em {cidade} confia na gente.",
+      "hashtags": ["#qualidade", "#excelencia"]
+    },
+    {
+      "theme": "Prova social",
+      "headline": "Quem conhece, recomenda",
+      "subheadline": "Nossos clientes são a melhor propaganda que a {nome} poderia ter.",
+      "cta": "Venha comprovar",
+      "caption": "Nada nos deixa mais felizes do que ouvir: \"vim porque me indicaram\". 🥹\n\nCada recomendação é a prova de que estamos no caminho certo. Obrigado a todos que confiam na {nome} e espalham essa confiança por {cidade}!\n\nJá é nosso cliente? Conta nos comentários como foi a sua experiência 👇",
+      "hashtags": ["#depoimento", "#clientesatisfeito"]
+    },
+    {
+      "theme": "Bastidores",
+      "headline": "O que você não vê faz toda a diferença",
+      "subheadline": "Por trás de cada detalhe existe uma equipe apaixonada pelo que faz.",
+      "cta": "Veja os bastidores",
+      "caption": "Hoje vamos abrir as portas dos nossos bastidores! 🎬\n\nCuidado, organização e muita dedicação: é assim que a {nome} funciona antes mesmo de você chegar.\n\nQuer ver mais conteúdos assim? Comenta \"EU QUERO\" que a gente prepara mais!",
+      "hashtags": ["#bastidores", "#equipe"]
+    },
+    {
+      "theme": "Convite",
+      "headline": "Sua próxima melhor experiência começa aqui",
+      "subheadline": "Atendimento próximo, qualidade de verdade e o carinho que você merece.",
+      "cta": "Agende agora",
+      "caption": "Que tal tirar aquele plano do papel ainda essa semana? 📅\n\nA {nome} está pronta para receber você com tudo o que você merece. É só chamar no direct ou clicar no link da bio.\n\nVagas e horários limitados — garanta o seu!",
+      "hashtags": ["#agende", "#imperdivel"]
+    },
+    {
+      "theme": "Dica",
+      "headline": "3 sinais de que você precisa da gente",
+      "subheadline": "Se você se identificou com pelo menos um, está na hora de conversar.",
+      "cta": "Fale conosco",
+      "caption": "Será que chegou a hora? 🤔\n\n1️⃣ Você sente que poderia ter um resultado melhor.\n2️⃣ Você quer praticidade sem abrir mão da qualidade.\n3️⃣ Você procura alguém de confiança em {cidade}.\n\nSe marcou pelo menos um, a {nome} é para você. Chama a gente!",
+      "hashtags": ["#dica", "#vocesabia"]
+    },
+    {
+      "theme": "Diferencial",
+      "headline": "Por que escolher a {nome}?",
+      "subheadline": "Atendimento humano, compromisso com prazos e paixão pelo que fazemos.",
+      "cta": "Descubra",
+      "caption": "Opções existem muitas. Mas experiência como a nossa, só aqui. 💎\n\n✔️ Atendimento personalizado\n✔️ Equipe preparada e atualizada\n✔️ Compromisso real com o seu resultado\n\nEssa é a {nome}: feita para quem não aceita menos que o melhor em {cidade}.",
+      "hashtags": ["#diferencial", "#confianca"]
+    },
+    {
+      "theme": "Engajamento",
+      "headline": "E aí, qual é a sua preferência?",
+      "subheadline": "Conta pra gente nos comentários. Queremos ouvir você!",
+      "cta": "Comente aqui",
+      "caption": "Hoje a pergunta é para você! 👇\n\nQueremos conhecer melhor quem acompanha a {nome}. O que você mais valoriza quando escolhe um lugar como o nosso: atendimento, qualidade ou praticidade?\n\nResponde nos comentários — vamos ler um por um!",
+      "hashtags": ["#enquete", "#comunidade"]
+    },
+    {
+      "theme": "Orgulho local",
+      "headline": "Feito com orgulho em {cidade}",
+      "subheadline": "Valorizar quem é daqui fortalece toda a nossa comunidade.",
+      "cta": "Apoie o local",
+      "caption": "Quando você escolhe a {nome}, está fortalecendo um negócio local e gerando oportunidades aqui mesmo em {cidade}. 🏙️\n\nObrigado por fazer parte dessa história com a gente!\n\nMarque alguém daqui que precisa conhecer a gente 👇",
+      "hashtags": ["#comprelocal", "#orgulholocal"]
+    },
+    {
+      "theme": "Urgência",
+      "headline": "Não deixe para a próxima semana",
+      "subheadline": "Os horários estão acabando. Garanta já o seu atendimento.",
+      "cta": "Garanta o seu",
+      "caption": "Aviso rápido: nossa agenda desta semana está quase lotada! ⏰\n\nSe você estava esperando o momento certo para vir até a {nome}, ele é agora.\n\nChama no direct ou clica no link da bio para garantir o seu horário.",
+      "hashtags": ["#ultimasvagas", "#corre"]
+    }
+  ]
+}
