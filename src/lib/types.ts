@@ -44,4 +44,23 @@ export type GenerateResponse = {
   posts: GeneratedPost[];
   source: ContentSource;
   nicheLabel: string;
+  packId?: string;
+  createdAt?: string;
 };
+
+export type SavedPack = {
+  id: string;
+  createdAt: string;
+  userEmail: string;
+  clientName: string;
+  categoryId: string;
+  nicheId: string;
+  nicheLabel: string;
+  city: string;
+  instagram: string;
+  toneId: string;
+  brandColors: BrandColors;
+  posts: GeneratedPost[];
+  source: ContentSource;
+};
+

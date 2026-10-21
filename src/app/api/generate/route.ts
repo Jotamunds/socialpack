@@ -1,6 +1,8 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { parseProfile } from "@/lib/catalog";
 import { generateWeek } from "@/lib/generator";
+import { savePack } from "@/lib/pack-store";
 import { getProfile, saveProfile } from "@/lib/profile-store";
 import { getSessionEmail } from "@/lib/session";
 
@@ -10,29 +12,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
 
-  // Tenta ler perfil salvo; se ainda não houver, aceita do body ou inicializa padrão
-  let profile = await getProfile(email);
-  if (!profile) {
-    const fromBody = parseProfile(await request.json().catch(() => null));
-    if (fromBody) {
-      profile = fromBody;
-      await saveProfile(email, profile);
-    } else {
-      profile = {
-        name: "Minha Empresa",
-        categoryId: "alimentacao",
-        nicheId: "restaurante",
-        city: "Minha Cidade",
-        instagram: "minhaempresa",
-        toneId: "descontraido",
-        colors: {
-          primary: "#8b5cf6",
-          secondary: "#d946ef",
-          accent: "#fbbf24",
-        },
-      };
-      await saveProfile(email, profile);
-    }
+  // Se vier perfil no body, prioriza e atualiza; senão usa o salvo ou padrão
+  const fromBody = parseProfile(await request.json().catch(() => null));
+  let profile = fromBody || (await getProfile(email));
+
+  if (fromBody) {
+    await saveProfile(email, fromBody);
+  } else if (!profile) {
+    profile = {
+      name: "Minha Empresa",
+      categoryId: "alimentacao",
+      nicheId: "restaurante",
+      city: "Minha Cidade",
+      instagram: "minhaempresa",
+      toneId: "descontraido",
+      colors: {
+        primary: "#1d1d1f",
+        secondary: "#6e6e73",
+        accent: "#0071e3",
+      },
+    };
+    await saveProfile(email, profile);
   }
 
   const week = await generateWeek(profile);
@@ -42,5 +42,31 @@ export async function POST(request: Request) {
       { status: 422 },
     );
   }
-  return NextResponse.json(week);
+
+  // Persiste o pack no histórico (Supabase com fallback seguro)
+  const packId = randomUUID();
+  const createdAt = new Date().toISOString();
+
+  const saved = await savePack({
+    id: packId,
+    createdAt,
+    userEmail: email,
+    clientName: profile.name,
+    categoryId: profile.categoryId,
+    nicheId: profile.nicheId,
+    nicheLabel: week.nicheLabel,
+    city: profile.city,
+    instagram: profile.instagram,
+    toneId: profile.toneId,
+    brandColors: profile.colors,
+    posts: week.posts,
+    source: week.source,
+  });
+
+  return NextResponse.json({
+    ...week,
+    packId: saved.id,
+    createdAt: saved.createdAt,
+  });
 }
+

@@ -8,6 +8,14 @@ SocialPack AI é um Micro-SaaS construído com **Next.js 16**, **Tailwind CSS v4
 
 ## ✨ Funcionalidades Principais
 
+- 🍎 **Design System Padrão Apple**:
+  - Interface minimalista com canvas limpo (`#f5f5f7`), cards puros (`#ffffff`) e tipografia tinta escura (`#1d1d1f`).
+  - Destaques funcionais em azul Apple (`#0071e3`), bordas sutis (`#d2d2d7`), espaçamento generoso e botões em cápsula/pílula (`rounded-full`).
+  - Segmented controls de alternância rápida de abas e seletor de modo.
+- 🗄️ **Salvamento Organizado & Histórico de Packs (Supabase + Fallback)**:
+  - Salvamento automático de cada pack de 5 artes no Supabase (tabela `post_packs`) associado à conta do cliente.
+  - Abordagem resiliente: fallback transparente para armazenamento local em JSON (`data/packs.json`) caso as credenciais de banco não estejam configuradas.
+  - Seção dedicada de **Histórico de Packs**: busca por cliente/tema, filtro por data, visualização de miniaturas e re-download de PNGs em lote.
 - 🔐 **Autenticação Full-Stack**:
   - Sessão segura via cookies `httpOnly` assinados com JWT (`jose`).
   - Proteção de rotas com Proxy (Next.js 16).

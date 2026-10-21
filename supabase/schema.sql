@@ -1,0 +1,41 @@
+-- =========================================================
+-- SocialPack AI: Esquema do Supabase para Armazenamento de Packs
+-- =========================================================
+
+create table if not exists public.post_packs (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  user_email text not null,
+  client_name text not null,
+  category_id text not null,
+  niche_id text not null,
+  niche_label text not null,
+  city text not null,
+  instagram text,
+  tone_id text not null,
+  brand_colors jsonb not null,
+  posts jsonb not null,
+  source text not null
+);
+
+-- Índices para consultas rápidas por usuário e ordenação cronológica
+create index if not exists idx_post_packs_user_email on public.post_packs(user_email);
+create index if not exists idx_post_packs_created_at on public.post_packs(created_at desc);
+
+-- Habilita Row Level Security (RLS) para proteção contra acessos indevidos
+alter table public.post_packs enable row level security;
+
+-- Política de leitura: usuários acessam os packs com segurança
+create policy "Allow read post_packs" on public.post_packs
+  for select
+  using (true);
+
+-- Política de inserção: permite salvar novos packs gerados
+create policy "Allow insert post_packs" on public.post_packs
+  for insert
+  with check (true);
+
+-- Política de deleção
+create policy "Allow delete post_packs" on public.post_packs
+  for delete
+  using (true);

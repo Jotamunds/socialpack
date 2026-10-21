@@ -17,28 +17,28 @@ import type { BrandColors, CompanyProfile } from "@/lib/types";
 
 const COLOR_PRESETS: { name: string; colors: BrandColors }[] = [
   {
-    name: "Cyber Fuchsia",
-    colors: { primary: "#7c3aed", secondary: "#db2777", accent: "#f59e0b" },
+    name: "Apple Neutral",
+    colors: { primary: "#1d1d1f", secondary: "#6e6e73", accent: "#0071e3" },
   },
   {
-    name: "Midnight Emerald",
-    colors: { primary: "#064e3b", secondary: "#0f766e", accent: "#fbbf24" },
+    name: "Midnight Teal",
+    colors: { primary: "#064e3b", secondary: "#0f766e", accent: "#0071e3" },
   },
   {
-    name: "Burgundy Velvet",
-    colors: { primary: "#4a044e", secondary: "#831843", accent: "#f43f5e" },
+    name: "Classic Navy",
+    colors: { primary: "#0f172a", secondary: "#1e3a8a", accent: "#0284c7" },
   },
   {
-    name: "Sunset Coral",
-    colors: { primary: "#c2410c", secondary: "#be185d", accent: "#fbbf24" },
+    name: "Warm Terracotta",
+    colors: { primary: "#7c2d12", secondary: "#9a3412", accent: "#d97706" },
   },
   {
-    name: "Deep Ocean",
-    colors: { primary: "#0f172a", secondary: "#1e3a8a", accent: "#38bdf8" },
+    name: "Deep Emerald",
+    colors: { primary: "#14532d", secondary: "#166534", accent: "#eab308" },
   },
   {
-    name: "Coffee Gold",
-    colors: { primary: "#3e2723", secondary: "#4e342e", accent: "#d97706" },
+    name: "Rich Plum",
+    colors: { primary: "#4c0519", secondary: "#881337", accent: "#0071e3" },
   },
 ];
 
@@ -65,9 +65,9 @@ export function ProfileForm({
       instagram: "bellacucina.cwb",
       toneId: "descontraido",
       colors: {
-        primary: "#8b5cf6",
-        secondary: "#d946ef",
-        accent: "#fbbf24",
+        primary: "#1d1d1f",
+        secondary: "#6e6e73",
+        accent: "#0071e3",
       },
     };
   });
@@ -137,39 +137,39 @@ export function ProfileForm({
   };
 
   return (
-    <div className="glass relative rounded-3xl p-6 sm:p-7 space-y-6">
+    <div className="apple-card p-6 sm:p-7 space-y-6 bg-white">
       {/* Header do Perfil */}
-      <div className="flex items-start justify-between gap-4 border-b border-white/8 pb-5">
+      <div className="flex items-start justify-between gap-4 border-b border-[#e5e5ea] pb-5">
         <div>
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-brand-fuchsia">
-            <BuildingIcon className="size-3.5" /> Identidade da Empresa
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#0071e3]">
+            <BuildingIcon className="size-3.5" /> Identidade do Cliente
           </span>
-          <h2 className="font-display text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
-            Perfil do Negócio
+          <h2 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] tracking-tight mt-1">
+            Perfil da Empresa
           </h2>
-          <p className="text-xs sm:text-sm text-white/60 mt-1">
-            Personalize os dados e cores para alimentar a IA e os templates visuais.
+          <p className="text-xs sm:text-sm text-[#6e6e73] mt-1">
+            Personalize os dados e a paleta para guiar os templates visuais e copies.
           </p>
         </div>
 
-        {/* Live Badge Preview */}
+        {/* Live Palette Badge */}
         <div className="hidden sm:flex flex-col items-end gap-1.5">
-          <span className="text-[10px] uppercase font-semibold text-white/40 tracking-wider">
+          <span className="text-[10px] uppercase font-semibold text-[#86868b] tracking-wider">
             Paleta Ativa
           </span>
-          <div className="flex items-center -space-x-1.5 p-1 rounded-full bg-white/5 border border-white/10 shadow-inner">
+          <div className="flex items-center -space-x-1.5 p-1 rounded-full bg-[#f5f5f7] border border-[#d2d2d7]">
             <div
-              className="size-5 rounded-full ring-2 ring-black/40 transition-transform hover:scale-125"
+              className="size-5 rounded-full ring-2 ring-white shadow-sm transition-transform hover:scale-125"
               style={{ background: profile.colors.primary }}
               title={`Primária: ${profile.colors.primary}`}
             />
             <div
-              className="size-5 rounded-full ring-2 ring-black/40 transition-transform hover:scale-125"
+              className="size-5 rounded-full ring-2 ring-white shadow-sm transition-transform hover:scale-125"
               style={{ background: profile.colors.secondary }}
               title={`Secundária: ${profile.colors.secondary}`}
             />
             <div
-              className="size-5 rounded-full ring-2 ring-black/40 transition-transform hover:scale-125"
+              className="size-5 rounded-full ring-2 ring-white shadow-sm transition-transform hover:scale-125"
               style={{ background: profile.colors.accent }}
               title={`Destaque: ${profile.colors.accent}`}
             />
@@ -178,18 +178,18 @@ export function ProfileForm({
       </div>
 
       {errorMessage && (
-        <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
           {errorMessage}
         </div>
       )}
 
       {/* Formulário */}
-      <div className="space-y-5">
+      <div className="space-y-4">
         {/* Nome & Cidade */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div>
             <label htmlFor={nameId} className="field-label">
-              <BuildingIcon className="size-3 text-white/50" /> Nome da Empresa
+              <BuildingIcon className="size-3 text-[#6e6e73]" /> Nome da Empresa
             </label>
             <input
               id={nameId}
@@ -205,7 +205,7 @@ export function ProfileForm({
 
           <div>
             <label htmlFor={cityId} className="field-label">
-              <MapPinIcon className="size-3 text-white/50" /> Cidade e Estado
+              <MapPinIcon className="size-3 text-[#6e6e73]" /> Cidade e Estado
             </label>
             <input
               id={cityId}
@@ -221,10 +221,10 @@ export function ProfileForm({
         </div>
 
         {/* Tipo de Empresa & Nicho */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div>
             <label htmlFor={categorySelectId} className="field-label">
-              <TagIcon className="size-3 text-white/50" /> Tipo / Segmento
+              <TagIcon className="size-3 text-[#6e6e73]" /> Segmento
             </label>
             <select
               id={categorySelectId}
@@ -242,7 +242,7 @@ export function ProfileForm({
 
           <div>
             <label htmlFor={nicheSelectId} className="field-label">
-              <TagIcon className="size-3 text-white/50" /> Nicho Específico
+              <TagIcon className="size-3 text-[#6e6e73]" /> Nicho Específico
             </label>
             <select
               id={nicheSelectId}
@@ -262,13 +262,13 @@ export function ProfileForm({
         </div>
 
         {/* Instagram & Tom de Voz */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div>
             <label htmlFor={instaId} className="field-label">
-              @ Instagram / Usuário
+              Instagram do Cliente
             </label>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/35 font-mono text-sm">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#86868b] font-mono text-xs">
                 @
               </span>
               <input
@@ -281,15 +281,15 @@ export function ProfileForm({
                     instagram: e.target.value.replace(/^@+/, ""),
                   }))
                 }
-                placeholder="suaempresa"
-                className="field-input pl-8 font-mono text-xs sm:text-sm"
+                placeholder="nomecliente"
+                className="field-input pl-8 text-xs sm:text-sm font-mono"
               />
             </div>
           </div>
 
           <div>
             <label htmlFor={toneSelectId} className="field-label">
-              <MicIcon className="size-3 text-white/50" /> Tom de Voz da Marca
+              <MicIcon className="size-3 text-[#6e6e73]" /> Tom de Voz
             </label>
             <select
               id={toneSelectId}
@@ -301,7 +301,7 @@ export function ProfileForm({
             >
               {tones.map((tone) => (
                 <option key={tone.id} value={tone.id}>
-                  {tone.label} {tone.emojis ? "✨ (com emojis)" : "📄 (sóbrio)"}
+                  {tone.label} {tone.emojis ? "(com emojis)" : "(sóbrio)"}
                 </option>
               ))}
             </select>
@@ -309,16 +309,18 @@ export function ProfileForm({
         </div>
 
         {/* Descrição do Tom Selecionado */}
-        <div className="rounded-xl border border-white/8 bg-white/[0.02] p-3 text-xs text-white/60 flex items-start gap-2.5">
-          <span className="text-base select-none">💬</span>
-          <div>
-            <span className="font-semibold text-white/80 mr-1.5">
-              {currentTone.label}:
-            </span>
-            {currentTone.description}
-            <span className="block text-white/40 mt-0.5 italic">
-              Assinatura padrão: &ldquo;{currentTone.signoff}&rdquo;
-            </span>
+        <div className="rounded-xl border border-[#d2d2d7] bg-[#f5f5f7] p-3 text-xs text-[#6e6e73] flex items-start gap-2.5">
+          <span className="text-sm select-none">💬</span>
+          <div className="space-y-0.5">
+            <div>
+              <span className="font-semibold text-[#1d1d1f] mr-1.5">
+                {currentTone.label}:
+              </span>
+              {currentTone.description}
+            </div>
+            <div className="text-[#86868b] italic">
+              Assinatura: &ldquo;{currentTone.signoff}&rdquo;
+            </div>
           </div>
         </div>
 
@@ -326,17 +328,17 @@ export function ProfileForm({
         <div className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
             <span className="field-label mb-0">
-              <PaletteIcon className="size-3.5 text-white/50" /> Cores da Marca
+              <PaletteIcon className="size-3.5 text-[#6e6e73]" /> Cores da Marca
             </span>
-            <span className="text-[11px] text-white/40">
-              Personalize ou escolha uma paleta rápida
+            <span className="text-[11px] text-[#86868b]">
+              Personalize ou escolha um preset
             </span>
           </div>
 
           {/* Color pickers */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             {/* Primária */}
-            <div className="flex items-center gap-2.5 p-2.5 rounded-xl border border-white/10 bg-white/[0.03]">
+            <div className="flex items-center gap-2.5 p-2 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]">
               <input
                 type="color"
                 value={profile.colors.primary}
@@ -346,10 +348,10 @@ export function ProfileForm({
                     colors: { ...p.colors, primary: e.target.value },
                   }))
                 }
-                className="size-8 rounded-lg cursor-pointer border-0 bg-transparent p-0"
+                className="size-7 rounded-lg cursor-pointer border border-[#d2d2d7] bg-transparent p-0"
               />
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase font-bold text-white/50 tracking-wider">
+                <p className="text-[10px] uppercase font-semibold text-[#86868b]">
                   Primária
                 </p>
                 <input
@@ -362,13 +364,13 @@ export function ProfileForm({
                       colors: { ...p.colors, primary: e.target.value },
                     }))
                   }
-                  className="font-mono text-xs text-white uppercase bg-transparent outline-none w-full"
+                  className="font-mono text-xs text-[#1d1d1f] uppercase bg-transparent outline-none w-full"
                 />
               </div>
             </div>
 
             {/* Secundária */}
-            <div className="flex items-center gap-2.5 p-2.5 rounded-xl border border-white/10 bg-white/[0.03]">
+            <div className="flex items-center gap-2.5 p-2 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]">
               <input
                 type="color"
                 value={profile.colors.secondary}
@@ -378,10 +380,10 @@ export function ProfileForm({
                     colors: { ...p.colors, secondary: e.target.value },
                   }))
                 }
-                className="size-8 rounded-lg cursor-pointer border-0 bg-transparent p-0"
+                className="size-7 rounded-lg cursor-pointer border border-[#d2d2d7] bg-transparent p-0"
               />
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase font-bold text-white/50 tracking-wider">
+                <p className="text-[10px] uppercase font-semibold text-[#86868b]">
                   Secundária
                 </p>
                 <input
@@ -394,13 +396,13 @@ export function ProfileForm({
                       colors: { ...p.colors, secondary: e.target.value },
                     }))
                   }
-                  className="font-mono text-xs text-white uppercase bg-transparent outline-none w-full"
+                  className="font-mono text-xs text-[#1d1d1f] uppercase bg-transparent outline-none w-full"
                 />
               </div>
             </div>
 
             {/* Destaque / Accent */}
-            <div className="flex items-center gap-2.5 p-2.5 rounded-xl border border-white/10 bg-white/[0.03]">
+            <div className="flex items-center gap-2.5 p-2 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]">
               <input
                 type="color"
                 value={profile.colors.accent}
@@ -410,10 +412,10 @@ export function ProfileForm({
                     colors: { ...p.colors, accent: e.target.value },
                   }))
                 }
-                className="size-8 rounded-lg cursor-pointer border-0 bg-transparent p-0"
+                className="size-7 rounded-lg cursor-pointer border border-[#d2d2d7] bg-transparent p-0"
               />
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase font-bold text-white/50 tracking-wider">
+                <p className="text-[10px] uppercase font-semibold text-[#86868b]">
                   Destaque (CTA)
                 </p>
                 <input
@@ -426,15 +428,15 @@ export function ProfileForm({
                       colors: { ...p.colors, accent: e.target.value },
                     }))
                   }
-                  className="font-mono text-xs text-white uppercase bg-transparent outline-none w-full"
+                  className="font-mono text-xs text-[#1d1d1f] uppercase bg-transparent outline-none w-full"
                 />
               </div>
             </div>
           </div>
 
           {/* Quick Palettes */}
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-[11px] text-white/40 mr-1">Paletas:</span>
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            <span className="text-[11px] text-[#86868b] mr-1">Presets:</span>
             {COLOR_PRESETS.map((preset) => (
               <button
                 key={preset.name}
@@ -442,19 +444,19 @@ export function ProfileForm({
                 onClick={() =>
                   setProfile((p) => ({ ...p, colors: preset.colors }))
                 }
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-white/8 bg-white/[0.03] text-[11px] text-white/70 hover:border-white/20 hover:text-white transition"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#d2d2d7] bg-white text-[11px] text-[#1d1d1f] hover:border-[#86868b] hover:bg-[#f5f5f7] transition"
               >
                 <span className="flex items-center -space-x-1">
                   <span
-                    className="size-2.5 rounded-full ring-1 ring-black/40"
+                    className="size-2 rounded-full ring-1 ring-white"
                     style={{ background: preset.colors.primary }}
                   />
                   <span
-                    className="size-2.5 rounded-full ring-1 ring-black/40"
+                    className="size-2 rounded-full ring-1 ring-white"
                     style={{ background: preset.colors.secondary }}
                   />
                   <span
-                    className="size-2.5 rounded-full ring-1 ring-black/40"
+                    className="size-2 rounded-full ring-1 ring-white"
                     style={{ background: preset.colors.accent }}
                   />
                 </span>
@@ -466,24 +468,24 @@ export function ProfileForm({
       </div>
 
       {/* Ações: Salvar e Gerar */}
-      <div className="pt-4 border-t border-white/8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <div className="pt-4 border-t border-[#e5e5ea] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <button
           type="button"
           onClick={() => handleSave(false)}
           disabled={saving || isGenerating}
-          className="btn-ghost text-xs"
+          className="btn-ghost text-xs py-2 px-4"
         >
           {saving ? (
             <SpinnerIcon />
           ) : saveSuccess ? (
-            <CheckIcon className="text-emerald-400" />
+            <CheckIcon className="text-emerald-600" />
           ) : (
             <SaveIcon />
           )}
           {saving
             ? "Salvando..."
             : saveSuccess
-            ? "Perfil salvo!"
+            ? "Salvo com sucesso"
             : "Salvar Perfil"}
         </button>
 
@@ -492,7 +494,7 @@ export function ProfileForm({
           type="button"
           onClick={handleGenerateClick}
           disabled={isGenerating || saving}
-          className="btn-primary text-sm sm:text-base py-3 px-6 shadow-xl"
+          className="btn-primary text-sm py-2.5 px-6"
         >
           {isGenerating ? (
             <>
