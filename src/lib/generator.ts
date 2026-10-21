@@ -14,7 +14,7 @@ import type {
 
 const TEMPLATES_DIR = path.join(process.cwd(), "content", "templates");
 const POSTS_PER_WEEK = 7;
-const LAYOUT_COUNT = 5;
+const LAYOUT_COUNT = 7;
 
 function isValidTemplate(t: unknown): t is PostTemplate {
   if (!t || typeof t !== "object") return false;

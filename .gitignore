@@ -44,3 +44,8 @@ next-env.d.ts
 
 # perfis salvos localmente
 /data/
+
+# uploads de usuários
+/public/uploads/*
+!/public/uploads/.gitkeep
+

@@ -5,11 +5,28 @@ import { generateWeek } from "@/lib/generator";
 import { savePack } from "@/lib/pack-store";
 import { getProfile, saveProfile } from "@/lib/profile-store";
 import { getSessionEmail } from "@/lib/session";
+import { checkQuota, incrementQuota } from "@/lib/subscription-store";
 
 export async function POST(request: Request) {
   const email = await getSessionEmail();
   if (!email) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  }
+
+  // Validação de cota e plano ativo antes de autorizar a geração
+  const { allowed, remaining, sub } = await checkQuota(email);
+  if (!allowed) {
+    return NextResponse.json(
+      {
+        error:
+          "Limite de cota de geração atingido. Assine um plano comercial para continuar gerando calendários semanais completos.",
+        code: "QUOTA_EXCEEDED",
+        quota: sub.generationQuota,
+        used: sub.usedGenerations,
+        planId: sub.planId,
+      },
+      { status: 402 },
+    );
   }
 
   // Extrai body e verifica se veio startDate
@@ -72,10 +89,15 @@ export async function POST(request: Request) {
     endDate: week.endDate,
   });
 
+  // Atualiza a cota consumida
+  await incrementQuota(email);
+
   return NextResponse.json({
     ...week,
     packId: saved.id,
     createdAt: saved.createdAt,
+    quotaRemaining: Math.max(0, remaining - 1),
   });
 }
+
 

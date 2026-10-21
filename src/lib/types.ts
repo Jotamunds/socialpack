@@ -37,8 +37,16 @@ export type GeneratedPost = {
   cta: string;
   caption: string;
   hashtags: string[];
-  /** Índice do template visual (0–4). */
+  /** Índice do template visual (0–6). */
   layout: number;
+  /** Customizações do usuário (Fase 1 & 2) */
+  imageUrl?: string;
+  customHeadline?: string;
+  customSubheadline?: string;
+  customCta?: string;
+  customCaption?: string;
+  customHandle?: string;
+  isCustomized?: boolean;
 };
 
 export type ContentSource = "niche" | "generic" | "mixed";
@@ -71,4 +79,48 @@ export type SavedPack = {
   startDate?: string;
   endDate?: string;
 };
+
+export type TemplateModel = {
+  id: string;
+  name?: string;
+  categoryId: string;
+  nicheId?: string;
+  theme: string;
+  headline: string;
+  subheadline: string;
+  cta: string;
+  caption: string;
+  hashtags?: string[];
+  tones?: string[];
+  layout: number;
+  imageUrl?: string;
+  createdAt?: string;
+  description?: string;
+};
+
+export type SubscriptionStatus = "free" | "active" | "past_due" | "canceled";
+export type PlanId = "free" | "starter" | "pro";
+
+export type UserSubscription = {
+  userEmail: string;
+  status: SubscriptionStatus;
+  planId: PlanId;
+  generationQuota: number;
+  usedGenerations: number;
+  currentPeriodEnd: string;
+  updatedAt: string;
+};
+
+export type SubscriptionPlan = {
+  id: PlanId;
+  name: string;
+  price: string;
+  period: string;
+  description: string;
+  quota: number;
+  features: string[];
+  isPopular?: boolean;
+};
+
+
 

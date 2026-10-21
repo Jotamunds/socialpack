@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { BillingSection } from "@/components/dashboard/BillingSection";
 import { HistorySection } from "@/components/dashboard/HistorySection";
 import {
+  CreditCardIcon,
   ImagesIcon,
   LogOutIcon,
   SparklesIcon,
 } from "@/components/icons";
 import { Logo } from "@/components/Logo";
 import { getMondayOfWeek } from "@/lib/date-utils";
-import type { CompanyProfile, GenerateResponse } from "@/lib/types";
+import type { CompanyProfile, GenerateResponse, GeneratedPost } from "@/lib/types";
 import { PostsSection } from "./PostsSection";
 import { ProfileForm } from "./ProfileForm";
 
@@ -21,7 +23,7 @@ type Props = {
 
 export function DashboardClient({ initialProfile, userEmail }: Props) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"create" | "history">("create");
+  const [activeTab, setActiveTab] = useState<"create" | "history" | "billing">("create");
   const [startDate, setStartDate] = useState<string>(() => getMondayOfWeek());
   const [profile, setProfile] = useState<CompanyProfile>(
     () =>
@@ -43,6 +45,27 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState("");
   const [historyKey, setHistoryKey] = useState(0);
+
+  const handleUpdatePost = async (updatedPost: GeneratedPost) => {
+    if (!result) return;
+    const newPosts = result.posts.map((p) => (p.id === updatedPost.id ? updatedPost : p));
+    setResult({
+      ...result,
+      posts: newPosts,
+    });
+
+    if (result.packId) {
+      try {
+        await fetch("/api/packs", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: result.packId, posts: newPosts }),
+        });
+      } catch {
+        // não bloqueia a UI se a requisição falhar
+      }
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -68,6 +91,9 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
       });
       const data = await res.json();
       if (!res.ok) {
+        if (res.status === 402) {
+          setActiveTab("billing");
+        }
         throw new Error(data.error || "Erro ao gerar posts.");
       }
       setResult(data);
@@ -116,12 +142,18 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#e5e5ea]">
           <div className="space-y-0.5">
             <h1 className="text-2xl font-semibold text-[#1d1d1f] tracking-tight">
-              {activeTab === "create" ? "Calendário Editorial Semanal" : "Galeria de Artes Salvas"}
+              {activeTab === "create"
+                ? "Calendário Editorial Semanal"
+                : activeTab === "history"
+                ? "Galeria de Artes Salvas"
+                : "Planos & Assinatura B2B"}
             </h1>
             <p className="text-xs sm:text-sm text-[#6e6e73]">
               {activeTab === "create"
                 ? "Gere o calendário semanal completo de 7 posts (Segunda a Domingo) com datas reais para o feed dos seus clientes."
-                : "Acesse o histórico completo de packs gerados e salvos no Supabase."}
+                : activeTab === "history"
+                ? "Acesse o histórico completo de packs gerados e salvos no Supabase."
+                : "Gerencie sua cota de artes semanais e escolha o plano ideal para a escala do seu comércio."}
             </p>
           </div>
 
@@ -150,7 +182,20 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
               }`}
             >
               <ImagesIcon className="size-3.5" />
-              Histórico de Artes
+              Histórico
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("billing")}
+              className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full transition-all ${
+                activeTab === "billing"
+                  ? "bg-white text-[#1d1d1f] shadow-sm font-semibold"
+                  : "text-[#6e6e73] hover:text-[#1d1d1f]"
+              }`}
+            >
+              <CreditCardIcon className="size-3.5" />
+              Planos & Cota
             </button>
           </div>
         </div>
@@ -185,6 +230,7 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
                 onRegenerate={handleGenerate}
                 startDate={startDate}
                 onStartDateChange={setStartDate}
+                onUpdatePost={handleUpdatePost}
               />
             </div>
           </div>
@@ -193,6 +239,11 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
         {/* Tab 2: Histórico de Packs e Artes Salvas no Supabase */}
         {activeTab === "history" && (
           <HistorySection key={historyKey} currentEmail={userEmail} />
+        )}
+
+        {/* Tab 3: Gestão de Planos, Cota e Assinatura */}
+        {activeTab === "billing" && (
+          <BillingSection currentEmail={userEmail} />
         )}
       </main>
 

@@ -368,13 +368,13 @@ export function HistorySection({ currentEmail }: Props) {
                               <span className="font-semibold uppercase tracking-wider">
                                 {post.day}
                               </span>
-                              <span>Post {idx + 1} de 5</span>
+                              <span>Post {idx + 1} de {selectedPack.posts.length}</span>
                             </div>
                             <h4 className="text-base font-semibold text-[#1d1d1f] mt-0.5">
-                              {post.headline}
+                              {post.customHeadline || post.headline}
                             </h4>
                             <p className="text-xs text-[#6e6e73] mt-1 line-clamp-3">
-                              {post.caption}
+                              {post.customCaption || post.caption}
                             </p>
                           </div>
 

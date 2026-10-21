@@ -12,7 +12,7 @@ import {
 } from "@/components/icons";
 import { formatWeekRange, getNextMonday } from "@/lib/date-utils";
 import { downloadNodeAsPng } from "@/lib/export-image";
-import type { CompanyProfile, GenerateResponse } from "@/lib/types";
+import type { CompanyProfile, GenerateResponse, GeneratedPost } from "@/lib/types";
 import { fileNameFor, PostCard } from "./PostCard";
 
 type Props = {
@@ -22,6 +22,7 @@ type Props = {
   onRegenerate: (date?: string) => Promise<void>;
   startDate: string;
   onStartDateChange: (date: string) => void;
+  onUpdatePost?: (updatedPost: GeneratedPost) => void;
 };
 
 export function PostsSection({
@@ -31,6 +32,7 @@ export function PostsSection({
   onRegenerate,
   startDate,
   onStartDateChange,
+  onUpdatePost,
 }: Props) {
   const canvasMapRef = useRef<Map<string, HTMLDivElement>>(new Map());
   const [downloadingAll, setDownloadingAll] = useState(false);
@@ -265,6 +267,7 @@ export function PostsSection({
                 profile={profile}
                 registerCanvas={registerCanvas}
                 viewMode="timeline"
+                onUpdatePost={onUpdatePost}
               />
             </div>
           ))}
@@ -280,6 +283,7 @@ export function PostsSection({
               profile={profile}
               registerCanvas={registerCanvas}
               viewMode="grid"
+              onUpdatePost={onUpdatePost}
             />
           ))}
         </div>

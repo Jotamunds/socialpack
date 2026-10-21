@@ -2,7 +2,7 @@ import "server-only";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { getSupabaseServerClient, isSupabaseConfigured } from "./supabase";
-import type { SavedPack } from "./types";
+import type { GeneratedPost, SavedPack } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const FILE = path.join(DATA_DIR, "packs.json");
@@ -222,4 +222,78 @@ export async function deletePack(
     return true;
   }
   return false;
+}
+
+/**
+ * Busca um pack pelo ID e valida o usuário.
+ */
+export async function getPackById(
+  id: string,
+  userEmail: string,
+): Promise<SavedPack | null> {
+  const supabase = getSupabaseServerClient();
+  const normalizedEmail = userEmail.toLowerCase();
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("post_packs")
+        .select("*")
+        .eq("id", id)
+        .eq("user_email", normalizedEmail)
+        .maybeSingle();
+
+      if (!error && data) {
+        return mapFromSupabase(data);
+      }
+    } catch {
+      // continua para fallback
+    }
+  }
+
+  const store = await readLocalStore();
+  const userPacks = store[normalizedEmail] || [];
+  return userPacks.find((p) => p.id === id) || null;
+}
+
+/**
+ * Atualiza os posts de um pack salvo (incluindo imagens e textos personalizados).
+ */
+export async function updatePackPosts(
+  id: string,
+  userEmail: string,
+  posts: GeneratedPost[],
+): Promise<SavedPack | null> {
+  const supabase = getSupabaseServerClient();
+  const normalizedEmail = userEmail.toLowerCase();
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("post_packs")
+        .update({ posts })
+        .eq("id", id)
+        .eq("user_email", normalizedEmail)
+        .select()
+        .single();
+
+      if (!error && data) {
+        return mapFromSupabase(data);
+      }
+    } catch {
+      // continua para fallback
+    }
+  }
+
+  const store = await readLocalStore();
+  const userPacks = store[normalizedEmail] || [];
+  const index = userPacks.findIndex((p) => p.id === id);
+
+  if (index !== -1) {
+    userPacks[index].posts = posts;
+    await writeLocalStore(store);
+    return userPacks[index];
+  }
+
+  return null;
 }
