@@ -11,6 +11,7 @@ type Props = {
   index: number;
   profile: CompanyProfile;
   registerCanvas: (id: string, node: HTMLDivElement | null) => void;
+  viewMode?: "timeline" | "grid";
 };
 
 export function fileNameFor(profile: CompanyProfile, post: GeneratedPost, index: number) {
@@ -42,13 +43,20 @@ export function ScaledPreview({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function PostCard({ post, index, profile, registerCanvas }: Props) {
+export function PostCard({
+  post,
+  index,
+  profile,
+  registerCanvas,
+  viewMode = "timeline",
+}: Props) {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
 
   const fullCaption = `${post.caption}\n\n${post.hashtags.join(" ")}`;
+  const isGrid = viewMode === "grid";
 
   async function handleDownload() {
     if (!canvasRef.current) return;
@@ -73,6 +81,91 @@ export function PostCard({ post, index, profile, registerCanvas }: Props) {
     }
   }
 
+  // Renderização 1: Modo Grade (Cards verticais em estilo feed / galeria visual)
+  if (isGrid) {
+    return (
+      <article
+        id={`post-card-${post.id}`}
+        className="apple-card animate-fade-up bg-white p-4 sm:p-5 flex flex-col justify-between h-full space-y-4 hover:border-[#86868b] transition-all scroll-mt-24"
+        style={{ animationDelay: `${index * 45}ms` }}
+        aria-label={`Post de ${post.day}`}
+      >
+        {/* Arte 1080x1080 em destaque total no topo */}
+        <div className="group relative w-full">
+          <ScaledPreview>
+            <PostCanvas
+              ref={(node) => {
+                canvasRef.current = node;
+                registerCanvas(post.id, node);
+              }}
+              post={post}
+              profile={profile}
+              index={index}
+              layout={post.layout}
+            />
+          </ScaledPreview>
+          <span className="pointer-events-none absolute top-2.5 left-2.5 rounded-full bg-white/90 border border-[#d2d2d7] px-2 py-0.5 text-[10px] font-semibold text-[#1d1d1f] shadow-xs backdrop-blur">
+            {LAYOUT_NAMES[post.layout]}
+          </span>
+        </div>
+
+        {/* Metadados e Prévia da Legenda */}
+        <div className="flex flex-col justify-between flex-1 space-y-3">
+          <header className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#0071e3]/10 text-[#0071e3] border border-[#0071e3]/20">
+                {post.day}
+              </span>
+              <h3 className="text-sm sm:text-base font-semibold text-[#1d1d1f] mt-1.5 truncate tracking-tight" title={post.theme}>
+                {post.theme}
+              </h3>
+            </div>
+            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#f5f5f7] border border-[#d2d2d7] text-xs font-bold text-[#6e6e73]">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+          </header>
+
+          <div className="rounded-xl border border-[#e5e5ea] bg-[#f5f5f7] p-2.5 sm:p-3 text-xs leading-relaxed text-[#1d1d1f]">
+            <p className="line-clamp-3 whitespace-pre-line text-[#424245]">
+              {post.caption}
+            </p>
+            <p className="mt-1.5 truncate text-[#0071e3] font-medium text-[11px]">
+              {post.hashtags.slice(0, 3).join(" ")}
+              {post.hashtags.length > 3 && ` +${post.hashtags.length - 3}`}
+            </p>
+          </div>
+
+          {error && <p className="text-[11px] text-rose-600">{error}</p>}
+
+          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#f0f0f2]">
+            <button
+              id={`copy-caption-${index + 1}`}
+              type="button"
+              onClick={handleCopy}
+              className="btn-ghost py-1.5 px-2 text-xs"
+              title="Copiar legenda completa com hashtags"
+            >
+              {copied ? <CheckIcon className="text-emerald-600 size-3.5" /> : <CopyIcon className="size-3.5 text-[#6e6e73]" />}
+              {copied ? "Copiada" : "Copiar"}
+            </button>
+            <button
+              id={`download-card-${index + 1}`}
+              type="button"
+              onClick={handleDownload}
+              disabled={downloading}
+              className="btn-primary py-1.5 px-2 text-xs"
+              title="Baixar arte em PNG 1080x1080"
+            >
+              {downloading ? <SpinnerIcon className="size-3.5" /> : <DownloadIcon className="size-3.5" />}
+              {downloading ? "Gerando…" : "Baixar"}
+            </button>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  // Renderização 2: Modo Linha do Tempo (Card horizontal detalhado com espaço completo)
   return (
     <article
       id={`post-card-${post.id}`}

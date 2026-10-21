@@ -264,13 +264,14 @@ export function PostsSection({
                 index={idx}
                 profile={profile}
                 registerCanvas={registerCanvas}
+                viewMode="timeline"
               />
             </div>
           ))}
         </div>
       ) : (
-        /* Visualização 2: Grade Semanal de 7 Cards */
-        <div className="space-y-5">
+        /* Visualização 2: Grade Semanal de 7 Cards (Mural / Feed Instagram em Múltiplas Colunas) */
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 items-stretch">
           {result.posts.map((post, idx) => (
             <PostCard
               key={post.id}
@@ -278,6 +279,7 @@ export function PostsSection({
               index={idx}
               profile={profile}
               registerCanvas={registerCanvas}
+              viewMode="grid"
             />
           ))}
         </div>
