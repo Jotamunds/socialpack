@@ -39,15 +39,16 @@ export async function POST(request: NextRequest) {
 
     // Processa eventos de sucesso de pagamento ou ativação de assinatura
     if (event === "payment.succeeded" || event === "subscription.activated") {
-      const plan = PLANS.find((p) => p.id === planId) || PLANS[1]; // default starter
+      const plan = PLANS.find((p) => p.id === planId) || PLANS[0]; // default starter
       const nextMonth = new Date();
       nextMonth.setDate(nextMonth.getDate() + 30);
 
       const updated = await updateSubscription(userEmail, {
         status: "active",
         planId: plan.id,
-        generationQuota: plan.quota,
-        usedGenerations: 0,
+        generationQuota: typeof data.generationQuota === "number" ? data.generationQuota : plan.quota,
+        usedGenerations: typeof data.usedGenerations === "number" ? data.usedGenerations : 0,
+        packsCreatedCount: typeof data.packsCreatedCount === "number" ? data.packsCreatedCount : (typeof data.usedGenerations === "number" ? data.usedGenerations : 0),
         currentPeriodEnd: nextMonth.toISOString(),
       });
 

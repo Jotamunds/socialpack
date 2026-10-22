@@ -98,8 +98,8 @@ export type TemplateModel = {
   description?: string;
 };
 
-export type SubscriptionStatus = "free" | "active" | "past_due" | "canceled";
-export type PlanId = "free" | "starter" | "pro";
+export type SubscriptionStatus = "active" | "past_due" | "canceled" | "none" | "free";
+export type PlanId = "starter" | "pro" | "none" | "free";
 
 export type UserSubscription = {
   userEmail: string;
@@ -107,6 +107,7 @@ export type UserSubscription = {
   planId: PlanId;
   generationQuota: number;
   usedGenerations: number;
+  packsCreatedCount?: number;
   currentPeriodEnd: string;
   updatedAt: string;
 };

@@ -8,6 +8,7 @@ import { getSessionEmail } from "@/lib/session";
 import { checkQuota, incrementQuota } from "@/lib/subscription-store";
 import type { CompanyProfile } from "@/lib/types";
 
+
 export async function POST(request: Request) {
   const email = await getSessionEmail();
   if (!email) {
@@ -15,18 +16,26 @@ export async function POST(request: Request) {
   }
 
   // Validação de cota e plano ativo antes de autorizar a geração
-  const { allowed, remaining, sub } = await checkQuota(email);
-  if (!allowed) {
+  const quotaCheck = await checkQuota(email);
+  if (!quotaCheck.allowed) {
     return NextResponse.json(
       {
         error:
-          "Limite de cota de geração atingido. Assine um plano comercial para continuar gerando calendários semanais completos.",
-        code: "QUOTA_EXCEEDED",
-        quota: sub.generationQuota,
-        used: sub.usedGenerations,
-        planId: sub.planId,
+          quotaCheck.errorMessage ||
+          (quotaCheck.sub.status !== "active"
+            ? "Assinatura ativa necessária. Escolha o plano Starter ou Pro para gerar novos packs."
+            : "Limite de packs atingido. Faça upgrade para o plano Pro"),
+        code:
+          quotaCheck.sub.status !== "active"
+            ? "SUBSCRIPTION_REQUIRED"
+            : quotaCheck.sub.planId === "starter"
+            ? "STARTER_LIMIT_REACHED"
+            : "QUOTA_EXCEEDED",
+        quota: quotaCheck.sub.generationQuota,
+        used: Math.max(quotaCheck.sub.usedGenerations || 0, quotaCheck.sub.packsCreatedCount || 0),
+        planId: quotaCheck.sub.planId,
       },
-      { status: 402 },
+      { status: quotaCheck.status || 403 },
     );
   }
 
@@ -93,14 +102,16 @@ export async function POST(request: Request) {
     endDate: week.endDate,
   });
 
-  // Atualiza a cota consumida
-  await incrementQuota(email);
+  // Atualiza a cota consumida e o contador de packs criados no Supabase
+  const updatedSub = await incrementQuota(email);
 
   return NextResponse.json({
     ...week,
     packId: saved.id,
     createdAt: saved.createdAt,
-    quotaRemaining: Math.max(0, remaining - 1),
+    quotaRemaining: Math.max(0, quotaCheck.remaining - 1),
+    usedGenerations: updatedSub.usedGenerations,
+    packsCreatedCount: updatedSub.packsCreatedCount,
   });
 }
 

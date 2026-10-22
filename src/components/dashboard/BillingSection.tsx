@@ -6,25 +6,37 @@ import type { SubscriptionPlan, UserSubscription } from "@/lib/types";
 
 type Props = {
   currentEmail: string;
+  initialSubscription?: UserSubscription | null;
+  onSubscriptionUpdated?: (sub: UserSubscription) => void;
 };
 
-export function BillingSection({ currentEmail }: Props) {
+export function BillingSection({ currentEmail, initialSubscription, onSubscriptionUpdated }: Props) {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-  const [subscription, setSubscription] = useState<UserSubscription | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [subscription, setSubscription] = useState<UserSubscription | null>(() => initialSubscription || null);
+  const [loading, setLoading] = useState(!initialSubscription);
   const [processingPlanId, setProcessingPlanId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(
     null,
   );
 
+  useEffect(() => {
+    if (initialSubscription) {
+      setSubscription(initialSubscription);
+      setLoading(false);
+    }
+  }, [initialSubscription]);
+
   const fetchSubscription = async () => {
-    setLoading(true);
+    if (!subscription) setLoading(true);
     try {
-      const res = await fetch("/api/subscription");
+      const res = await fetch("/api/subscription", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setPlans(data.plans || []);
-        setSubscription(data.subscription || null);
+        if (data.subscription) {
+          setSubscription(data.subscription);
+          onSubscriptionUpdated?.(data.subscription);
+        }
       }
     } catch {
       // ignora
@@ -38,8 +50,6 @@ export function BillingSection({ currentEmail }: Props) {
   }, []);
 
   const handleCheckout = async (plan: SubscriptionPlan) => {
-    if (plan.id === "free") return;
-
     setProcessingPlanId(plan.id);
     setFeedback(null);
 
@@ -65,6 +75,7 @@ export function BillingSection({ currentEmail }: Props) {
 
       if (data.subscription) {
         setSubscription(data.subscription);
+        onSubscriptionUpdated?.(data.subscription);
       } else {
         await fetchSubscription();
       }
@@ -85,11 +96,12 @@ export function BillingSection({ currentEmail }: Props) {
     );
   }
 
-  const currentPlanId = subscription?.planId || "free";
-  const used = subscription?.usedGenerations || 0;
-  const quota = subscription?.generationQuota || 3;
-  const remaining = Math.max(0, quota - used);
-  const percentage = Math.min(100, Math.round((used / quota) * 100));
+  const isActive = subscription?.status === "active";
+  const currentPlanId = isActive ? (subscription?.planId || "starter") : null;
+  const used = Math.max(subscription?.usedGenerations ?? 0, subscription?.packsCreatedCount ?? 0);
+  const quota = isActive ? (subscription?.generationQuota || 0) : 0;
+  const remaining = isActive ? (quota >= 999 ? 999 : Math.max(0, quota - used)) : 0;
+  const percentage = quota > 0 ? Math.min(100, Math.round((used / quota) * 100)) : 0;
 
   return (
     <div className="space-y-8 animate-fade-up">
@@ -103,12 +115,12 @@ export function BillingSection({ currentEmail }: Props) {
               </h2>
               <span
                 className={`text-xs px-3 py-1 rounded-full font-medium ${
-                  subscription?.status === "active"
+                  isActive
                     ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    : "bg-[#f5f5f7] text-[#6e6e73] border border-[#d2d2d7]"
+                    : "bg-amber-50 text-amber-700 border border-amber-200"
                 }`}
               >
-                {subscription?.status === "active" ? "Assinatura Ativa" : "Plano Gratuito"}
+                {isActive ? "Assinatura Ativa" : "Sem Assinatura Ativa"}
               </span>
             </div>
             <p className="text-xs sm:text-sm text-[#6e6e73] mt-1">
@@ -121,19 +133,25 @@ export function BillingSection({ currentEmail }: Props) {
             <div className="flex items-center justify-between text-xs font-medium">
               <span className="text-[#6e6e73]">Cota Mensal</span>
               <span className="text-[#1d1d1f]">
-                {quota >= 999 ? "Ilimitada" : `${used} / ${quota} packs`}
+                {!isActive
+                  ? "Requer Assinatura"
+                  : quota >= 999
+                  ? "Ilimitada"
+                  : `${used} / ${quota} packs`}
               </span>
             </div>
             <div className="w-full h-2 bg-[#e8e8ed] rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
-                  percentage > 85 ? "bg-amber-500" : "bg-[#0071e3]"
+                  !isActive ? "bg-amber-400" : percentage > 85 ? "bg-amber-500" : "bg-[#0071e3]"
                 }`}
-                style={{ width: `${quota >= 999 ? 15 : percentage}%` }}
+                style={{ width: `${!isActive ? 100 : quota >= 999 ? 15 : percentage}%` }}
               />
             </div>
             <p className="text-[11px] text-[#86868b] text-right">
-              {quota >= 999
+              {!isActive
+                ? "Escolha Starter ou Pro para desbloquear"
+                : quota >= 999
                 ? "Gerações ilimitadas ativadas"
                 : `${remaining} pack${remaining === 1 ? "" : "s"} restante${remaining === 1 ? "" : "s"}`}
             </p>
@@ -153,8 +171,8 @@ export function BillingSection({ currentEmail }: Props) {
         )}
       </div>
 
-      {/* Grade de Cards Comparativos de Planos */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 items-stretch">
+      {/* Grade de Cards Comparativos de Planos (Exclusivamente Starter e Pro) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-5 sm:gap-6 items-stretch">
         {plans.map((plan) => {
           const isCurrent = currentPlanId === plan.id;
           const isPopular = plan.isPopular;
@@ -228,7 +246,7 @@ export function BillingSection({ currentEmail }: Props) {
                     ) : (
                       <>
                         <SparklesIcon className="size-3.5" />
-                        {plan.id === "free" ? "Permanecer Grátis" : `Assinar ${plan.name}`}
+                        {`Assinar ${plan.name}`}
                       </>
                     )}
                   </button>

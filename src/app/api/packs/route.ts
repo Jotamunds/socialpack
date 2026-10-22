@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { deletePack, listPacks, savePack, updatePackPosts } from "@/lib/pack-store";
 import { getSessionEmail } from "@/lib/session";
+import { checkQuota, incrementQuota } from "@/lib/subscription-store";
 import type { SavedPack } from "@/lib/types";
+
 
 export async function GET(request: NextRequest) {
   const email = await getSessionEmail();
@@ -23,6 +25,30 @@ export async function POST(request: NextRequest) {
   const email = await getSessionEmail();
   if (!email) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  }
+
+  // Validação de cota e plano antes de salvar novo pack
+  const quotaCheck = await checkQuota(email);
+  if (!quotaCheck.allowed) {
+    return NextResponse.json(
+      {
+        error:
+          quotaCheck.errorMessage ||
+          (quotaCheck.sub.status !== "active"
+            ? "Assinatura ativa necessária. Escolha o plano Starter ou Pro para gerar novos packs."
+            : "Limite de packs atingido. Faça upgrade para o plano Pro"),
+        code:
+          quotaCheck.sub.status !== "active"
+            ? "SUBSCRIPTION_REQUIRED"
+            : quotaCheck.sub.planId === "starter"
+            ? "STARTER_LIMIT_REACHED"
+            : "QUOTA_EXCEEDED",
+        quota: quotaCheck.sub.generationQuota,
+        used: Math.max(quotaCheck.sub.usedGenerations || 0, quotaCheck.sub.packsCreatedCount || 0),
+        planId: quotaCheck.sub.planId,
+      },
+      { status: quotaCheck.status || 403 },
+    );
   }
 
   try {
@@ -57,7 +83,18 @@ export async function POST(request: NextRequest) {
     };
 
     const saved = await savePack(packToSave);
-    return NextResponse.json({ ok: true, pack: saved }, { status: 201 });
+    const updatedSub = await incrementQuota(email);
+
+    return NextResponse.json(
+      {
+        ok: true,
+        pack: saved,
+        quotaRemaining: Math.max(0, quotaCheck.remaining - 1),
+        usedGenerations: updatedSub.usedGenerations,
+        packsCreatedCount: updatedSub.packsCreatedCount,
+      },
+      { status: 201 },
+    );
   } catch (err) {
     console.error("[SocialPack] Erro ao salvar pack via POST:", err);
     return NextResponse.json({ error: "Erro ao salvar pack." }, { status: 500 });

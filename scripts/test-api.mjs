@@ -71,6 +71,14 @@ async function runTests() {
   console.log('  - Status:', subData.subscription?.status);
   console.log('  - Cota Total:', subData.subscription?.generationQuota);
   console.log('  - Gerações Utilizadas:', subData.subscription?.usedGenerations);
+  console.log('  - Planos disponíveis:', subData.plans.map(p => p.id).join(', '));
+  if (subData.plans.some(p => p.id === 'free')) {
+    throw new Error('Erro: Plano gratuito ainda está presente na lista de planos!');
+  }
+  if (subData.plans.length !== 2) {
+    throw new Error(`Esperado exatamente 2 planos oficiais (Starter e Pro), recebido ${subData.plans.length}`);
+  }
+  console.log('✓ Planos restritos exclusivamente a Starter e Pro!');
 
   console.log('\n--- TEST 4: Checkout B2B (POST /api/checkout) ---');
   const checkoutRes = await fetch(`${BASE_URL}/api/checkout`, {
@@ -228,8 +236,209 @@ async function runTests() {
   }
   console.log('✓ Pack de teste removido com sucesso!');
 
+  console.log('\n--- TEST 10: Contabilização e Bloqueio de Cota (Starter vs Pro) ---');
+  // 1. Configura conta como Starter com 11 packs já criados (1 restante)
+  console.log('  10.1: Configurando plano Starter com 11 de 12 packs usados...');
+  const setStarterRes = await fetch(`${BASE_URL}/api/webhooks/payment`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-webhook-secret': 'socialpack_webhook_secret_2026'
+    },
+    body: JSON.stringify({
+      event: 'payment.succeeded',
+      data: {
+        userEmail: 'demo@socialpack.ai',
+        planId: 'starter',
+        usedGenerations: 11,
+        packsCreatedCount: 11,
+      }
+    })
+  });
+  if (!setStarterRes.ok) throw new Error('Falha ao configurar plano Starter no teste');
+
+  // Verifica se a API de assinatura reflete 1 restante
+  const starterSubRes = await fetch(`${BASE_URL}/api/subscription`, {
+    headers: { 'Cookie': cookieHeader }
+  });
+  const starterSubData = await starterSubRes.json();
+  console.log(`  - Plano: ${starterSubData.subscription?.planId}, Usados: ${starterSubData.subscription?.usedGenerations}, Restante: ${starterSubData.remaining}`);
+  if (starterSubData.subscription?.planId !== 'starter' || starterSubData.remaining !== 1) {
+    throw new Error(`Esperado 1 pack restante no Starter, recebido ${starterSubData.remaining}`);
+  }
+
+  // 10.2: Gera o 12º pack (último da cota)
+  console.log('  10.2: Gerando o 12º pack no Starter (limite exato)...');
+  const gen12Res = await fetch(`${BASE_URL}/api/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Cookie': cookieHeader
+    },
+    body: JSON.stringify({ profile: testProfile })
+  });
+  if (!gen12Res.ok) throw new Error(`Geração do 12º pack falhou (${gen12Res.status})`);
+  const gen12Data = await gen12Res.json();
+  console.log(`  ✓ 12º pack gerado! packsCreatedCount: ${gen12Data.packsCreatedCount}, quotaRemaining: ${gen12Data.quotaRemaining}`);
+  if (gen12Data.packsCreatedCount !== 12 || gen12Data.quotaRemaining !== 0) {
+    throw new Error(`Cota não contabilizada corretamente. packsCreatedCount: ${gen12Data.packsCreatedCount}`);
+  }
+
+  // 10.3: Tenta gerar o 13º pack no Starter (deve BLOQUEAR com 403)
+  console.log('  10.3: Tentando gerar o 13º pack além do limite do Starter...');
+  const blockRes = await fetch(`${BASE_URL}/api/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Cookie': cookieHeader
+    },
+    body: JSON.stringify({ profile: testProfile })
+  });
+  console.log(`  - Status da resposta: ${blockRes.status}`);
+  if (blockRes.status !== 403) {
+    throw new Error(`Esperado status 403 para limite atingido, recebido ${blockRes.status}`);
+  }
+  const blockData = await blockRes.json();
+  console.log(`  - Mensagem de erro: "${blockData.error}"`);
+  if (!blockData.error?.includes("Limite de packs atingido. Faça upgrade para o plano Pro")) {
+    throw new Error(`Mensagem incorreta de bloqueio: ${blockData.error}`);
+  }
+  console.log('  ✓ Bloqueio 403 no Starter validado com a mensagem correta!');
+
+  // 10.4: Upgrade para Plano Pro e geração além do limite
+  console.log('  10.4: Fazendo upgrade para o Plano Pro...');
+  await fetch(`${BASE_URL}/api/webhooks/payment`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-webhook-secret': 'socialpack_webhook_secret_2026'
+    },
+    body: JSON.stringify({
+      event: 'payment.succeeded',
+      data: {
+        userEmail: 'demo@socialpack.ai',
+        planId: 'pro',
+        usedGenerations: 12,
+        packsCreatedCount: 12,
+      }
+    })
+  });
+
+  console.log('  10.5: Gerando o 13º pack no Plano Pro (não deve travar e deve contabilizar)...');
+  const proGenRes = await fetch(`${BASE_URL}/api/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Cookie': cookieHeader
+    },
+    body: JSON.stringify({ profile: testProfile })
+  });
+  if (!proGenRes.ok) {
+    throw new Error(`Geração no plano Pro falhou com status ${proGenRes.status}`);
+  }
+  const proGenData = await proGenRes.json();
+  console.log(`  ✓ Pack gerado no Pro! packsCreatedCount: ${proGenData.packsCreatedCount}`);
+  if (proGenData.packsCreatedCount !== 13) {
+    throw new Error(`Esperado 13 packs criados no Pro, obtido ${proGenData.packsCreatedCount}`);
+  }
+
+  // Limpa packs criados no teste
+  if (gen12Data.packId) {
+    await fetch(`${BASE_URL}/api/packs?id=${gen12Data.packId}`, { method: 'DELETE', headers: { 'Cookie': cookieHeader } });
+  }
+  if (proGenData.packId) {
+    await fetch(`${BASE_URL}/api/packs?id=${proGenData.packId}`, { method: 'DELETE', headers: { 'Cookie': cookieHeader } });
+  }
+
+  console.log('\n--- TEST 11: Bloqueio Rigoroso Sem Assinatura Ativa (100% Pago) ---');
+  // 11.1: Cancela assinatura do usuário para testar comportamento inativo
+  console.log('  11.1: Simulando conta sem assinatura ativa (status: canceled)...');
+  await fetch(`${BASE_URL}/api/webhooks/payment`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-webhook-secret': 'socialpack_webhook_secret_2026'
+    },
+    body: JSON.stringify({
+      event: 'subscription.canceled',
+      data: { userEmail: 'demo@socialpack.ai' }
+    })
+  });
+
+  const inactiveSubRes = await fetch(`${BASE_URL}/api/subscription`, {
+    headers: { 'Cookie': cookieHeader }
+  });
+  const inactiveSubData = await inactiveSubRes.json();
+  console.log(`  - Status da assinatura: ${inactiveSubData.subscription?.status}`);
+  if (inactiveSubData.subscription?.status === 'active') {
+    throw new Error('Assinatura deveria estar inativa');
+  }
+
+  // 11.2: Tentativa de geração sem assinatura ativa deve retornar 403
+  console.log('  11.2: Tentando gerar pack sem assinatura ativa...');
+  const inactiveGenRes = await fetch(`${BASE_URL}/api/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Cookie': cookieHeader
+    },
+    body: JSON.stringify({ profile: testProfile })
+  });
+  console.log(`  - Status da resposta: ${inactiveGenRes.status}`);
+  if (inactiveGenRes.status !== 403) {
+    throw new Error(`Esperado status 403 para usuário inativo, recebido ${inactiveGenRes.status}`);
+  }
+  const inactiveGenData = await inactiveGenRes.json();
+  console.log(`  - Mensagem de erro: "${inactiveGenData.error}"`);
+  if (!inactiveGenData.error?.includes("Assinatura ativa necessária")) {
+    throw new Error(`Mensagem incorreta de bloqueio: ${inactiveGenData.error}`);
+  }
+  console.log('  ✓ Geração bloqueada com sucesso para usuário sem assinatura ativa!');
+
+  // 11.3: Redirecionamento da rota /dashboard para /dashboard/billing
+  console.log('  11.3: Verificando redirecionamento de /dashboard para /dashboard/billing...');
+  const rscRes = await fetch(`${BASE_URL}/dashboard`, {
+    headers: { 'Cookie': cookieHeader, 'RSC': '1' },
+    redirect: 'manual'
+  });
+  console.log(`  - Navegação RSC: status ${rscRes.status}`);
+
+  const dashRes = await fetch(`${BASE_URL}/dashboard`, {
+    headers: { 'Cookie': cookieHeader },
+    redirect: 'manual'
+  });
+  const dashText = await dashRes.text();
+  const redirectLocation = dashRes.headers.get('location');
+  const hasPprRedirect = dashText.includes('NEXT_REDIRECT') && dashText.includes('/dashboard/billing');
+  console.log(`  - Documento HTTP /dashboard: status ${dashRes.status}, Redirect Header: ${redirectLocation || 'nenhum'}, PPR Stream Digest: ${hasPprRedirect}`);
+
+  if (rscRes.status !== 307 && !redirectLocation?.includes('/dashboard/billing') && !hasPprRedirect) {
+    throw new Error('Esperado redirecionamento para /dashboard/billing via RSC ou streaming PPR.');
+  }
+  console.log('  ✓ Usuário sem assinatura ativa redirecionado para /dashboard/billing com sucesso!');
+
+  // 11.4: Restaura a assinatura Pro ativa para o usuário demo
+  console.log('  11.4: Reativando plano Pro para a conta demo...');
+  await fetch(`${BASE_URL}/api/webhooks/payment`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-webhook-secret': 'socialpack_webhook_secret_2026'
+    },
+    body: JSON.stringify({
+      event: 'payment.succeeded',
+      data: {
+        userEmail: 'demo@socialpack.ai',
+        planId: 'pro',
+        usedGenerations: 0,
+        packsCreatedCount: 0,
+      }
+    })
+  });
+  console.log('  ✓ Assinatura Pro reativada para testes futuros!');
+
   console.log('\n=====================================================');
-  console.log('   TODAS AS FASES (1, 2 E 3) VALIDADAS COM SUCESSO! 🚀');
+  console.log('   TODAS AS FASES E REGRAS DE COTA VALIDADAS COM SUCESSO! 🚀');
   console.log('=====================================================\n');
 }
 

@@ -16,9 +16,9 @@ export async function POST(request: NextRequest) {
     const autoActivate = Boolean(body?.autoActivate); // Para testes e ativação imediata
 
     const plan = PLANS.find((p) => p.id === planId);
-    if (!plan || plan.id === "free") {
+    if (!plan) {
       return NextResponse.json(
-        { error: "Plano inválido selecionado para checkout." },
+        { error: "Plano inválido selecionado para checkout. Escolha o plano Starter ou Pro." },
         { status: 400 },
       );
     }
@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
         planId: plan.id,
         generationQuota: plan.quota,
         usedGenerations: 0,
+        packsCreatedCount: 0,
         currentPeriodEnd: nextMonth.toISOString(),
       });
 
