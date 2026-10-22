@@ -14,13 +14,6 @@ export function DevIndicatorLock() {
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
 
-    // Reseta qualquer estado salvo que tenha desativado o indicador
-    fetch("/__nextjs_devtools_config", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ disableDevIndicator: false, hideShortcut: null }),
-    }).catch(() => {});
-
     const applyLock = (shadow: ShadowRoot) => {
       // 1. Injeta CSS no Shadow DOM do Next DevTools para ocultar opções de Hide
       // e forçar o botão 'N' sempre visível
