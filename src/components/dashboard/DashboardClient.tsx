@@ -400,7 +400,10 @@ export function DashboardClient({ initialProfile, initialSubscription, userEmail
           <BillingSection
             currentEmail={userEmail}
             initialSubscription={subscription}
-            onSubscriptionUpdated={(sub) => setSubscription(sub)}
+            onSubscriptionUpdated={(sub) => {
+              setSubscription(sub);
+              setActiveTab("create");
+            }}
           />
         )}
       </main>

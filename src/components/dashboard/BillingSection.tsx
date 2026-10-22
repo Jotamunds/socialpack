@@ -78,14 +78,11 @@ export function BillingSection({ currentEmail, initialSubscription, onSubscripti
         onSubscriptionUpdated?.(data.subscription);
       }
 
-      // Redireciona imediatamente para o dashboard com estado atualizado
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 500);
+      // Direciona imediatamente para o dashboard
+      window.location.href = "/dashboard";
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erro ao processar checkout.";
       setFeedback({ type: "error", message: msg });
-    } finally {
       setProcessingPlanId(null);
     }
   };
