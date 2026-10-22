@@ -57,27 +57,41 @@ export async function savePack(pack: SavedPack): Promise<SavedPack> {
     try {
       const { data, error } = await supabase
         .from("post_packs")
-        .insert({
-          id: pack.id,
-          created_at: pack.createdAt,
-          user_email: pack.userEmail.toLowerCase(),
-          client_name: pack.clientName,
-          category_id: pack.categoryId,
-          niche_id: pack.nicheId,
-          niche_label: pack.nicheLabel,
-          city: pack.city,
-          instagram: pack.instagram,
-          tone_id: pack.toneId,
-          brand_colors: pack.brandColors,
-          posts: pack.posts,
-          source: pack.source,
-          start_date: pack.startDate || null,
-          end_date: pack.endDate || null,
-        })
+        .upsert(
+          {
+            id: pack.id,
+            created_at: pack.createdAt,
+            user_email: pack.userEmail.toLowerCase(),
+            client_name: pack.clientName,
+            category_id: pack.categoryId,
+            niche_id: pack.nicheId,
+            niche_label: pack.nicheLabel,
+            city: pack.city,
+            instagram: pack.instagram,
+            tone_id: pack.toneId,
+            brand_colors: pack.brandColors,
+            posts: pack.posts,
+            source: pack.source,
+            start_date: pack.startDate || null,
+            end_date: pack.endDate || null,
+          },
+          { onConflict: "id" },
+        )
         .select()
         .single();
 
       if (!error && data) {
+        // Sincroniza localmente sem interromper execução se filesystem falhar
+        try {
+          const store = await readLocalStore();
+          const emailKey = pack.userEmail.toLowerCase();
+          if (!store[emailKey]) store[emailKey] = [];
+          store[emailKey] = store[emailKey].filter((p) => p.id !== pack.id);
+          store[emailKey].unshift(pack);
+          await writeLocalStore(store);
+        } catch {
+          // No-op em ambientes restritos
+        }
         return mapFromSupabase(data);
       }
       console.warn(
@@ -96,6 +110,7 @@ export async function savePack(pack: SavedPack): Promise<SavedPack> {
     store[emailKey] = [];
   }
   // Insere no início (mais recente primeiro)
+  store[emailKey] = store[emailKey].filter((p) => p.id !== pack.id);
   store[emailKey].unshift(pack);
   await writeLocalStore(store);
   return pack;

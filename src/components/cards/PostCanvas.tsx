@@ -1,9 +1,10 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
-import { INK, alpha, darken, lighten, mix, readableOn } from "@/lib/color";
+import { INK, alpha, readableOn } from "@/lib/color";
+import { getCuratedPhoto } from "@/lib/curated-images";
 import type { CompanyProfile, GeneratedPost } from "@/lib/types";
 
 // Cada template é renderizado em tamanho real (1080x1080) e reduzido via CSS na prévia.
-// Estilos inline garantem que a exportação PNG fique idêntica à prévia.
+// Estilos inline garantem que a exportação PNG (html-to-image) fique 100% idêntica à prévia.
 
 export const CANVAS_SIZE = 1080;
 
@@ -11,14 +12,15 @@ export const LAYOUT_NAMES = [
   "Editorial Kinfolk",
   "Moldura Polaroid",
   "Frase & Foto",
-  "Selo Pop Lifestyle",
-  "Bloco Arquitetônico",
-  "Noite Moody",
+  "Cinema Moody",
+  "Split Vertical",
+  "Card Glassmorphism",
   "Pôster Brutalista",
 ];
 
 type CardProfile = Pick<CompanyProfile, "name" | "instagram" | "colors"> & {
   categoryId?: string;
+  nicheId?: string;
 };
 
 type TemplateProps = {
@@ -81,133 +83,275 @@ function Canvas({ style, children }: { style: CSSProperties; children: ReactNode
 
 const abs = (style: CSSProperties): CSSProperties => ({ position: "absolute", ...style });
 
-/** Banco de imagens editoriais de fallback em alta resolução por nicho */
-export function getFallbackPhoto(categoryId = "alimentacao", index = 0): string {
-  const pools: Record<string, string[]> = {
-    alimentacao: [
-      "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1080&q=80",
-      "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1080&q=80",
-      "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1080&q=80",
-      "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1080&q=80",
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1080&q=80",
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1080&q=80",
-      "https://images.unsplash.com/photo-1544025162-d76694265947?w=1080&q=80",
-    ],
-    beleza: [
-      "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1080&q=80",
-      "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1080&q=80",
-      "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=1080&q=80",
-      "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1080&q=80",
-      "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=1080&q=80",
-      "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=1080&q=80",
-      "https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=1080&q=80",
-    ],
-    saude: [
-      "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1080&q=80",
-      "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1080&q=80",
-      "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1080&q=80",
-      "https://images.unsplash.com/photo-1538805060514-97d9cc17730c?w=1080&q=80",
-      "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1080&q=80",
-      "https://images.unsplash.com/photo-1588286840104-8957b019727f?w=1080&q=80",
-      "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=1080&q=80",
-    ],
-  };
-
-  const defaultPool = [
-    "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1080&q=80",
-    "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1080&q=80",
-    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1080&q=80",
-    "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1080&q=80",
-    "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1080&q=80",
-    "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1080&q=80",
-    "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=1080&q=80",
-  ];
-
-  const pool = pools[categoryId] || defaultPool;
-  return pool[index % pool.length];
+/** Retorna foto curada por nicho e categoria */
+export function getFallbackPhoto(nicheId?: string, categoryId?: string, index = 0): string {
+  return getCuratedPhoto(nicheId, categoryId, index);
 }
 
-/* 0 ─ Editorial Kinfolk: Moldura fina, imagem no topo e tipografia serifada de revista */
+/* =========================================================================
+   0 ─ EDITORIAL KINFOLK (Magazine Minimalista)
+   Tipografia serifada elegante, espaçamento generoso, foto vertical assimétrica
+   com moldura fina e micro-badges editoriais discretos no rodapé.
+   ========================================================================= */
 function EditorialTemplate({ post, profile, index }: TemplateProps) {
   const { primary, accent } = profile.colors;
   const headline = post.customHeadline || post.headline;
   const subheadline = post.customSubheadline || post.subheadline;
   const cta = post.customCta || post.cta;
   const handle = post.customHandle || handleOf(profile);
-  const photo = post.imageUrl || getFallbackPhoto(profile.categoryId, index);
+  const photo = post.imageUrl || getFallbackPhoto(profile.nicheId, profile.categoryId, index);
 
   return (
-    <Canvas style={{ background: "#fbfaf8", color: INK }}>
-      {/* Moldura elegante */}
-      <div style={abs({ inset: 36, border: `2px solid ${alpha(primary, 0.2)}` })} />
+    <Canvas style={{ background: "#faf8f5", color: INK }}>
+      {/* Moldura editorial fina perimetral */}
+      <div style={abs({ inset: 36, border: `1px solid ${alpha(INK, 0.12)}`, pointerEvents: "none" })} />
 
-      <div style={abs({ inset: 36, padding: "50px 56px", display: "flex", flexDirection: "column" })}>
-        {/* Topo: Nome da marca e número da semana */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 22, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase" }}>
-          <span style={{ color: primary }}>{profile.name}</span>
-          <span style={{ color: alpha(INK, 0.5) }}>
-            {post.day}
+      {/* Topo Editorial: Marca com espaçamento e Tag do Dia */}
+      <div
+        style={abs({
+          top: 64,
+          left: 68,
+          right: 68,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          borderBottom: `1px solid ${alpha(INK, 0.08)}`,
+          paddingBottom: 24,
+        })}
+      >
+        <span
+          style={{
+            fontFamily: SERIF,
+            fontSize: 26,
+            fontWeight: 700,
+            letterSpacing: "0.24em",
+            textTransform: "uppercase",
+            color: primary,
+          }}
+        >
+          {profile.name}
+        </span>
+        <span
+          style={{
+            fontSize: 18,
+            fontWeight: 700,
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: alpha(INK, 0.55),
+          }}
+        >
+          VOL. 01 · {post.day}
+        </span>
+      </div>
+
+      {/* Bloco Fotográfico Assimétrico à Direita */}
+      <div
+        style={abs({
+          top: 154,
+          right: 68,
+          width: 450,
+          height: 680,
+          borderRadius: 8,
+          overflow: "hidden",
+          border: `1px solid ${alpha(INK, 0.15)}`,
+          boxShadow: "0 25px 60px -15px rgba(0,0,0,0.12)",
+        })}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={photo}
+          alt={headline}
+          crossOrigin="anonymous"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <div
+          style={abs({
+            bottom: 20,
+            left: 20,
+            background: "rgba(255,255,255,0.92)",
+            backdropFilter: "blur(6px)",
+            padding: "8px 20px",
+            borderRadius: 999,
+            fontSize: 16,
+            fontWeight: 700,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: INK,
+          })}
+        >
+          {post.theme}
+        </div>
+      </div>
+
+      {/* Coluna Tipográfica à Esquerda */}
+      <div
+        style={abs({
+          top: 170,
+          left: 68,
+          width: 440,
+          bottom: 160,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+        })}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 24 }}>
+          <span style={{ width: 36, height: 1.5, background: accent }} />
+          <span
+            style={{
+              fontSize: 18,
+              fontWeight: 800,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: accent,
+            }}
+          >
+            CURADORIA
           </span>
         </div>
 
-        {/* Slot de Foto Editorial */}
-        <div style={{ position: "relative", width: "100%", height: 460, marginTop: 28, borderRadius: 16, overflow: "hidden", boxShadow: "0 20px 40px -15px rgba(0,0,0,0.15)" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={photo}
-            alt={headline}
-            crossOrigin="anonymous"
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-          <span style={abs({ top: 16, left: 16, background: "rgba(255,255,255,0.92)", padding: "6px 18px", borderRadius: 999, fontSize: 18, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: INK })}>
-            {post.theme}
-          </span>
-        </div>
+        <h2
+          style={{
+            margin: 0,
+            fontFamily: SERIF,
+            fontWeight: 700,
+            fontSize: headlineSize(headline, 0.8),
+            lineHeight: 1.1,
+            letterSpacing: "-0.015em",
+            color: INK,
+          }}
+        >
+          {headline}
+        </h2>
 
-        {/* Textos em Tipografia Serifada */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "18px 0" }}>
-          <h2 style={{ margin: 0, fontFamily: SERIF, fontWeight: 700, fontSize: headlineSize(headline, 0.84), lineHeight: 1.1, letterSpacing: "-0.015em", color: INK }}>
-            {headline}
-          </h2>
-          <p style={{ margin: "14px 0 0", fontSize: subSize(subheadline) - 4, lineHeight: 1.4, color: alpha(INK, 0.72) }}>
-            {subheadline}
-          </p>
-        </div>
+        <p
+          style={{
+            margin: "24px 0 0",
+            fontSize: subSize(subheadline) - 4,
+            lineHeight: 1.5,
+            color: alpha(INK, 0.72),
+          }}
+        >
+          {subheadline}
+        </p>
 
-        {/* Rodapé: CTA e Handle */}
-        <div style={{ borderTop: `1.5px solid ${alpha(INK, 0.1)}`, paddingTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 12, fontSize: 24, fontWeight: 800, color: primary, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+        <div style={{ marginTop: 36 }}>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 12,
+              fontSize: 22,
+              fontWeight: 800,
+              color: primary,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
             {cta}
             <Arrow color={primary} size={22} />
           </span>
-          <span style={{ fontSize: 22, fontWeight: 600, color: alpha(INK, 0.6) }}>{handle}</span>
         </div>
+      </div>
+
+      {/* Rodapé Editorial com Micro-badges */}
+      <div
+        style={abs({
+          left: 68,
+          right: 68,
+          bottom: 54,
+          paddingTop: 20,
+          borderTop: `1px solid ${alpha(INK, 0.08)}`,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        })}
+      >
+        <span
+          style={{
+            fontSize: 16,
+            fontWeight: 700,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: alpha(INK, 0.45),
+          }}
+        >
+          EDIÇÃO ESPECIAL // SOCIALPACK
+        </span>
+        <span style={{ fontSize: 20, fontWeight: 600, color: alpha(INK, 0.6) }}>{handle}</span>
       </div>
     </Canvas>
   );
 }
 
-/* 1 ─ Moldura Polaroid: Estilo fotográfico com borda branca e fita adesiva */
+/* =========================================================================
+   1 ─ MOLDURA POLAROID (Lifestyle Memory)
+   Estilo fotográfico clássico com moldura branca, textura e fita adesiva
+   ========================================================================= */
 function PolaroidTemplate({ post, profile, index }: TemplateProps) {
   const { primary, secondary } = profile.colors;
   const headline = post.customHeadline || post.headline;
   const subheadline = post.customSubheadline || post.subheadline;
   const cta = post.customCta || post.cta;
   const handle = post.customHandle || handleOf(profile);
-  const photo = post.imageUrl || getFallbackPhoto(profile.categoryId, index);
+  const photo = post.imageUrl || getFallbackPhoto(profile.nicheId, profile.categoryId, index);
 
   return (
-    <Canvas style={{ background: `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`, color: INK }}>
-      {/* Padrão sutil geométrico de fundo */}
-      <div style={abs({ inset: 0, backgroundImage: `radial-gradient(${alpha("#ffffff", 0.12)} 2px, transparent 2px)`, backgroundSize: "32px 32px" })} />
+    <Canvas
+      style={{
+        background: `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`,
+        color: INK,
+      }}
+    >
+      {/* Padrão geométrico de fundo */}
+      <div
+        style={abs({
+          inset: 0,
+          backgroundImage: `radial-gradient(${alpha("#ffffff", 0.12)} 2px, transparent 2px)`,
+          backgroundSize: "32px 32px",
+        })}
+      />
 
       {/* Cartão Polaroid Central */}
-      <div style={abs({ top: 70, left: 100, right: 100, bottom: 90, background: "#ffffff", borderRadius: 24, padding: "36px 36px 44px", display: "flex", flexDirection: "column", boxShadow: "0 35px 80px -20px rgba(0,0,0,0.4)" })}>
-        {/* Selo simulando fita adesiva translúcida no topo */}
-        <div style={abs({ top: -18, left: "50%", transform: "translateX(-50%)", width: 140, height: 36, background: "rgba(255,255,255,0.75)", backdropFilter: "blur(4px)", borderRadius: 4, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" })} />
+      <div
+        style={abs({
+          top: 60,
+          left: 100,
+          right: 100,
+          bottom: 70,
+          background: "#ffffff",
+          borderRadius: 24,
+          padding: "36px 36px 40px",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: "0 35px 80px -20px rgba(0,0,0,0.4)",
+        })}
+      >
+        {/* Fita adesiva simulada no topo */}
+        <div
+          style={abs({
+            top: -18,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: 140,
+            height: 36,
+            background: "rgba(255,255,255,0.8)",
+            backdropFilter: "blur(4px)",
+            borderRadius: 4,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          })}
+        />
 
         {/* Foto da Polaroid */}
-        <div style={{ position: "relative", width: "100%", height: 530, borderRadius: 14, overflow: "hidden" }}>
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            height: 520,
+            borderRadius: 14,
+            overflow: "hidden",
+          }}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={photo}
@@ -215,24 +359,74 @@ function PolaroidTemplate({ post, profile, index }: TemplateProps) {
             crossOrigin="anonymous"
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
-          <span style={abs({ bottom: 18, left: 18, background: "rgba(0,0,0,0.75)", color: "#ffffff", padding: "6px 18px", borderRadius: 999, fontSize: 18, fontWeight: 700 })}>
+          <span
+            style={abs({
+              bottom: 18,
+              left: 18,
+              background: "rgba(0,0,0,0.75)",
+              color: "#ffffff",
+              padding: "6px 18px",
+              borderRadius: 999,
+              fontSize: 18,
+              fontWeight: 700,
+            })}
+          >
             {post.day}
           </span>
         </div>
 
-        {/* Legenda e Chamada da Polaroid */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", marginTop: 24 }}>
-          <h2 style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 800, fontSize: headlineSize(headline, 0.78), lineHeight: 1.08, color: INK }}>
+        {/* Textos */}
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            marginTop: 22,
+          }}
+        >
+          <h2
+            style={{
+              margin: 0,
+              fontFamily: DISPLAY,
+              fontWeight: 800,
+              fontSize: headlineSize(headline, 0.76),
+              lineHeight: 1.08,
+              color: INK,
+            }}
+          >
             {headline}
           </h2>
-          <p style={{ margin: "10px 0 0", fontSize: subSize(subheadline) - 4, lineHeight: 1.35, color: "#6e6e73" }}>
+          <p
+            style={{
+              margin: "10px 0 0",
+              fontSize: subSize(subheadline) - 4,
+              lineHeight: 1.35,
+              color: "#6e6e73",
+            }}
+          >
             {subheadline}
           </p>
         </div>
 
         {/* Barra inferior */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #e5e5ea", paddingTop: 18 }}>
-          <span style={{ fontSize: 24, fontWeight: 800, color: primary, textTransform: "uppercase" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderTop: "1px solid #e5e5ea",
+            paddingTop: 16,
+          }}
+        >
+          <span
+            style={{
+              fontSize: 22,
+              fontWeight: 800,
+              color: primary,
+              textTransform: "uppercase",
+            }}
+          >
             {cta}
           </span>
           <span style={{ fontSize: 20, fontWeight: 600, color: "#86868b" }}>{handle}</span>
@@ -242,18 +436,170 @@ function PolaroidTemplate({ post, profile, index }: TemplateProps) {
   );
 }
 
-/* 2 ─ Frase & Foto: Imagem de fundo completa (full-bleed) com overlay escuro elegante */
+/* =========================================================================
+   2 ─ FRASE & FOTO MINIMAL
+   Fundo escuro profundo com citação marcante e foto em overlay sutil
+   ========================================================================= */
 function FullPhotoTemplate({ post, profile, index }: TemplateProps) {
   const { accent } = profile.colors;
   const headline = post.customHeadline || post.headline;
   const subheadline = post.customSubheadline || post.subheadline;
   const cta = post.customCta || post.cta;
   const handle = post.customHandle || handleOf(profile);
-  const photo = post.imageUrl || getFallbackPhoto(profile.categoryId, index);
+  const photo = post.imageUrl || getFallbackPhoto(profile.nicheId, profile.categoryId, index);
+
+  return (
+    <Canvas style={{ background: "#0e0f12", color: "#ffffff" }}>
+      {/* Imagem de fundo estilizada em overlay */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={photo}
+        alt={headline}
+        crossOrigin="anonymous"
+        style={abs({
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          opacity: 0.28,
+          filter: "contrast(115%)",
+        })}
+      />
+
+      <div
+        style={abs({
+          inset: 0,
+          padding: 80,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+        })}
+      >
+        {/* Topo */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span
+            style={{
+              padding: "10px 26px",
+              borderRadius: 999,
+              background: "rgba(255,255,255,0.12)",
+              backdropFilter: "blur(10px)",
+              fontSize: 22,
+              fontWeight: 700,
+              border: "1px solid rgba(255,255,255,0.2)",
+            }}
+          >
+            {profile.name}
+          </span>
+          <span
+            style={{
+              fontSize: 20,
+              fontWeight: 700,
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              opacity: 0.85,
+            }}
+          >
+            {post.day}
+          </span>
+        </div>
+
+        {/* Centro com Aspas Gigantes */}
+        <div style={{ maxWidth: 900 }}>
+          <span
+            style={{
+              fontFamily: SERIF,
+              fontWeight: 700,
+              fontSize: 220,
+              lineHeight: 0.4,
+              height: 100,
+              display: "block",
+              color: accent,
+            }}
+          >
+            “
+          </span>
+          <span
+            style={{
+              display: "inline-block",
+              padding: "6px 18px",
+              borderRadius: 999,
+              background: accent,
+              color: readableOn(accent),
+              fontSize: 18,
+              fontWeight: 800,
+              textTransform: "uppercase",
+              letterSpacing: "0.12em",
+              marginBottom: 20,
+            }}
+          >
+            {post.theme}
+          </span>
+          <h2
+            style={{
+              margin: 0,
+              fontFamily: DISPLAY,
+              fontWeight: 800,
+              fontSize: headlineSize(headline, 0.9),
+              lineHeight: 1.05,
+              letterSpacing: "-0.025em",
+            }}
+          >
+            {headline}
+          </h2>
+          <p
+            style={{
+              margin: "24px 0 0",
+              fontSize: subSize(subheadline),
+              lineHeight: 1.4,
+              opacity: 0.85,
+            }}
+          >
+            {subheadline}
+          </p>
+        </div>
+
+        {/* Base */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 14,
+              padding: "20px 38px",
+              borderRadius: 999,
+              background: accent,
+              color: readableOn(accent),
+              fontSize: 26,
+              fontWeight: 800,
+              boxShadow: "0 18px 40px rgba(0,0,0,0.4)",
+            }}
+          >
+            {cta}
+            <Arrow color={readableOn(accent)} size={24} />
+          </span>
+          <span style={{ fontSize: 22, fontWeight: 600, opacity: 0.85 }}>{handle}</span>
+        </div>
+      </div>
+    </Canvas>
+  );
+}
+
+/* =========================================================================
+   3 ─ FULL BLEED / CINEMA MOODY (Substituindo Selo Pop)
+   A foto ocupa 100% da área (1080x1080px), gradiente escuro profissional no rodapé
+   e tipografia branca de altíssimo contraste e legibilidade impecável.
+   ========================================================================= */
+function CinemaMoodyTemplate({ post, profile, index }: TemplateProps) {
+  const { accent } = profile.colors;
+  const headline = post.customHeadline || post.headline;
+  const subheadline = post.customSubheadline || post.subheadline;
+  const cta = post.customCta || post.cta;
+  const handle = post.customHandle || handleOf(profile);
+  const photo = post.imageUrl || getFallbackPhoto(profile.nicheId, profile.categoryId, index);
 
   return (
     <Canvas style={{ background: "#000000", color: "#ffffff" }}>
-      {/* Imagem full-bleed */}
+      {/* Foto 100% Full Bleed */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={photo}
@@ -262,221 +608,174 @@ function FullPhotoTemplate({ post, profile, index }: TemplateProps) {
         style={abs({ inset: 0, width: "100%", height: "100%", objectFit: "cover" })}
       />
 
-      {/* Overlay gradiente escuro cinematográfico */}
-      <div style={abs({ inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.35) 100%)" })} />
+      {/* Gradiente sutil no topo para nitidez do badge da marca */}
+      <div
+        style={abs({
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 220,
+          background:
+            "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)",
+        })}
+      />
 
-      <div style={abs({ inset: 0, padding: 80, display: "flex", flexDirection: "column", justifyContent: "space-between" })}>
-        {/* Topo */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ padding: "12px 28px", borderRadius: 999, background: "rgba(255,255,255,0.18)", backdropFilter: "blur(10px)", fontSize: 24, fontWeight: 700, border: "1px solid rgba(255,255,255,0.25)" }}>
-            {profile.name}
-          </span>
-          <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", opacity: 0.9 }}>
-            {post.day}
-          </span>
-        </div>
+      {/* Gradiente de sombra cinematográfica no rodapé */}
+      <div
+        style={abs({
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 720,
+          background:
+            "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 75%, transparent 100%)",
+        })}
+      />
 
-        {/* Centro: Frase de Impacto */}
-        <div style={{ maxWidth: 900 }}>
-          <span style={{ display: "inline-block", padding: "8px 22px", borderRadius: 999, background: accent, color: readableOn(accent), fontSize: 20, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 24 }}>
-            {post.theme}
-          </span>
-          <h2 style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 800, fontSize: headlineSize(headline, 0.95), lineHeight: 1.05, letterSpacing: "-0.025em" }}>
-            {headline}
-          </h2>
-          <p style={{ margin: "24px 0 0", fontSize: subSize(subheadline), lineHeight: 1.4, opacity: 0.88 }}>
-            {subheadline}
-          </p>
-        </div>
-
-        {/* Base */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 14, padding: "22px 42px", borderRadius: 999, background: accent, color: readableOn(accent), fontSize: 28, fontWeight: 800, boxShadow: "0 20px 45px rgba(0,0,0,0.4)" }}>
-            {cta}
-            <Arrow color={readableOn(accent)} size={26} />
-          </span>
-          <span style={{ fontSize: 24, fontWeight: 600, opacity: 0.85 }}>{handle}</span>
-        </div>
-      </div>
-    </Canvas>
-  );
-}
-
-/* 3 ─ Selo Pop Lifestyle: Selo circular rotacionado com contraste moderno */
-function PopBadgeTemplate({ post, profile, index }: TemplateProps) {
-  const { primary, accent } = profile.colors;
-  const headline = post.customHeadline || post.headline;
-  const subheadline = post.customSubheadline || post.subheadline;
-  const cta = post.customCta || post.cta;
-  const handle = post.customHandle || handleOf(profile);
-  const photo = post.imageUrl || getFallbackPhoto(profile.categoryId, index);
-
-  return (
-    <Canvas style={{ background: "#f5f5f7", color: INK }}>
-      {/* Foto no topo / meio */}
-      <div style={abs({ top: 40, left: 40, right: 40, height: 500, borderRadius: 24, overflow: "hidden" })}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={photo}
-          alt={headline}
-          crossOrigin="anonymous"
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-        <div style={abs({ inset: 0, background: "linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.5) 100%)" })} />
-        <span style={abs({ bottom: 20, left: 24, color: "#ffffff", fontSize: 22, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase" })}>
+      {/* Topo: Marca e Dia */}
+      <div
+        style={abs({
+          top: 64,
+          left: 72,
+          right: 72,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        })}
+      >
+        <span
+          style={{
+            padding: "10px 24px",
+            borderRadius: 999,
+            background: "rgba(255,255,255,0.18)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid rgba(255,255,255,0.25)",
+            fontSize: 22,
+            fontWeight: 700,
+          }}
+        >
+          {profile.name}
+        </span>
+        <span
+          style={{
+            fontSize: 20,
+            fontWeight: 700,
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            opacity: 0.9,
+          }}
+        >
           {post.day}
         </span>
       </div>
 
-      {/* Selo Pop Rotacionado */}
-      <div style={abs({ top: 460, right: 70, width: 200, height: 200, borderRadius: "50%", background: accent, color: readableOn(accent), display: "grid", placeItems: "center", textAlign: "center", padding: 20, transform: "rotate(10deg)", boxShadow: "0 25px 60px -15px rgba(0,0,0,0.35)", zIndex: 10 })}>
-        <span style={{ fontFamily: DISPLAY, fontSize: 26, fontWeight: 800, lineHeight: 1.1, textTransform: "uppercase" }}>
-          {cta}
-        </span>
-      </div>
-
-      {/* Conteúdo inferior */}
-      <div style={abs({ left: 56, right: 280, bottom: 60, display: "flex", flexDirection: "column" })}>
-        <span style={{ fontSize: 20, fontWeight: 800, color: primary, textTransform: "uppercase", letterSpacing: "0.1em" }}>
-          {post.theme} · {profile.name}
-        </span>
-        <h2 style={{ margin: "16px 0 0", fontFamily: DISPLAY, fontWeight: 800, fontSize: headlineSize(headline, 0.82), lineHeight: 1.05 }}>
-          {headline}
-        </h2>
-        <p style={{ margin: "16px 0 0", fontSize: subSize(subheadline) - 4, lineHeight: 1.4, color: "#6e6e73" }}>
-          {subheadline}
-        </p>
-        <span style={{ marginTop: 24, fontSize: 22, fontWeight: 600, color: "#86868b" }}>
-          {handle}
-        </span>
-      </div>
-    </Canvas>
-  );
-}
-
-/* 4 ─ Bloco Arquitetônico: Split assimétrico sólido com bloco arredondado */
-function BlockTemplate({ post, profile, index }: TemplateProps) {
-  const { primary, secondary, accent } = profile.colors;
-  const headline = post.customHeadline || post.headline;
-  const subheadline = post.customSubheadline || post.subheadline;
-  const cta = post.customCta || post.cta;
-  const handle = post.customHandle || handleOf(profile);
-  const photo = post.imageUrl || getFallbackPhoto(profile.categoryId, index);
-
-  return (
-    <Canvas style={{ background: secondary, color: readableOn(secondary) }}>
-      {/* Imagem de fundo sutil com overlay */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={photo}
-        alt={headline}
-        crossOrigin="anonymous"
-        style={abs({ inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.45 })}
-      />
-
-      <div style={abs({ top: 70, left: 80, display: "flex", flexDirection: "column", gap: 8 })}>
-        <span style={{ fontSize: 30, fontWeight: 800 }}>{profile.name}</span>
-        <span style={{ fontSize: 22, fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", opacity: 0.85 }}>{post.day}</span>
-      </div>
-
-      {/* Bloco Sólido Principal */}
-      <div style={abs({ left: 0, bottom: 0, width: 980, height: 680, background: primary, color: readableOn(primary), borderTopRightRadius: 160, padding: "80px 88px", display: "flex", flexDirection: "column", boxShadow: "0 -25px 70px -20px rgba(0,0,0,0.4)" })}>
-        <span style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 22, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: accent }}>
-          <span style={{ width: 48, height: 4, borderRadius: 2, background: "currentColor" }} />
+      {/* Textos Brancos Sobrepostos com Alto Contraste */}
+      <div
+        style={abs({
+          left: 72,
+          right: 72,
+          bottom: 64,
+          display: "flex",
+          flexDirection: "column",
+        })}
+      >
+        <span
+          style={{
+            display: "inline-block",
+            padding: "6px 20px",
+            borderRadius: 999,
+            background: accent,
+            color: readableOn(accent),
+            fontSize: 18,
+            fontWeight: 800,
+            textTransform: "uppercase",
+            letterSpacing: "0.12em",
+            marginBottom: 20,
+            alignSelf: "flex-start",
+          }}
+        >
           {post.theme}
         </span>
-        <h2 style={{ margin: "26px 0 0", fontFamily: DISPLAY, fontWeight: 800, fontSize: headlineSize(headline, 0.85), lineHeight: 1.05 }}>
+
+        <h2
+          style={{
+            margin: 0,
+            fontFamily: DISPLAY,
+            fontWeight: 800,
+            fontSize: headlineSize(headline, 0.94),
+            lineHeight: 1.04,
+            letterSpacing: "-0.025em",
+            color: "#ffffff",
+          }}
+        >
           {headline}
         </h2>
-        <p style={{ margin: "22px 0 0", fontSize: subSize(subheadline) - 4, lineHeight: 1.4, opacity: 0.88, maxWidth: 760 }}>
+
+        <p
+          style={{
+            margin: "20px 0 32px",
+            fontSize: subSize(subheadline),
+            lineHeight: 1.4,
+            color: "rgba(255,255,255,0.9)",
+            maxWidth: 900,
+          }}
+        >
           {subheadline}
         </p>
-        <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 18, fontSize: 28, fontWeight: 800 }}>
-          {cta}
-          <span style={{ fontSize: 24, fontWeight: 500, opacity: 0.7 }}>· {handle}</span>
-        </div>
-      </div>
 
-      <div style={abs({ right: 60, bottom: 560, width: 160, height: 160, borderRadius: "50%", background: accent, display: "grid", placeItems: "center", boxShadow: "0 25px 50px rgba(0,0,0,0.3)" })}>
-        <Arrow size={56} color={readableOn(accent)} />
-      </div>
-    </Canvas>
-  );
-}
-
-/* 5 ─ Noite Moody: Fundo acetinado escuro, aspas serifadas e brilhos neon */
-function NightTemplate({ post, profile, index }: TemplateProps) {
-  const { primary, accent } = profile.colors;
-  const headline = post.customHeadline || post.headline;
-  const subheadline = post.customSubheadline || post.subheadline;
-  const cta = post.customCta || post.cta;
-  const handle = post.customHandle || handleOf(profile);
-  const photo = post.imageUrl || getFallbackPhoto(profile.categoryId, index);
-
-  return (
-    <Canvas style={{ background: "#0c0d12", color: "#ffffff" }}>
-      {/* Imagem de fundo bem escura moody */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={photo}
-        alt={headline}
-        crossOrigin="anonymous"
-        style={abs({ inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.22, filter: "contrast(120%)" })}
-      />
-
-      <div style={abs({ width: 680, height: 680, borderRadius: "50%", background: alpha(primary, 0.5), filter: "blur(160px)", top: -200, left: -180 })} />
-      <div style={abs({ width: 560, height: 560, borderRadius: "50%", background: alpha(accent, 0.4), filter: "blur(150px)", bottom: -200, right: -160 })} />
-
-      <div style={abs({ inset: 0, padding: 88, display: "flex", flexDirection: "column" })}>
+        {/* Rodapé com CTA de impacto e Handle */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 14, fontSize: 28, fontWeight: 700 }}>
-            <span style={{ width: 16, height: 16, borderRadius: "50%", background: accent, boxShadow: `0 0 20px ${accent}` }} />
-            {profile.name}
-          </span>
-          <span style={{ padding: "10px 24px", borderRadius: 999, background: "rgba(255,255,255,0.08)", border: "1.5px solid rgba(255,255,255,0.18)", fontSize: 22, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-            {post.day}
-          </span>
-        </div>
-
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          <span style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 260, lineHeight: 0.5, height: 130, color: accent }}>“</span>
-          <h2 style={{ margin: "20px 0 0", fontFamily: DISPLAY, fontWeight: 700, fontSize: headlineSize(headline, 0.92), lineHeight: 1.05 }}>
-            {headline}
-          </h2>
-          <p style={{ margin: "28px 0 0", fontSize: subSize(subheadline), lineHeight: 1.45, color: "rgba(255,255,255,0.78)", maxWidth: 820 }}>
-            {subheadline}
-          </p>
-        </div>
-
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 16, padding: "20px 38px", borderRadius: 999, border: `2.5px solid ${accent}`, color: accent, fontSize: 28, fontWeight: 800 }}>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 14,
+              padding: "18px 38px",
+              borderRadius: 999,
+              background: "#ffffff",
+              color: "#000000",
+              fontSize: 24,
+              fontWeight: 800,
+              boxShadow: "0 15px 35px rgba(0,0,0,0.5)",
+            }}
+          >
             {cta}
-            <Arrow color={accent} />
+            <Arrow color="#000000" size={24} />
           </span>
-          <span style={{ fontSize: 24, fontWeight: 600, color: "rgba(255,255,255,0.6)" }}>{handle}</span>
+          <span style={{ fontSize: 22, fontWeight: 600, opacity: 0.9 }}>{handle}</span>
         </div>
       </div>
     </Canvas>
   );
 }
 
-/* 6 ─ Pôster Brutalista Clean: Tipografia impactante com marquee e moldura contemporânea */
-function PosterTemplate({ post, profile, index }: TemplateProps) {
+/* =========================================================================
+   4 ─ SPLIT VERTICAL / BLOCO ARQUITETÔNICO
+   Divisão 50/50 vertical: foto contínua de alto a baixo de um lado,
+   bloco de cor sólida fosca com tipografia limpa do outro.
+   ========================================================================= */
+function SplitVerticalTemplate({ post, profile, index }: TemplateProps) {
   const { primary, accent } = profile.colors;
   const headline = post.customHeadline || post.headline;
   const subheadline = post.customSubheadline || post.subheadline;
   const cta = post.customCta || post.cta;
   const handle = post.customHandle || handleOf(profile);
-  const photo = post.imageUrl || getFallbackPhoto(profile.categoryId, index);
+  const photo = post.imageUrl || getFallbackPhoto(profile.nicheId, profile.categoryId, index);
 
   const onPrimary = readableOn(primary);
-  const onAccent = readableOn(accent);
-  const marquee = Array.from({ length: 6 }, () => `${post.theme}  ✦  ${handle}  ✦  `).join("");
 
   return (
     <Canvas style={{ background: primary, color: onPrimary }}>
-      {/* Recorte de foto vertical */}
-      <div style={abs({ top: 88, right: 88, width: 360, height: 460, borderRadius: 20, overflow: "hidden", border: `3px solid ${alpha(onPrimary, 0.2)}` })}>
+      {/* Coluna Esquerda: Foto Contínua 50% de alto a baixo */}
+      <div
+        style={abs({
+          top: 0,
+          left: 0,
+          width: 520,
+          height: CANVAS_SIZE,
+          overflow: "hidden",
+        })}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={photo}
@@ -484,28 +783,451 @@ function PosterTemplate({ post, profile, index }: TemplateProps) {
           crossOrigin="anonymous"
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
+        {/* Badge do dia flutuante sobre a foto */}
+        <div
+          style={abs({
+            top: 54,
+            left: 48,
+            padding: "8px 20px",
+            borderRadius: 999,
+            background: "rgba(0,0,0,0.7)",
+            backdropFilter: "blur(8px)",
+            color: "#ffffff",
+            fontSize: 18,
+            fontWeight: 700,
+            letterSpacing: "0.15em",
+            textTransform: "uppercase",
+          })}
+        >
+          {post.day}
+        </div>
       </div>
 
-      <div style={abs({ top: 88, left: 88, display: "flex", alignItems: "center", gap: 18 })}>
-        <span style={{ padding: "12px 26px", borderRadius: 12, background: onPrimary, color: primary, fontSize: 26, fontWeight: 800 }}>
+      {/* Coluna Direita: Bloco Fosco com Tipografia Arquitetônica */}
+      <div
+        style={abs({
+          top: 0,
+          right: 0,
+          width: 560,
+          height: CANVAS_SIZE,
+          padding: "72px 54px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+        })}
+      >
+        {/* Topo */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <span style={{ fontSize: 26, fontWeight: 800 }}>{profile.name}</span>
+          <span
+            style={{
+              fontSize: 16,
+              fontWeight: 600,
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              opacity: 0.75,
+            }}
+          >
+            ARQUITETURA // SOCIALPACK
+          </span>
+        </div>
+
+        {/* Centro */}
+        <div>
+          <div
+            style={{
+              width: 44,
+              height: 4,
+              borderRadius: 2,
+              background: accent,
+              marginBottom: 18,
+            }}
+          />
+          <span
+            style={{
+              display: "block",
+              fontSize: 18,
+              fontWeight: 800,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: accent,
+              marginBottom: 16,
+            }}
+          >
+            {post.theme}
+          </span>
+          <h2
+            style={{
+              margin: 0,
+              fontFamily: DISPLAY,
+              fontWeight: 800,
+              fontSize: headlineSize(headline, 0.78),
+              lineHeight: 1.06,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            {headline}
+          </h2>
+          <p
+            style={{
+              margin: "20px 0 0",
+              fontSize: subSize(subheadline) - 4,
+              lineHeight: 1.45,
+              opacity: 0.88,
+            }}
+          >
+            {subheadline}
+          </p>
+        </div>
+
+        {/* Rodapé */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "16px 32px",
+              borderRadius: 999,
+              background: accent,
+              color: readableOn(accent),
+              fontSize: 22,
+              fontWeight: 800,
+              alignSelf: "flex-start",
+            }}
+          >
+            {cta}
+            <Arrow color={readableOn(accent)} size={20} />
+          </span>
+          <span style={{ fontSize: 20, fontWeight: 600, opacity: 0.75 }}>{handle}</span>
+        </div>
+      </div>
+    </Canvas>
+  );
+}
+
+/* =========================================================================
+   5 ─ CARD GLASSMORPHISM / IOS NOTE
+   Fundo com a foto em blur/ambient light sutil.
+   Card central translúcido com borda suave (backdrop-blur-md bg-white/80 border border-white/20)
+   contendo frase/oferta no estilo widgets premium do iOS.
+   ========================================================================= */
+function GlassmorphismTemplate({ post, profile, index }: TemplateProps) {
+  const { primary } = profile.colors;
+  const headline = post.customHeadline || post.headline;
+  const subheadline = post.customSubheadline || post.subheadline;
+  const cta = post.customCta || post.cta;
+  const handle = post.customHandle || handleOf(profile);
+  const photo = post.imageUrl || getFallbackPhoto(profile.nicheId, profile.categoryId, index);
+
+  return (
+    <Canvas style={{ background: "#1c1c1e", color: INK }}>
+      {/* Fundo com a foto em blur ambiental de alta intensidade */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={photo}
+        alt={headline}
+        crossOrigin="anonymous"
+        style={abs({
+          inset: -40,
+          width: "calc(100% + 80px)",
+          height: "calc(100% + 80px)",
+          objectFit: "cover",
+          filter: "blur(32px) brightness(0.65) saturate(1.3)",
+        })}
+      />
+
+      {/* Luz ambiente suave */}
+      <div
+        style={abs({
+          inset: 0,
+          background: "radial-gradient(circle at 50% 30%, rgba(255,255,255,0.18), transparent 75%)",
+        })}
+      />
+
+      {/* Card Central Translúcido (Widget iOS Note) */}
+      <div
+        style={abs({
+          top: 85,
+          left: 80,
+          right: 80,
+          bottom: 85,
+          background: "rgba(255, 255, 255, 0.82)",
+          backdropFilter: "blur(24px)",
+          border: "2px solid rgba(255, 255, 255, 0.4)",
+          borderRadius: 44,
+          padding: "54px 60px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          boxShadow: "0 35px 80px -20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.6)",
+        })}
+      >
+        {/* Cabeçalho do Card */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <span
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: "50%",
+                background: primary,
+                boxShadow: `0 0 12px ${alpha(primary, 0.6)}`,
+              }}
+            />
+            <span style={{ fontSize: 24, fontWeight: 800, color: INK }}>{profile.name}</span>
+          </div>
+          <span
+            style={{
+              padding: "8px 22px",
+              borderRadius: 999,
+              background: "rgba(0,0,0,0.06)",
+              border: "1px solid rgba(0,0,0,0.08)",
+              fontSize: 18,
+              fontWeight: 700,
+              color: "#6e6e73",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+            }}
+          >
+            {post.day}
+          </span>
+        </div>
+
+        {/* Mensagem e Tipografia */}
+        <div style={{ padding: "10px 0" }}>
+          <span
+            style={{
+              display: "inline-block",
+              fontSize: 18,
+              fontWeight: 800,
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+              color: primary,
+              marginBottom: 16,
+            }}
+          >
+            {post.theme}
+          </span>
+          <h2
+            style={{
+              margin: 0,
+              fontFamily: DISPLAY,
+              fontWeight: 800,
+              fontSize: headlineSize(headline, 0.88),
+              lineHeight: 1.08,
+              letterSpacing: "-0.025em",
+              color: INK,
+            }}
+          >
+            {headline}
+          </h2>
+          <p
+            style={{
+              margin: "20px 0 0",
+              fontSize: subSize(subheadline),
+              lineHeight: 1.45,
+              color: "#48484a",
+              maxWidth: 780,
+            }}
+          >
+            {subheadline}
+          </p>
+        </div>
+
+        {/* Rodapé iOS Action */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "18px 36px",
+              borderRadius: 999,
+              background: primary,
+              color: readableOn(primary),
+              fontSize: 22,
+              fontWeight: 800,
+              boxShadow: "0 12px 28px -6px rgba(0,0,0,0.25)",
+            }}
+          >
+            {cta}
+            <Arrow color={readableOn(primary)} size={22} />
+          </span>
+          <span style={{ fontSize: 22, fontWeight: 600, color: "#8e8e93" }}>{handle}</span>
+        </div>
+      </div>
+    </Canvas>
+  );
+}
+
+/* =========================================================================
+   6 ─ CORREÇÃO DO PÔSTER BRUTALISTA
+   Foto nítida em container centralizado de largura total (sem ficar espremida no canto),
+   paddings do topo ajustados sem colisão com controles do canvas,
+   e fita adesiva amarela/preta de assinatura no rodapé preservada.
+   ========================================================================= */
+function BrutalistPosterTemplate({ post, profile, index }: TemplateProps) {
+  const { primary } = profile.colors;
+  const headline = post.customHeadline || post.headline;
+  const subheadline = post.customSubheadline || post.subheadline;
+  const cta = post.customCta || post.cta;
+  const handle = post.customHandle || handleOf(profile);
+  const photo = post.imageUrl || getFallbackPhoto(profile.nicheId, profile.categoryId, index);
+
+  const onPrimary = readableOn(primary);
+  const marquee = Array.from(
+    { length: 6 },
+    () => `✦  ${post.theme.toUpperCase()}  ✦  ${profile.name.toUpperCase()}  ✦  ${cta.toUpperCase()}  ✦  ${handle}  `,
+  ).join("");
+
+  return (
+    <Canvas style={{ background: primary, color: onPrimary }}>
+      {/* Topo com Espaçamento Amplo (Sem colisão com dashboard) */}
+      <div
+        style={abs({
+          top: 52,
+          left: 64,
+          right: 64,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        })}
+      >
+        <span
+          style={{
+            padding: "10px 24px",
+            borderRadius: 8,
+            background: onPrimary,
+            color: primary,
+            fontSize: 24,
+            fontWeight: 900,
+            border: "3px solid #000000",
+            boxShadow: "4px 4px 0 #000000",
+          }}
+        >
           {profile.name}
         </span>
-        <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", opacity: 0.8 }}>
+        <span
+          style={{
+            padding: "10px 24px",
+            borderRadius: 8,
+            background: "#ffe600",
+            color: "#000000",
+            fontSize: 20,
+            fontWeight: 900,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            border: "3px solid #000000",
+            boxShadow: "4px 4px 0 #000000",
+          }}
+        >
           {post.day}
         </span>
       </div>
 
-      <div style={abs({ left: 88, right: 88, bottom: 230, display: "flex", flexDirection: "column" })}>
-        <h2 style={{ margin: 0, maxWidth: 840, fontFamily: DISPLAY, fontWeight: 800, fontSize: headlineSize(headline, 0.88), lineHeight: 0.98, letterSpacing: "-0.02em", textTransform: "uppercase" }}>
+      {/* Bloco Fotográfico Nítido e Amplo (952px de largura, sem miniatura no canto) */}
+      <div
+        style={abs({
+          top: 130,
+          left: 64,
+          right: 64,
+          height: 420,
+          borderRadius: 16,
+          overflow: "hidden",
+          border: "3.5px solid #000000",
+          boxShadow: "6px 6px 0 #000000",
+        })}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={photo}
+          alt={headline}
+          crossOrigin="anonymous"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        {/* Selo do tema no canto da foto */}
+        <div
+          style={abs({
+            bottom: 16,
+            left: 16,
+            background: "#000000",
+            color: "#ffffff",
+            padding: "6px 18px",
+            borderRadius: 6,
+            fontSize: 18,
+            fontWeight: 800,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+          })}
+        >
+          {post.theme}
+        </div>
+      </div>
+
+      {/* Conteúdo Tipográfico de Alto Impacto */}
+      <div
+        style={abs({
+          left: 64,
+          right: 64,
+          top: 576,
+          display: "flex",
+          flexDirection: "column",
+        })}
+      >
+        <h2
+          style={{
+            margin: 0,
+            maxWidth: 950,
+            fontFamily: DISPLAY,
+            fontWeight: 900,
+            fontSize: headlineSize(headline, 0.86),
+            lineHeight: 0.98,
+            letterSpacing: "-0.025em",
+            textTransform: "uppercase",
+            color: onPrimary,
+          }}
+        >
           {headline}
         </h2>
-        <p style={{ margin: "26px 0 0", fontSize: subSize(subheadline) - 4, lineHeight: 1.4, maxWidth: 760, opacity: 0.85 }}>
+        <p
+          style={{
+            margin: "18px 0 0",
+            fontSize: subSize(subheadline) - 4,
+            lineHeight: 1.35,
+            maxWidth: 880,
+            opacity: 0.9,
+            color: onPrimary,
+          }}
+        >
           {subheadline}
         </p>
       </div>
 
-      {/* Faixa Marquee */}
-      <div style={abs({ left: -60, right: -60, bottom: 80, height: 90, background: accent, color: onAccent, transform: "rotate(-2.5deg)", display: "flex", alignItems: "center", overflow: "hidden", whiteSpace: "pre", fontFamily: DISPLAY, fontSize: 32, fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase" })}>
+      {/* Fita Adesiva Amarela/Preta de Assinatura no Rodapé */}
+      <div
+        style={abs({
+          left: -40,
+          right: -40,
+          bottom: 38,
+          height: 76,
+          background: "#ffe600",
+          color: "#000000",
+          borderTop: "3.5px solid #000000",
+          borderBottom: "3.5px solid #000000",
+          transform: "rotate(-1.5deg)",
+          display: "flex",
+          alignItems: "center",
+          overflow: "hidden",
+          whiteSpace: "pre",
+          fontFamily: DISPLAY,
+          fontSize: 28,
+          fontWeight: 900,
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+          boxShadow: "0 8px 16px rgba(0,0,0,0.35)",
+        })}
+      >
         {marquee}
       </div>
     </Canvas>
@@ -516,10 +1238,10 @@ const TEMPLATES = [
   EditorialTemplate,
   PolaroidTemplate,
   FullPhotoTemplate,
-  PopBadgeTemplate,
-  BlockTemplate,
-  NightTemplate,
-  PosterTemplate,
+  CinemaMoodyTemplate,
+  SplitVerticalTemplate,
+  GlassmorphismTemplate,
+  BrutalistPosterTemplate,
 ];
 
 export function PostCanvas({

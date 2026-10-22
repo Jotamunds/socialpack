@@ -100,7 +100,7 @@ export function getDefaultSubscription(userEmail: string): UserSubscription {
  * Obtém o status da assinatura do usuário (Supabase ou fallback local).
  */
 export async function getSubscription(userEmail: string): Promise<UserSubscription> {
-  const normalizedEmail = userEmail.toLowerCase();
+  const normalizedEmail = userEmail.toLowerCase().trim();
   const supabase = getSupabaseServerClient();
 
   if (supabase) {
@@ -137,8 +137,30 @@ export async function updateSubscription(
   userEmail: string,
   updates: Partial<UserSubscription>,
 ): Promise<UserSubscription> {
-  const normalizedEmail = userEmail.toLowerCase();
-  const current = (await readLocalStore())[normalizedEmail] || getDefaultSubscription(normalizedEmail);
+  const normalizedEmail = userEmail.toLowerCase().trim();
+  const supabase = getSupabaseServerClient();
+  let current: UserSubscription | null = null;
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .eq("user_email", normalizedEmail)
+        .maybeSingle();
+
+      if (!error && data) {
+        current = mapFromSupabase(data);
+      }
+    } catch (err) {
+      console.warn("[SocialPack] Erro ao carregar assinatura no Supabase:", err);
+    }
+  }
+
+  if (!current) {
+    const local = await readLocalStore();
+    current = local[normalizedEmail] || getDefaultSubscription(normalizedEmail);
+  }
 
   const updated: UserSubscription = {
     ...current,
@@ -147,26 +169,32 @@ export async function updateSubscription(
     updatedAt: new Date().toISOString(),
   };
 
-  const supabase = getSupabaseServerClient();
   if (supabase) {
     try {
-      await supabase.from("subscriptions").upsert({
-        user_email: normalizedEmail,
-        status: updated.status,
-        plan_id: updated.planId,
-        generation_quota: updated.generationQuota,
-        used_generations: updated.usedGenerations,
-        current_period_end: updated.currentPeriodEnd,
-        updated_at: updated.updatedAt,
-      }, { onConflict: "user_email" });
+      await supabase.from("subscriptions").upsert(
+        {
+          user_email: normalizedEmail,
+          status: updated.status,
+          plan_id: updated.planId,
+          generation_quota: updated.generationQuota,
+          used_generations: updated.usedGenerations,
+          current_period_end: updated.currentPeriodEnd,
+          updated_at: updated.updatedAt,
+        },
+        { onConflict: "user_email" },
+      );
     } catch (err) {
       console.warn("[SocialPack] Falha ao sincronizar assinatura no Supabase:", err);
     }
   }
 
-  const local = await readLocalStore();
-  local[normalizedEmail] = updated;
-  await writeLocalStore(local);
+  try {
+    const local = await readLocalStore();
+    local[normalizedEmail] = updated;
+    await writeLocalStore(local);
+  } catch {
+    // no-op em ambientes restritos
+  }
 
   return updated;
 }

@@ -107,4 +107,39 @@ create policy "Allow update subscriptions" on public.subscriptions
   for update
   using (true);
 
+-- =========================================================
+-- Tabela de Perfis Comerciais de Usuários (Fim da volatilidade)
+-- =========================================================
+
+create table if not exists public.profiles (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  user_email text unique not null,
+  name text not null,
+  category_id text not null,
+  niche_id text not null,
+  city text not null,
+  instagram text,
+  tone_id text not null,
+  colors jsonb not null
+);
+
+create index if not exists idx_profiles_user_email on public.profiles(user_email);
+
+alter table public.profiles enable row level security;
+
+create policy "Allow read profiles" on public.profiles
+  for select
+  using (true);
+
+create policy "Allow insert profiles" on public.profiles
+  for insert
+  with check (true);
+
+create policy "Allow update profiles" on public.profiles
+  for update
+  using (true);
+
+
 

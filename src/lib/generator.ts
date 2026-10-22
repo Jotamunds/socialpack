@@ -3,7 +3,10 @@ import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { findCategory, findNiche, findTone, type Tone } from "./catalog";
+import { getCuratedPhoto, NICHE_SEARCH_QUERIES } from "./curated-images";
 import { calculateWeekSchedule, formatWeekRange } from "./date-utils";
+
+export { NICHE_SEARCH_QUERIES, getCuratedPhoto };
 import type {
   CompanyProfile,
   ContentSource,
@@ -145,6 +148,7 @@ export async function generateWeek(
       caption,
       hashtags,
       layout: layouts[index % LAYOUT_COUNT],
+      imageUrl: getCuratedPhoto(profile.nicheId, profile.categoryId, index),
     };
   });
 

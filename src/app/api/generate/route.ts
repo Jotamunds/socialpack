@@ -6,6 +6,7 @@ import { savePack } from "@/lib/pack-store";
 import { getProfile, saveProfile } from "@/lib/profile-store";
 import { getSessionEmail } from "@/lib/session";
 import { checkQuota, incrementQuota } from "@/lib/subscription-store";
+import type { CompanyProfile } from "@/lib/types";
 
 export async function POST(request: Request) {
   const email = await getSessionEmail();
@@ -38,11 +39,13 @@ export async function POST(request: Request) {
 
   // Se vier perfil no body, prioriza e atualiza; senão usa o salvo ou padrão
   const fromBody = parseProfile(body?.profile || body);
-  let profile = fromBody || (await getProfile(email));
+  let profile: CompanyProfile | null = fromBody ?? (await getProfile(email));
 
   if (fromBody) {
     await saveProfile(email, fromBody);
-  } else if (!profile) {
+  }
+
+  if (!profile) {
     profile = {
       name: "Minha Empresa",
       categoryId: "alimentacao",
@@ -58,6 +61,7 @@ export async function POST(request: Request) {
     };
     await saveProfile(email, profile);
   }
+
 
   const week = await generateWeek(profile, startDate);
   if (week.posts.length === 0) {
