@@ -88,8 +88,11 @@ create table if not exists public.subscriptions (
   plan_id text not null default 'free',
   generation_quota integer not null default 3,
   used_generations integer not null default 0,
+  packs_created_count integer not null default 0,
   current_period_end timestamp with time zone default (now() + interval '30 days')
 );
+
+alter table public.subscriptions add column if not exists packs_created_count integer not null default 0;
 
 create index if not exists idx_subscriptions_user_email on public.subscriptions(user_email);
 
@@ -122,8 +125,11 @@ create table if not exists public.profiles (
   city text not null,
   instagram text,
   tone_id text not null,
-  colors jsonb not null
+  colors jsonb not null,
+  packs_created_count integer not null default 0
 );
+
+alter table public.profiles add column if not exists packs_created_count integer not null default 0;
 
 create index if not exists idx_profiles_user_email on public.profiles(user_email);
 
