@@ -27,13 +27,19 @@ export const metadata: Metadata = {
     "Cadastre o perfil da sua empresa e gere o calendário editorial semanal de 7 posts para o Instagram com datas reais, artes 1080x1080 e legendas persuasivas.",
 };
 
+import { DevIndicatorLock } from "@/components/DevIndicatorLock";
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="pt-BR"
       className={`${jakarta.variable} ${bricolage.variable} ${playfair.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <DevIndicatorLock />
+      </body>
     </html>
   );
 }
+
