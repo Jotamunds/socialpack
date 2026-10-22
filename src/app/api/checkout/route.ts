@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
+import { SESSION_COOKIE, SESSION_MAX_AGE, createSessionToken } from "@/lib/auth-token";
 import { getSessionEmail } from "@/lib/session";
 import { PLANS, updateSubscription } from "@/lib/subscription-store";
 import type { PlanId } from "@/lib/types";
@@ -39,13 +40,30 @@ export async function POST(request: NextRequest) {
         currentPeriodEnd: nextMonth.toISOString(),
       });
 
-      return NextResponse.json({
+      const response = NextResponse.json({
         ok: true,
         orderId,
         status: "active",
         subscription: updated,
         message: `Plano ${plan.name} ativado com sucesso!`,
       });
+
+      // Emite cookie de sessão atualizado com a assinatura ativa
+      const newSessionToken = await createSessionToken(email.toLowerCase(), {
+        planId: plan.id,
+        status: "active",
+        quota: plan.quota,
+      });
+
+      response.cookies.set(SESSION_COOKIE, newSessionToken, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: SESSION_MAX_AGE,
+      });
+
+      return response;
     }
 
     // Estrutura para checkout de gateways (Asaas, AbacatePay, Stripe Checkout)

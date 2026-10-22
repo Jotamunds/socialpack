@@ -24,7 +24,13 @@ export default async function BillingPage() {
     <div className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] flex flex-col">
       <header className="border-b border-[#d2d2d7] bg-white/90 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
-          <Logo />
+          {isActive ? (
+            <Link href="/dashboard" className="hover:opacity-90 transition">
+              <Logo />
+            </Link>
+          ) : (
+            <Logo />
+          )}
 
           <div className="flex items-center gap-3">
             {isActive ? (

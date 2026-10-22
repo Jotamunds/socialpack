@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { SESSION_COOKIE, SESSION_MAX_AGE, createSessionToken } from "@/lib/auth-token";
 import { checkCredentials } from "@/lib/session";
+import { getSubscription } from "@/lib/subscription-store";
 import { createClient } from "@/lib/supabase";
 
 export async function POST(request: Request) {
@@ -46,8 +47,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: authErrorMsg }, { status: 401 });
     }
 
+    let subData: { planId?: string; status?: string; quota?: number } | undefined = undefined;
+    try {
+      const sub = await getSubscription(email.toLowerCase());
+      if (sub && sub.status === "active") {
+        subData = {
+          planId: sub.planId,
+          status: sub.status,
+          quota: sub.generationQuota,
+        };
+      }
+    } catch {}
+
     const response = NextResponse.json({ ok: true });
-    response.cookies.set(SESSION_COOKIE, await createSessionToken(email.toLowerCase()), {
+    response.cookies.set(SESSION_COOKIE, await createSessionToken(email.toLowerCase(), subData), {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",

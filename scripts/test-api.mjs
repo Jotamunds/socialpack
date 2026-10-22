@@ -21,7 +21,7 @@ async function runTests() {
   
   const setCookie = loginRes.headers.get('set-cookie');
   console.log('✓ Sessão autenticada via Cookie JWT HttpOnly');
-  const cookieHeader = setCookie ? setCookie.split(';')[0] : '';
+  let cookieHeader = setCookie ? setCookie.split(';')[0] : '';
 
   console.log('\n--- TEST 2: Upload Seguro de Mídia (POST /api/upload) ---');
   // Cria 1x1 PNG válido em memória
@@ -96,6 +96,10 @@ async function runTests() {
     throw new Error(`Checkout failed with status ${checkoutRes.status}`);
   }
   const checkoutData = await checkoutRes.json();
+  const checkoutSetCookie = checkoutRes.headers.get('set-cookie');
+  if (checkoutSetCookie) {
+    cookieHeader = checkoutSetCookie.split(';')[0];
+  }
   console.log('✓ Checkout processado com sucesso:');
   console.log('  - Order ID:', checkoutData.orderId);
   console.log('  - Status:', checkoutData.status);
@@ -417,8 +421,57 @@ async function runTests() {
   }
   console.log('  ✓ Usuário sem assinatura ativa redirecionado para /dashboard/billing com sucesso!');
 
-  // 11.4: Restaura a assinatura Pro ativa para o usuário demo
-  console.log('  11.4: Reativando plano Pro para a conta demo...');
+  console.log('\n--- TEST 12: Fluxo Completo de Seleção de Plano & Acesso ao Dashboard ---');
+  // 12.1: Começa como usuário inativo
+  console.log('  12.1: Cancelando plano para simular usuário caindo em /dashboard/billing...');
+  await fetch(`${BASE_URL}/api/webhooks/payment`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-webhook-secret': 'socialpack_webhook_secret_2026'
+    },
+    body: JSON.stringify({
+      event: 'subscription.canceled',
+      data: { userEmail: 'demo@socialpack.ai' }
+    })
+  });
+
+  // 12.2: Usuário seleciona o plano Starter em /api/checkout
+  console.log('  12.2: Usuário seleciona e ativa o plano Starter em /api/checkout...');
+  const choosePlanRes = await fetch(`${BASE_URL}/api/checkout`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Cookie': cookieHeader
+    },
+    body: JSON.stringify({
+      planId: 'starter',
+      autoActivate: true
+    })
+  });
+  if (!choosePlanRes.ok) throw new Error('Falha ao selecionar plano no checkout');
+  const choosePlanData = await choosePlanRes.json();
+  const newCookie = choosePlanRes.headers.get('set-cookie');
+  if (newCookie) {
+    cookieHeader = newCookie.split(';')[0];
+  }
+  console.log(`  ✓ Plano Starter ativado: status ${choosePlanData.status}, planId: ${choosePlanData.subscription?.planId}`);
+
+  // 12.3: Navega para /dashboard e garante que NÃO é ejetado de volta para /dashboard/billing
+  console.log('  12.3: Acessando /dashboard com a credencial atualizada...');
+  const dashAfterCheckoutRes = await fetch(`${BASE_URL}/dashboard`, {
+    headers: { 'Cookie': cookieHeader, 'RSC': '1' },
+    redirect: 'manual'
+  });
+  const locAfterCheckout = dashAfterCheckoutRes.headers.get('location');
+  console.log(`  - Status HTTP do /dashboard: ${dashAfterCheckoutRes.status}, Location: ${locAfterCheckout || 'nenhuma'}`);
+  if (locAfterCheckout?.includes('/dashboard/billing')) {
+    throw new Error('Falha: usuário com plano recém-ativado foi rejeitado e redirecionado para /dashboard/billing!');
+  }
+  console.log('  ✓ Usuário com plano ativado acessou o /dashboard com sucesso sem cair em /dashboard/billing!');
+
+  // 12.4: Reativa plano Pro final para o usuário demo
+  console.log('  12.4: Reativando plano Pro para a conta demo...');
   await fetch(`${BASE_URL}/api/webhooks/payment`, {
     method: 'POST',
     headers: {
@@ -435,7 +488,7 @@ async function runTests() {
       }
     })
   });
-  console.log('  ✓ Assinatura Pro reativada para testes futuros!');
+  console.log('  ✓ Assinatura Pro restabelecida com sucesso!');
 
   console.log('\n=====================================================');
   console.log('   TODAS AS FASES E REGRAS DE COTA VALIDADAS COM SUCESSO! 🚀');

@@ -1,12 +1,22 @@
 import "server-only";
 import { timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
-import { SESSION_COOKIE, verifySessionToken } from "./auth-token";
+import { SESSION_COOKIE, verifySessionPayload, verifySessionToken } from "./auth-token";
 
 /** Lê o cookie de sessão e devolve o e-mail do usuário autenticado (ou `null`). */
 export async function getSessionEmail() {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   return verifySessionToken(token);
+}
+
+/** Lê o cookie de sessão e devolve os dados autenticados completos (e-mail, plano, status). */
+export async function getSessionPayload() {
+  try {
+    const token = (await cookies()).get(SESSION_COOKIE)?.value;
+    return verifySessionPayload(token);
+  } catch {
+    return null;
+  }
 }
 
 function safeEqual(a: string, b: string) {

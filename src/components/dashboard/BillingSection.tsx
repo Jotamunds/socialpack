@@ -70,15 +70,18 @@ export function BillingSection({ currentEmail, initialSubscription, onSubscripti
 
       setFeedback({
         type: "success",
-        message: `Parabéns! O plano ${plan.name} foi ativado com sucesso para sua conta.`,
+        message: `Parabéns! O plano ${plan.name} foi ativado com sucesso para sua conta. Redirecionando para o Dashboard...`,
       });
 
       if (data.subscription) {
         setSubscription(data.subscription);
         onSubscriptionUpdated?.(data.subscription);
-      } else {
-        await fetchSubscription();
       }
+
+      // Redireciona imediatamente para o dashboard com estado atualizado
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 500);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erro ao processar checkout.";
       setFeedback({ type: "error", message: msg });

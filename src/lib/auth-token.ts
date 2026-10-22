@@ -19,22 +19,52 @@ function getSecret() {
   return new TextEncoder().encode(secret);
 }
 
-export async function createSessionToken(email: string) {
-  return new SignJWT({})
+export type SessionSubscriptionData = {
+  planId?: string;
+  status?: string;
+  quota?: number;
+};
+
+export type SessionPayload = {
+  email: string;
+  planId?: string;
+  status?: string;
+  quota?: number;
+};
+
+export async function createSessionToken(email: string, subData?: SessionSubscriptionData) {
+  const normalizedEmail = email.toLowerCase().trim();
+  return new SignJWT({
+    planId: subData?.planId,
+    status: subData?.status,
+    quota: subData?.quota,
+  })
     .setProtectedHeader({ alg: "HS256" })
-    .setSubject(email)
+    .setSubject(normalizedEmail)
     .setIssuedAt()
     .setExpirationTime(`${SESSION_MAX_AGE}s`)
     .sign(getSecret());
 }
 
-/** Retorna o e-mail do usuário se o token for válido; caso contrário, `null`. */
-export async function verifySessionToken(token: string | undefined) {
+/** Retorna o payload completo com dados de autenticação e assinatura se o token for válido. */
+export async function verifySessionPayload(token: string | undefined): Promise<SessionPayload | null> {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, getSecret(), { algorithms: ["HS256"] });
-    return payload.sub ?? null;
+    if (!payload.sub) return null;
+    return {
+      email: payload.sub,
+      planId: typeof payload.planId === "string" ? payload.planId : undefined,
+      status: typeof payload.status === "string" ? payload.status : undefined,
+      quota: typeof payload.quota === "number" ? payload.quota : undefined,
+    };
   } catch {
     return null;
   }
+}
+
+/** Retorna o e-mail do usuário se o token for válido; caso contrário, `null`. */
+export async function verifySessionToken(token: string | undefined): Promise<string | null> {
+  const payload = await verifySessionPayload(token);
+  return payload?.email ?? null;
 }

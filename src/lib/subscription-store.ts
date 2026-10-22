@@ -1,4 +1,5 @@
 import "server-only";
+import { getSessionPayload } from "./session";
 import { readDataFile, writeDataFile } from "./storage-dir";
 import { getSupabaseServerClient } from "./supabase";
 import type { PlanId, SubscriptionPlan, SubscriptionStatus, UserSubscription } from "./types";
@@ -164,6 +165,37 @@ export async function getSubscription(userEmail: string): Promise<UserSubscripti
       usedGenerations: count,
       packsCreatedCount: count,
     };
+  }
+
+  // Fallback para Cookie de Sessão JWT (garante persistência multi-container em serverless como Vercel)
+  try {
+    const payload = await getSessionPayload();
+    if (
+      payload &&
+      payload.email.toLowerCase().trim() === normalizedEmail &&
+      payload.status === "active"
+    ) {
+      const plan = PLANS.find((p) => p.id === payload.planId) || PLANS[0];
+      const nextMonth = new Date();
+      nextMonth.setDate(nextMonth.getDate() + 30);
+      const cookieSub: UserSubscription = {
+        userEmail: normalizedEmail,
+        status: "active",
+        planId: (payload.planId as PlanId) || "starter",
+        generationQuota: payload.quota || plan.quota,
+        usedGenerations: 0,
+        packsCreatedCount: 0,
+        currentPeriodEnd: nextMonth.toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      try {
+        local[normalizedEmail] = cookieSub;
+        await writeLocalStore(local);
+      } catch {}
+      return cookieSub;
+    }
+  } catch {
+    // cookies() pode não estar disponível em execuções fora do ciclo de vida HTTP
   }
 
   // Cria padrão sem assinatura ativa caso ainda não exista
