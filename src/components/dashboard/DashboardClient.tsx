@@ -170,9 +170,9 @@ export function DashboardClient({ initialProfile, initialSubscription, userEmail
   const remaining = isPro ? 999 : isActive ? Math.max(0, quota - used) : 0;
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] flex flex-col">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-[#f5f5f7] text-[#1d1d1f] flex flex-col">
       {/* Navbar Superior Apple: clean white with subtle border and backdrop blur */}
-      <header className="border-b border-[#d2d2d7] bg-white/90 backdrop-blur-md sticky top-0 z-30">
+      <header className="border-b border-[#d2d2d7] bg-white/90 backdrop-blur-md sticky top-0 z-30 shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-3">
           <Logo />
 
@@ -237,9 +237,9 @@ export function DashboardClient({ initialProfile, initialSubscription, userEmail
       </header>
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-5 sm:space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex flex-col min-h-0 lg:overflow-hidden space-y-2.5 sm:space-y-3">
         {/* Apple Segmented Control (Tabs) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 pb-2 border-b border-[#e5e5ea]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-[#e5e5ea] shrink-0">
           <div className="space-y-0.5">
             <h1 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] tracking-tight">
               {activeTab === "create"
@@ -301,13 +301,13 @@ export function DashboardClient({ initialProfile, initialSubscription, userEmail
         </div>
 
         {generateError && (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs text-rose-700 animate-fade-up">
+          <div className="rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs text-rose-700 animate-fade-up shrink-0">
             {generateError}
           </div>
         )}
 
         {/* Card de Cota em Tempo Real */}
-        <div className="apple-card p-4 bg-white border border-[#e5e5ea] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+        <div className="apple-card p-3 sm:p-3.5 bg-white border border-[#e5e5ea] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs shrink-0">
           <div className="flex flex-wrap items-center gap-2">
             <span
               className={`size-2.5 rounded-full ${
@@ -362,9 +362,9 @@ export function DashboardClient({ initialProfile, initialSubscription, userEmail
 
         {/* Tab 1: Criação de Novo Pack */}
         {activeTab === "create" && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Coluna Esquerda: Formulário de Perfil com scroll vertical interno controlado no Desktop */}
-            <div className="lg:col-span-5 xl:col-span-5 lg:sticky lg:top-20 lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto lg:pr-1 scrollbar-thin">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch flex-1 min-h-0 lg:overflow-hidden pb-1">
+            {/* Coluna Esquerda: Formulário de Perfil e Paleta SEM barra de rolagem */}
+            <div className="lg:col-span-5 xl:col-span-5 flex flex-col justify-start overflow-visible">
               <ProfileForm
                 initialProfile={profile}
                 onProfileSaved={(p) => setProfile(p)}
@@ -375,8 +375,11 @@ export function DashboardClient({ initialProfile, initialSubscription, userEmail
               />
             </div>
 
-            {/* Coluna Direita: Cards Gerados */}
-            <div id="posts-section" className="lg:col-span-7 xl:col-span-7 scroll-mt-20">
+            {/* Coluna Direita: Cards Gerados COM barra de rolagem vertical independente */}
+            <div
+              id="posts-section"
+              className="lg:col-span-7 xl:col-span-7 h-full min-h-0 lg:overflow-y-auto pr-1 lg:pr-2.5 scrollbar-thin scroll-mt-20"
+            >
               <PostsSection
                 profile={profile}
                 result={result}
@@ -392,24 +395,28 @@ export function DashboardClient({ initialProfile, initialSubscription, userEmail
 
         {/* Tab 2: Histórico de Packs e Artes Salvas no Supabase */}
         {activeTab === "history" && (
-          <HistorySection key={historyKey} currentEmail={userEmail} />
+          <div className="flex-1 min-h-0 lg:overflow-y-auto pr-1 lg:pr-2 scrollbar-thin">
+            <HistorySection key={historyKey} currentEmail={userEmail} />
+          </div>
         )}
 
         {/* Tab 3: Gestão de Planos, Cota e Assinatura */}
         {activeTab === "billing" && (
-          <BillingSection
-            currentEmail={userEmail}
-            initialSubscription={subscription}
-            onSubscriptionUpdated={(sub) => {
-              setSubscription(sub);
-              setActiveTab("create");
-            }}
-          />
+          <div className="flex-1 min-h-0 lg:overflow-y-auto pr-1 lg:pr-2 scrollbar-thin">
+            <BillingSection
+              currentEmail={userEmail}
+              initialSubscription={subscription}
+              onSubscriptionUpdated={(sub) => {
+                setSubscription(sub);
+                setActiveTab("create");
+              }}
+            />
+          </div>
         )}
       </main>
 
-      {/* Footer Minimalista Apple */}
-      <footer className="border-t border-[#d2d2d7] bg-white py-6 text-center text-xs text-[#86868b] mt-12">
+      {/* Footer Minimalista Apple: oculto no desktop para que o dashboard ocupe perfeitamente 100vh da tela */}
+      <footer className="border-t border-[#d2d2d7] bg-white py-4 text-center text-xs text-[#86868b] lg:hidden shrink-0 mt-auto">
         <p>SocialPack AI · Design System inspirado no padrão Apple · Todos os direitos reservados</p>
       </footer>
     </div>

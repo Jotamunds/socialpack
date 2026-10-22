@@ -148,39 +148,39 @@ export function ProfileForm({
   };
 
   return (
-    <div className="apple-card p-6 sm:p-7 space-y-6 bg-white mb-2">
+    <div className="apple-card p-4 sm:p-5 lg:p-4 space-y-3.5 lg:space-y-2.5 bg-white mb-2">
       {/* Header do Perfil */}
-      <div className="flex items-start justify-between gap-4 border-b border-[#e5e5ea] pb-5">
+      <div className="flex items-start justify-between gap-3 border-b border-[#e5e5ea] pb-2.5 lg:pb-2">
         <div>
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#0071e3]">
-            <BuildingIcon className="size-3.5" /> Identidade do Cliente
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#0071e3]">
+            <BuildingIcon className="size-3" /> Identidade do Cliente
           </span>
-          <h2 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] tracking-tight mt-1">
+          <h2 className="text-lg sm:text-xl lg:text-lg font-semibold text-[#1d1d1f] tracking-tight mt-0.5">
             Perfil da Empresa
           </h2>
-          <p className="text-xs sm:text-sm text-[#6e6e73] mt-1">
+          <p className="text-xs text-[#6e6e73] mt-0.5">
             Personalize os dados e a paleta para guiar os templates visuais e copies.
           </p>
         </div>
 
         {/* Live Palette Badge */}
-        <div className="hidden sm:flex flex-col items-end gap-1.5">
-          <span className="text-[10px] uppercase font-semibold text-[#86868b] tracking-wider">
+        <div className="hidden sm:flex flex-col items-end gap-1">
+          <span className="text-[9px] uppercase font-semibold text-[#86868b] tracking-wider">
             Paleta Ativa
           </span>
           <div className="flex items-center -space-x-1.5 p-1 rounded-full bg-[#f5f5f7] border border-[#d2d2d7]">
             <div
-              className="size-5 rounded-full ring-2 ring-white shadow-sm transition-transform hover:scale-125"
+              className="size-4.5 rounded-full ring-2 ring-white shadow-sm transition-transform hover:scale-125"
               style={{ background: profile.colors.primary }}
               title={`Primária: ${profile.colors.primary}`}
             />
             <div
-              className="size-5 rounded-full ring-2 ring-white shadow-sm transition-transform hover:scale-125"
+              className="size-4.5 rounded-full ring-2 ring-white shadow-sm transition-transform hover:scale-125"
               style={{ background: profile.colors.secondary }}
               title={`Secundária: ${profile.colors.secondary}`}
             />
             <div
-              className="size-5 rounded-full ring-2 ring-white shadow-sm transition-transform hover:scale-125"
+              className="size-4.5 rounded-full ring-2 ring-white shadow-sm transition-transform hover:scale-125"
               style={{ background: profile.colors.accent }}
               title={`Destaque: ${profile.colors.accent}`}
             />
@@ -189,17 +189,17 @@ export function ProfileForm({
       </div>
 
       {errorMessage && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-700">
           {errorMessage}
         </div>
       )}
 
       {/* Formulário */}
-      <div className="space-y-4">
+      <div className="space-y-2.5 lg:space-y-2">
         {/* Nome & Cidade */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 lg:gap-2">
           <div>
-            <label htmlFor={nameId} className="field-label">
+            <label htmlFor={nameId} className="field-label text-[11px] mb-1">
               <BuildingIcon className="size-3 text-[#6e6e73]" /> Nome da Empresa
             </label>
             <input
@@ -210,12 +210,12 @@ export function ProfileForm({
                 setProfile((p) => ({ ...p, name: e.target.value }))
               }
               placeholder="Ex: Bella Cucina"
-              className="field-input"
+              className="field-input py-1.5 px-3 text-xs h-8 sm:h-9"
             />
           </div>
 
           <div>
-            <label htmlFor={cityId} className="field-label">
+            <label htmlFor={cityId} className="field-label text-[11px] mb-1">
               <MapPinIcon className="size-3 text-[#6e6e73]" /> Cidade e Estado
             </label>
             <input
@@ -226,22 +226,22 @@ export function ProfileForm({
                 setProfile((p) => ({ ...p, city: e.target.value }))
               }
               placeholder="Ex: Curitiba, PR"
-              className="field-input"
+              className="field-input py-1.5 px-3 text-xs h-8 sm:h-9"
             />
           </div>
         </div>
 
         {/* Tipo de Empresa & Nicho */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 lg:gap-2">
           <div>
-            <label htmlFor={categorySelectId} className="field-label">
+            <label htmlFor={categorySelectId} className="field-label text-[11px] mb-1">
               <TagIcon className="size-3 text-[#6e6e73]" /> Segmento
             </label>
             <select
               id={categorySelectId}
               value={profile.categoryId}
               onChange={(e) => handleCategoryChange(e.target.value)}
-              className="field-input"
+              className="field-input py-1.5 px-3 text-xs h-8 sm:h-9"
             >
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -252,7 +252,7 @@ export function ProfileForm({
           </div>
 
           <div>
-            <label htmlFor={nicheSelectId} className="field-label">
+            <label htmlFor={nicheSelectId} className="field-label text-[11px] mb-1">
               <TagIcon className="size-3 text-[#6e6e73]" /> Nicho Específico
             </label>
             <select
@@ -261,7 +261,7 @@ export function ProfileForm({
               onChange={(e) =>
                 setProfile((p) => ({ ...p, nicheId: e.target.value }))
               }
-              className="field-input"
+              className="field-input py-1.5 px-3 text-xs h-8 sm:h-9"
             >
               {currentCategory.niches.map((niche) => (
                 <option key={niche.id} value={niche.id}>
@@ -273,13 +273,13 @@ export function ProfileForm({
         </div>
 
         {/* Instagram & Tom de Voz */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 lg:gap-2">
           <div>
-            <label htmlFor={instaId} className="field-label">
+            <label htmlFor={instaId} className="field-label text-[11px] mb-1">
               Instagram do Cliente
             </label>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#86868b] font-mono text-xs">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#86868b] font-mono text-xs">
                 @
               </span>
               <input
@@ -293,13 +293,13 @@ export function ProfileForm({
                   }))
                 }
                 placeholder="nomecliente"
-                className="field-input pl-8 text-xs sm:text-sm font-mono"
+                className="field-input pl-7 text-xs font-mono h-8 sm:h-9 py-1.5"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor={toneSelectId} className="field-label">
+            <label htmlFor={toneSelectId} className="field-label text-[11px] mb-1">
               <MicIcon className="size-3 text-[#6e6e73]" /> Tom de Voz
             </label>
             <select
@@ -308,7 +308,7 @@ export function ProfileForm({
               onChange={(e) =>
                 setProfile((p) => ({ ...p, toneId: e.target.value }))
               }
-              className="field-input"
+              className="field-input py-1.5 px-3 text-xs h-8 sm:h-9"
             >
               {tones.map((tone) => (
                 <option key={tone.id} value={tone.id}>
@@ -320,38 +320,36 @@ export function ProfileForm({
         </div>
 
         {/* Descrição do Tom Selecionado */}
-        <div className="rounded-xl border border-[#d2d2d7] bg-[#f5f5f7] p-3 text-xs text-[#6e6e73] flex items-start gap-2.5">
-          <span className="text-sm select-none">💬</span>
-          <div className="space-y-0.5">
-            <div>
-              <span className="font-semibold text-[#1d1d1f] mr-1.5">
-                {currentTone.label}:
-              </span>
-              {currentTone.description}
-            </div>
-            <div className="text-[#86868b] italic">
-              Assinatura: &ldquo;{currentTone.signoff}&rdquo;
-            </div>
+        <div className="rounded-lg border border-[#d2d2d7] bg-[#f5f5f7] p-2 text-[11px] text-[#6e6e73] flex items-center gap-2">
+          <span className="text-xs select-none shrink-0">💬</span>
+          <div className="min-w-0 truncate text-[11px]">
+            <span className="font-semibold text-[#1d1d1f] mr-1.5">
+              {currentTone.label}:
+            </span>
+            <span>{currentTone.description}</span>
+            <span className="text-[#86868b] italic ml-1.5 hidden sm:inline">
+              &ldquo;{currentTone.signoff}&rdquo;
+            </span>
           </div>
         </div>
 
         {/* Cores da Marca */}
-        <div className="space-y-3 pt-2">
+        <div className="space-y-2 lg:space-y-1.5 pt-1">
           <div className="flex items-center justify-between">
-            <span className="field-label mb-0">
+            <span className="field-label mb-0 text-[11px]">
               <PaletteIcon className="size-3.5 text-[#6e6e73]" /> Cores da Marca
             </span>
-            <span className="text-[11px] text-[#86868b]">
+            <span className="text-[10px] text-[#86868b]">
               Personalize ou escolha um preset
             </span>
           </div>
 
           {/* Color pickers */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 lg:gap-1.5">
             {/* Primária */}
-            <div className="flex items-center gap-2.5 p-2 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]">
+            <div className="flex items-center gap-2 p-1.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]">
               <label
-                className="relative size-7 rounded-lg shrink-0 cursor-pointer overflow-hidden border border-[#d2d2d7] shadow-2xs hover:scale-105 transition-transform"
+                className="relative size-6 sm:size-7 rounded-lg shrink-0 cursor-pointer overflow-hidden border border-[#d2d2d7] shadow-2xs hover:scale-105 transition-transform"
                 style={{ backgroundColor: profile.colors.primary }}
                 title={`Alterar cor primária (${profile.colors.primary})`}
               >
@@ -368,7 +366,7 @@ export function ProfileForm({
                 />
               </label>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase font-semibold text-[#86868b]">
+                <p className="text-[9px] uppercase font-semibold text-[#86868b] leading-tight">
                   Primária
                 </p>
                 <input
@@ -387,9 +385,9 @@ export function ProfileForm({
             </div>
 
             {/* Secundária */}
-            <div className="flex items-center gap-2.5 p-2 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]">
+            <div className="flex items-center gap-2 p-1.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]">
               <label
-                className="relative size-7 rounded-lg shrink-0 cursor-pointer overflow-hidden border border-[#d2d2d7] shadow-2xs hover:scale-105 transition-transform"
+                className="relative size-6 sm:size-7 rounded-lg shrink-0 cursor-pointer overflow-hidden border border-[#d2d2d7] shadow-2xs hover:scale-105 transition-transform"
                 style={{ backgroundColor: profile.colors.secondary }}
                 title={`Alterar cor secundária (${profile.colors.secondary})`}
               >
@@ -406,7 +404,7 @@ export function ProfileForm({
                 />
               </label>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase font-semibold text-[#86868b]">
+                <p className="text-[9px] uppercase font-semibold text-[#86868b] leading-tight">
                   Secundária
                 </p>
                 <input
@@ -425,9 +423,9 @@ export function ProfileForm({
             </div>
 
             {/* Destaque / Accent */}
-            <div className="flex items-center gap-2.5 p-2 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]">
+            <div className="flex items-center gap-2 p-1.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]">
               <label
-                className="relative size-7 rounded-lg shrink-0 cursor-pointer overflow-hidden border border-[#d2d2d7] shadow-2xs hover:scale-105 transition-transform"
+                className="relative size-6 sm:size-7 rounded-lg shrink-0 cursor-pointer overflow-hidden border border-[#d2d2d7] shadow-2xs hover:scale-105 transition-transform"
                 style={{ backgroundColor: profile.colors.accent }}
                 title={`Alterar cor de destaque (${profile.colors.accent})`}
               >
@@ -444,7 +442,7 @@ export function ProfileForm({
                 />
               </label>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase font-semibold text-[#86868b]">
+                <p className="text-[9px] uppercase font-semibold text-[#86868b] leading-tight">
                   Destaque (CTA)
                 </p>
                 <input
@@ -464,8 +462,8 @@ export function ProfileForm({
           </div>
 
           {/* Quick Palettes */}
-          <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1.5 pt-1 scrollbar-thin">
-            <span className="text-[11px] text-[#86868b] shrink-0 mr-1 select-none">Presets:</span>
+          <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 pt-0.5 scrollbar-thin">
+            <span className="text-[10px] text-[#86868b] shrink-0 mr-1 select-none">Presets:</span>
             {COLOR_PRESETS.map((preset) => (
               <button
                 key={preset.name}
@@ -473,7 +471,7 @@ export function ProfileForm({
                 onClick={() =>
                   setProfile((p) => ({ ...p, colors: preset.colors }))
                 }
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#d2d2d7] bg-white text-[11px] text-[#1d1d1f] hover:border-[#86868b] hover:bg-[#f5f5f7] transition shrink-0 whitespace-nowrap min-h-[32px]"
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-[#d2d2d7] bg-white text-[10px] text-[#1d1d1f] hover:border-[#86868b] hover:bg-[#f5f5f7] transition shrink-0 whitespace-nowrap min-h-[26px]"
               >
                 <span className="flex items-center -space-x-1 shrink-0">
                   <span
@@ -497,32 +495,32 @@ export function ProfileForm({
       </div>
 
       {/* Calendário Editorial da Semana (7 Dias com Datas Reais) */}
-      <div className="pt-4 border-t border-[#e5e5ea] space-y-3">
+      <div className="pt-2.5 lg:pt-2 border-t border-[#e5e5ea] space-y-1.5 lg:space-y-1">
         <div className="flex items-center justify-between">
           <label
             htmlFor={dateInputId}
-            className="field-label mb-0 flex items-center gap-1.5 text-xs font-semibold text-[#1d1d1f]"
+            className="field-label mb-0 flex items-center gap-1.5 text-[11px] font-semibold text-[#1d1d1f]"
           >
-            <CalendarIcon className="size-3.5 text-[#0071e3]" /> Início da Semana (7 Dias)
+            <CalendarIcon className="size-3 text-[#0071e3]" /> Início da Semana (7 Dias)
           </label>
-          <span className="text-[11px] font-medium text-[#0071e3] bg-[#0071e3]/10 px-2.5 py-0.5 rounded-full shrink-0">
+          <span className="text-[10px] font-medium text-[#0071e3] bg-[#0071e3]/10 px-2 py-0.5 rounded-full shrink-0">
             {formatWeekRange(startDate)}
           </span>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5">
           <input
             id={dateInputId}
             type="date"
             value={startDate}
             onChange={(e) => onStartDateChange(e.target.value)}
-            className="field-input text-xs sm:text-sm py-2 flex-1 min-h-[40px]"
+            className="field-input text-xs py-1 px-2.5 flex-1 min-h-[34px] sm:min-h-0 h-8"
           />
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => onStartDateChange(getMondayOfWeek())}
-              className="btn-ghost text-xs py-2 px-3 flex-1 sm:flex-initial min-h-[40px] whitespace-nowrap"
+              className="btn-ghost text-xs py-1 px-2.5 flex-1 sm:flex-initial min-h-[34px] sm:min-h-0 h-8 whitespace-nowrap"
               title="Ajustar para Segunda-feira desta semana"
             >
               Semana Atual
@@ -530,26 +528,22 @@ export function ProfileForm({
             <button
               type="button"
               onClick={() => onStartDateChange(getNextMonday())}
-              className="btn-ghost text-xs py-2 px-3 flex-1 sm:flex-initial min-h-[40px] whitespace-nowrap"
+              className="btn-ghost text-xs py-1 px-2.5 flex-1 sm:flex-initial min-h-[34px] sm:min-h-0 h-8 whitespace-nowrap"
               title="Ajustar para a próxima Segunda-feira"
             >
               Próxima Semana
             </button>
           </div>
         </div>
-
-        <p className="text-[11px] text-[#86868b]">
-          Gera 7 posts de Segunda a Domingo com datas reais e tags correspondentes.
-        </p>
       </div>
 
       {/* Ações: Salvar e Gerar (Mobile First) */}
-      <div className="pt-4 border-t border-[#e5e5ea] flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <div className="pt-2.5 lg:pt-2 border-t border-[#e5e5ea] flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2">
         <button
           type="button"
           onClick={() => handleSave(false)}
           disabled={saving || isGenerating}
-          className="btn-ghost text-xs py-2.5 px-4 min-h-[44px] justify-center"
+          className="btn-ghost text-xs py-1.5 px-3 min-h-[36px] justify-center"
         >
           {saving ? (
             <SpinnerIcon />
@@ -570,7 +564,7 @@ export function ProfileForm({
           type="button"
           onClick={handleGenerateClick}
           disabled={isGenerating || saving}
-          className="btn-primary text-sm py-3 px-6 min-h-[44px] justify-center shadow-sm hover:shadow transition-all font-semibold"
+          className="btn-primary text-xs sm:text-sm py-2 px-5 min-h-[38px] justify-center shadow-xs font-semibold"
         >
           {isGenerating ? (
             <>
