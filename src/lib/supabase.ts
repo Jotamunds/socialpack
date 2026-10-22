@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Utilitário de conexão com Supabase seguindo OWASP e Next.js Server Components.
@@ -40,7 +40,7 @@ export function getSupabaseServerClient(): SupabaseClient | null {
   )!;
 
   try {
-    cachedClient = createClient(url, key, {
+    cachedClient = createSupabaseClient(url, key, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
@@ -52,3 +52,11 @@ export function getSupabaseServerClient(): SupabaseClient | null {
     return null;
   }
 }
+
+/**
+ * Alias de conveniência para obter a instância do cliente Supabase no servidor.
+ */
+export function createClient(): SupabaseClient | null {
+  return getSupabaseServerClient();
+}
+
