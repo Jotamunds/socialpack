@@ -446,8 +446,8 @@ export function ProfileForm({
           </div>
 
           {/* Quick Palettes */}
-          <div className="flex flex-wrap items-center gap-1.5 pt-1">
-            <span className="text-[11px] text-[#86868b] mr-1">Presets:</span>
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+            <span className="text-[11px] text-[#86868b] shrink-0 mr-1">Presets:</span>
             {COLOR_PRESETS.map((preset) => (
               <button
                 key={preset.name}
@@ -455,7 +455,7 @@ export function ProfileForm({
                 onClick={() =>
                   setProfile((p) => ({ ...p, colors: preset.colors }))
                 }
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#d2d2d7] bg-white text-[11px] text-[#1d1d1f] hover:border-[#86868b] hover:bg-[#f5f5f7] transition"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#d2d2d7] bg-white text-[11px] text-[#1d1d1f] hover:border-[#86868b] hover:bg-[#f5f5f7] transition shrink-0 whitespace-nowrap min-h-[32px]"
               >
                 <span className="flex items-center -space-x-1">
                   <span
@@ -487,7 +487,7 @@ export function ProfileForm({
           >
             <CalendarIcon className="size-3.5 text-[#0071e3]" /> Início da Semana (7 Dias)
           </label>
-          <span className="text-[11px] font-medium text-[#0071e3] bg-[#0071e3]/10 px-2.5 py-0.5 rounded-full">
+          <span className="text-[11px] font-medium text-[#0071e3] bg-[#0071e3]/10 px-2.5 py-0.5 rounded-full shrink-0">
             {formatWeekRange(startDate)}
           </span>
         </div>
@@ -498,13 +498,13 @@ export function ProfileForm({
             type="date"
             value={startDate}
             onChange={(e) => onStartDateChange(e.target.value)}
-            className="field-input text-xs sm:text-sm py-2 flex-1"
+            className="field-input text-xs sm:text-sm py-2 flex-1 min-h-[40px]"
           />
           <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => onStartDateChange(getMondayOfWeek())}
-              className="btn-ghost text-xs py-2 px-3 flex-1 sm:flex-initial"
+              className="btn-ghost text-xs py-2 px-3 flex-1 sm:flex-initial min-h-[40px] whitespace-nowrap"
               title="Ajustar para Segunda-feira desta semana"
             >
               Semana Atual
@@ -512,7 +512,7 @@ export function ProfileForm({
             <button
               type="button"
               onClick={() => onStartDateChange(getNextMonday())}
-              className="btn-ghost text-xs py-2 px-3 flex-1 sm:flex-initial"
+              className="btn-ghost text-xs py-2 px-3 flex-1 sm:flex-initial min-h-[40px] whitespace-nowrap"
               title="Ajustar para a próxima Segunda-feira"
             >
               Próxima Semana
@@ -525,13 +525,13 @@ export function ProfileForm({
         </p>
       </div>
 
-      {/* Ações: Salvar e Gerar */}
-      <div className="pt-4 border-t border-[#e5e5ea] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      {/* Ações: Salvar e Gerar (Mobile First) */}
+      <div className="pt-4 border-t border-[#e5e5ea] flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <button
           type="button"
           onClick={() => handleSave(false)}
           disabled={saving || isGenerating}
-          className="btn-ghost text-xs py-2 px-4"
+          className="btn-ghost text-xs py-2.5 px-4 min-h-[44px] justify-center"
         >
           {saving ? (
             <SpinnerIcon />
@@ -552,7 +552,7 @@ export function ProfileForm({
           type="button"
           onClick={handleGenerateClick}
           disabled={isGenerating || saving}
-          className="btn-primary text-sm py-2.5 px-6"
+          className="btn-primary text-sm py-3 px-6 min-h-[44px] justify-center shadow-sm hover:shadow transition-all font-semibold"
         >
           {isGenerating ? (
             <>

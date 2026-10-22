@@ -240,7 +240,7 @@ export function PostCard({
             <button
               type="button"
               onClick={() => setIsEditingText(true)}
-              className="btn-ghost py-1 px-2.5 text-[11px] flex-1 text-[#1d1d1f]"
+              className="btn-ghost py-1.5 px-2.5 text-[11px] flex-1 text-[#1d1d1f] min-h-[36px] justify-center"
               title="Personalizar títulos e textos"
             >
               ✏️ Editar Texto
@@ -248,7 +248,7 @@ export function PostCard({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="btn-ghost py-1 px-2.5 text-[11px] flex-1 text-[#1d1d1f]"
+              className="btn-ghost py-1.5 px-2.5 text-[11px] flex-1 text-[#1d1d1f] min-h-[36px] justify-center"
               title="Fazer upload de foto do cliente"
             >
               📷 Foto
@@ -257,7 +257,7 @@ export function PostCard({
               <button
                 type="button"
                 onClick={handleRemovePhoto}
-                className="text-[11px] text-[#86868b] hover:text-rose-600 px-1"
+                className="text-[11px] text-[#86868b] hover:text-rose-600 px-1.5 min-h-[36px] flex items-center justify-center"
                 title="Remover foto personalizada"
               >
                 ✕
@@ -298,7 +298,7 @@ export function PostCard({
                 id={`copy-caption-${index + 1}`}
                 type="button"
                 onClick={handleCopy}
-                className="btn-ghost py-1.5 px-2 text-xs"
+                className="btn-ghost py-2 px-2 text-xs min-h-[40px] justify-center"
                 title="Copiar legenda completa com hashtags"
               >
                 {copied ? <CheckIcon className="text-emerald-600 size-3.5" /> : <CopyIcon className="size-3.5 text-[#6e6e73]" />}
@@ -309,7 +309,7 @@ export function PostCard({
                 type="button"
                 onClick={handleDownload}
                 disabled={downloading}
-                className="btn-primary py-1.5 px-2 text-xs"
+                className="btn-primary py-2 px-2 text-xs min-h-[40px] justify-center font-medium"
                 title="Baixar arte em PNG 1080x1080"
               >
                 {downloading ? <SpinnerIcon className="size-3.5" /> : <DownloadIcon className="size-3.5" />}
@@ -387,18 +387,18 @@ export function PostCard({
           </header>
 
           {/* Mini-painel discreto de customização na timeline */}
-          <div className="flex items-center gap-2 my-2.5">
+          <div className="flex flex-wrap items-center gap-2 my-2.5">
             <button
               type="button"
               onClick={() => setIsEditingText(true)}
-              className="btn-ghost py-1 px-3 text-xs text-[#1d1d1f]"
+              className="btn-ghost py-1.5 px-3 text-xs text-[#1d1d1f] min-h-[36px]"
             >
               ✏️ Editar Texto
             </button>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="btn-ghost py-1 px-3 text-xs text-[#1d1d1f]"
+              className="btn-ghost py-1.5 px-3 text-xs text-[#1d1d1f] min-h-[36px]"
             >
               📷 Trocar Foto
             </button>
@@ -406,7 +406,7 @@ export function PostCard({
               <button
                 type="button"
                 onClick={handleRemovePhoto}
-                className="text-xs text-[#86868b] hover:text-rose-600 px-1.5"
+                className="text-xs text-[#86868b] hover:text-rose-600 px-2 py-1 min-h-[32px]"
               >
                 Remover foto personalizada
               </button>
@@ -422,11 +422,11 @@ export function PostCard({
           {error && <p className="mt-2 text-xs text-rose-600">{error}</p>}
 
           <div className="mt-3.5 grid grid-cols-2 gap-2.5">
-            <button id={`copy-caption-${index + 1}`} type="button" onClick={handleCopy} className="btn-ghost py-2">
+            <button id={`copy-caption-${index + 1}`} type="button" onClick={handleCopy} className="btn-ghost py-2.5 min-h-[44px] justify-center text-xs sm:text-sm">
               {copied ? <CheckIcon className="text-emerald-600 size-4" /> : <CopyIcon className="size-4 text-[#6e6e73]" />}
               {copied ? "Copiada!" : "Copiar legenda"}
             </button>
-            <button id={`download-card-${index + 1}`} type="button" onClick={handleDownload} disabled={downloading} className="btn-primary py-2">
+            <button id={`download-card-${index + 1}`} type="button" onClick={handleDownload} disabled={downloading} className="btn-primary py-2.5 min-h-[44px] justify-center text-xs sm:text-sm font-semibold">
               {downloading ? <SpinnerIcon className="size-4" /> : <DownloadIcon className="size-4" />}
               {downloading ? "Gerando…" : "Baixar PNG"}
             </button>
@@ -450,25 +450,26 @@ export function PostCard({
 
   function renderEditModal() {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fade-in">
-        <div className="apple-card bg-white p-6 sm:p-7 max-w-lg w-full space-y-4 shadow-2xl border border-[#d2d2d7] animate-scale-up">
-          <div className="flex items-center justify-between border-b border-[#e5e5ea] pb-3">
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-xs animate-fade-in">
+        <div className="apple-card bg-white p-4 sm:p-6 max-w-lg w-full rounded-t-3xl sm:rounded-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col shadow-2xl border border-[#d2d2d7] animate-scale-up">
+          <div className="flex items-center justify-between border-b border-[#e5e5ea] pb-3 shrink-0">
             <div>
               <span className="text-[11px] font-semibold uppercase tracking-wider text-[#0071e3]">
                 {post.day} · Template: {LAYOUT_NAMES[post.layout % LAYOUT_NAMES.length]}
               </span>
-              <h3 className="text-lg font-semibold text-[#1d1d1f]">Editar Conteúdo da Arte</h3>
+              <h3 className="text-base sm:text-lg font-semibold text-[#1d1d1f]">Editar Conteúdo da Arte</h3>
             </div>
             <button
               type="button"
               onClick={() => setIsEditingText(false)}
-              className="text-[#86868b] hover:text-[#1d1d1f] text-sm p-1"
+              className="text-[#86868b] hover:text-[#1d1d1f] text-base size-8 flex items-center justify-center rounded-full hover:bg-[#f5f5f7] transition"
+              title="Fechar"
             >
               ✕
             </button>
           </div>
 
-          <div className="space-y-3.5 max-h-[60vh] overflow-y-auto pr-1">
+          <div className="space-y-3.5 flex-1 overflow-y-auto pr-1 py-2">
             <div>
               <label className="field-label">Título da Arte (Headline)</label>
               <input
@@ -491,7 +492,7 @@ export function PostCard({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="field-label">Chamada (CTA)</label>
                 <input
@@ -526,11 +527,11 @@ export function PostCard({
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-3 border-t border-[#e5e5ea]">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-3 border-t border-[#e5e5ea] shrink-0">
             <button
               type="button"
               onClick={handleResetCustomizations}
-              className="btn-ghost text-xs py-1.5 px-3 text-[#86868b] hover:text-rose-600"
+              className="btn-ghost text-xs py-2 px-3 text-[#86868b] hover:text-rose-600 justify-center min-h-[40px]"
             >
               Restaurar Original
             </button>
@@ -538,14 +539,14 @@ export function PostCard({
               <button
                 type="button"
                 onClick={() => setIsEditingText(false)}
-                className="btn-ghost text-xs py-1.5 px-4"
+                className="btn-ghost text-xs py-2 px-3.5 flex-1 sm:flex-initial justify-center min-h-[40px]"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleSaveText}
-                className="btn-primary text-xs py-1.5 px-4"
+                className="btn-primary text-xs py-2 px-4 flex-1 sm:flex-initial justify-center min-h-[40px] font-semibold"
               >
                 Salvar Alterações
               </button>

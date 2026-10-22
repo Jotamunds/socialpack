@@ -194,6 +194,27 @@ body {
   .btn-dark:active {
     transform: scale(0.98);
   }
+
+  /* Utilitário para rolagem horizontal suave sem scrollbar visível no mobile */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Garante touch target ergonômico no mobile (Apple HIG 44px) */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 @media (prefers-reduced-motion: reduce) {

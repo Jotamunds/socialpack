@@ -25,7 +25,7 @@ export default async function BillingPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard"
-              className="btn-ghost text-xs py-1.5 px-3 text-[#1d1d1f]"
+              className="btn-ghost text-xs py-2 px-3.5 text-[#1d1d1f] min-h-[36px] inline-flex items-center"
             >
               ← Voltar ao Dashboard
             </Link>
@@ -33,7 +33,7 @@ export default async function BillingPage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
         <BillingSection currentEmail={email} />
       </main>
 

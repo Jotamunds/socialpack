@@ -94,11 +94,11 @@ export function BillingSection({ currentEmail }: Props) {
   return (
     <div className="space-y-8 animate-fade-up">
       {/* Header com Status Atual Apple Style */}
-      <div className="apple-card p-6 sm:p-8 bg-white space-y-4">
+      <div className="apple-card p-5 sm:p-8 bg-white space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2.5">
-              <h2 className="text-2xl font-semibold text-[#1d1d1f] tracking-tight">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <h2 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] tracking-tight">
                 Planos & Cota Comercial
               </h2>
               <span
@@ -154,7 +154,7 @@ export function BillingSection({ currentEmail }: Props) {
       </div>
 
       {/* Grade de Cards Comparativos de Planos */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 items-stretch">
         {plans.map((plan) => {
           const isCurrent = currentPlanId === plan.id;
           const isPopular = plan.isPopular;
@@ -162,25 +162,25 @@ export function BillingSection({ currentEmail }: Props) {
           return (
             <div
               key={plan.id}
-              className={`apple-card p-6 sm:p-7 flex flex-col justify-between relative transition-all duration-200 ${
+              className={`apple-card p-5 sm:p-7 flex flex-col justify-between relative transition-all duration-200 ${
                 isPopular
                   ? "bg-white border-2 border-[#0071e3] shadow-md ring-4 ring-[#0071e3]/5"
                   : "bg-white border border-[#d2d2d7]"
               }`}
             >
               {isPopular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#0071e3] text-white text-[11px] font-semibold tracking-wide uppercase px-3.5 py-1 rounded-full shadow-sm">
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#0071e3] text-white text-[11px] font-semibold tracking-wide uppercase px-3.5 py-1 rounded-full shadow-sm whitespace-nowrap">
                   Mais Popular
                 </div>
               )}
 
-              <div className="space-y-5">
+              <div className="space-y-4 sm:space-y-5">
                 <div>
                   <h3 className="text-lg font-semibold text-[#1d1d1f]">{plan.name}</h3>
                   <p className="text-xs text-[#6e6e73] mt-1 min-h-[32px]">{plan.description}</p>
                 </div>
 
-                <div className="flex items-baseline gap-1 border-b border-[#f0f0f2] pb-5">
+                <div className="flex items-baseline gap-1 border-b border-[#f0f0f2] pb-4 sm:pb-5">
                   <span className="text-3xl sm:text-4xl font-bold text-[#1d1d1f] tracking-tight">
                     {plan.price}
                   </span>
@@ -201,12 +201,12 @@ export function BillingSection({ currentEmail }: Props) {
               </div>
 
               {/* Botão de Ação Apple Style */}
-              <div className="pt-6 mt-6 border-t border-[#f0f0f2]">
+              <div className="pt-5 sm:pt-6 mt-5 sm:mt-6 border-t border-[#f0f0f2]">
                 {isCurrent ? (
                   <button
                     type="button"
                     disabled
-                    className="w-full py-2.5 px-4 rounded-full text-xs font-medium bg-[#f5f5f7] border border-[#d2d2d7] text-[#86868b] cursor-default"
+                    className="w-full py-3 px-4 rounded-full text-xs font-medium bg-[#f5f5f7] border border-[#d2d2d7] text-[#86868b] cursor-default min-h-[44px]"
                   >
                     Plano Atual
                   </button>
@@ -215,7 +215,7 @@ export function BillingSection({ currentEmail }: Props) {
                     type="button"
                     onClick={() => handleCheckout(plan)}
                     disabled={processingPlanId !== null}
-                    className={`w-full py-2.5 px-4 rounded-full text-xs font-semibold transition-all duration-150 inline-flex items-center justify-center gap-1.5 ${
+                    className={`w-full py-3 px-4 rounded-full text-xs sm:text-sm font-semibold transition-all duration-150 inline-flex items-center justify-center gap-1.5 min-h-[44px] ${
                       isPopular
                         ? "bg-[#0071e3] hover:bg-[#0077ed] text-white shadow-sm hover:shadow"
                         : "bg-[#1d1d1f] hover:bg-black text-white"

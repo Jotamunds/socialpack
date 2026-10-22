@@ -165,28 +165,28 @@ export function HistorySection({ currentEmail }: Props) {
         </div>
 
         {/* Inputs de busca e data */}
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1 border-t border-[#e5e5ea]">
-          <div className="sm:col-span-8">
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 pt-1 border-t border-[#e5e5ea]">
+          <div className="sm:col-span-7">
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por nome do cliente, nicho ou cidade..."
-              className="field-input text-xs sm:text-sm"
+              placeholder="Buscar por cliente, nicho ou cidade..."
+              className="field-input text-xs sm:text-sm min-h-[40px]"
             />
           </div>
-          <div className="sm:col-span-4 flex items-center gap-2">
+          <div className="sm:col-span-5 flex items-center gap-2">
             <input
               type="date"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="field-input text-xs sm:text-sm"
+              className="field-input text-xs sm:text-sm min-h-[40px] flex-1"
             />
             {dateFilter && (
               <button
                 type="button"
                 onClick={() => setDateFilter("")}
-                className="btn-ghost text-xs py-2 px-3 text-[#6e6e73]"
+                className="btn-ghost text-xs py-2 px-3 text-[#6e6e73] min-h-[40px]"
                 title="Limpar filtro de data"
               >
                 Limpar
@@ -221,7 +221,8 @@ export function HistorySection({ currentEmail }: Props) {
               Packs Salvos ({packs.length})
             </div>
 
-            <div className="space-y-2.5 max-h-[750px] overflow-y-auto pr-1">
+            {/* Lista Lateral de Packs (Horizontal no mobile, vertical no desktop) */}
+            <div className="flex lg:flex-col overflow-x-auto lg:overflow-visible gap-2.5 pb-2 lg:pb-0 no-scrollbar max-h-none lg:max-h-[750px] lg:overflow-y-auto pr-0 lg:pr-1">
               {packs.map((pack) => {
                 const isSelected = selectedPack?.id === pack.id;
                 const formattedDate = new Date(pack.createdAt).toLocaleDateString("pt-BR", {
@@ -236,7 +237,7 @@ export function HistorySection({ currentEmail }: Props) {
                   <div
                     key={pack.id}
                     onClick={() => setSelectedPackId(pack.id)}
-                    className={`p-4 rounded-xl cursor-pointer border transition-all text-left ${
+                    className={`p-3.5 sm:p-4 rounded-xl cursor-pointer border transition-all text-left min-w-[240px] sm:min-w-[270px] lg:min-w-0 shrink-0 lg:shrink ${
                       isSelected
                         ? "bg-white border-[#0071e3] shadow-md ring-2 ring-[#0071e3]/10"
                         : "bg-white border-[#d2d2d7] hover:border-[#86868b] hover:bg-[#fafafc]"
@@ -310,7 +311,7 @@ export function HistorySection({ currentEmail }: Props) {
                     type="button"
                     onClick={() => handleDownloadAllFromPack(selectedPack)}
                     disabled={downloadingPackId === selectedPack.id}
-                    className="btn-primary text-xs py-2 px-4"
+                    className="btn-primary text-xs py-2.5 px-4 w-full sm:w-auto justify-center font-semibold min-h-[40px]"
                   >
                     {downloadingPackId === selectedPack.id ? (
                       <>
@@ -382,7 +383,7 @@ export function HistorySection({ currentEmail }: Props) {
                             <button
                               type="button"
                               onClick={() => handleCopyCaption(post)}
-                              className="btn-ghost text-xs py-1.5 px-3"
+                              className="btn-ghost text-xs py-2 px-3 flex-1 sm:flex-initial justify-center min-h-[40px]"
                             >
                               {copiedPostId === post.id ? (
                                 <CheckIcon className="size-3.5 text-emerald-600" />
@@ -395,7 +396,7 @@ export function HistorySection({ currentEmail }: Props) {
                             <button
                               type="button"
                               onClick={() => handleDownloadSingle(selectedPack, post, idx)}
-                              className="btn-primary text-xs py-1.5 px-3"
+                              className="btn-primary text-xs py-2 px-3.5 flex-1 sm:flex-initial justify-center min-h-[40px] font-semibold"
                             >
                               <DownloadIcon className="size-3.5" /> Baixar PNG
                             </button>

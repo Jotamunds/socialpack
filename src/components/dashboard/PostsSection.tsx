@@ -187,7 +187,7 @@ export function PostsSection({
             type="button"
             onClick={handleNextWeek}
             disabled={isGenerating || downloadingAll}
-            className="btn-ghost text-xs py-1.5 px-3"
+            className="btn-ghost text-xs py-2 px-3 min-h-[38px] flex-1 sm:flex-initial justify-center"
             title="Avançar para a próxima semana"
           >
             Próxima Semana &rarr;
@@ -198,7 +198,7 @@ export function PostsSection({
             type="button"
             onClick={handleDownloadAll}
             disabled={downloadingAll || isGenerating}
-            className="btn-primary text-xs py-2 px-4"
+            className="btn-primary text-xs py-2 px-4 min-h-[38px] w-full sm:w-auto justify-center font-semibold"
           >
             {downloadingAll ? (
               <>
@@ -219,7 +219,7 @@ export function PostsSection({
           <span className="text-[11px] font-semibold uppercase tracking-wider text-[#86868b]">
             Navegação da Semana (7 Dias)
           </span>
-          <span className="text-[11px] text-[#86868b]">Clique em um dia para rolar</span>
+          <span className="text-[11px] text-[#86868b] hidden sm:inline">Clique em um dia para rolar</span>
         </div>
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
           {result.posts.map((post, idx) => {
@@ -233,7 +233,7 @@ export function PostsSection({
                 key={post.id}
                 type="button"
                 onClick={() => scrollToPost(post.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border ${
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border min-h-[36px] ${
                   isSelected
                     ? "bg-[#1d1d1f] text-white border-[#1d1d1f] shadow-xs"
                     : "bg-[#f5f5f7] text-[#1d1d1f] border-[#d2d2d7] hover:border-[#86868b] hover:bg-white"
@@ -249,12 +249,12 @@ export function PostsSection({
 
       {/* Visualização 1: Linha do Tempo (Timeline Apple com Spine e Nós Conectados) */}
       {viewMode === "timeline" ? (
-        <div className="relative border-l-2 border-[#d2d2d7] ml-3 sm:ml-5 pl-4 sm:pl-7 space-y-7 pt-2 pb-4">
+        <div className="relative border-l-2 border-[#d2d2d7] ml-2.5 sm:ml-5 pl-3.5 sm:pl-7 space-y-6 sm:space-y-7 pt-2 pb-4">
           {result.posts.map((post, idx) => (
             <div key={post.id} className="relative">
               {/* Nó do dia conectado na linha */}
               <div
-                className="absolute -left-[27px] sm:-left-[39px] top-4 size-6 sm:size-7 rounded-full bg-white border-2 border-[#0071e3] grid place-items-center shadow-xs text-[11px] font-bold text-[#0071e3] select-none"
+                className="absolute -left-[25px] sm:-left-[39px] top-3.5 sm:top-4 size-5 sm:size-7 rounded-full bg-white border-2 border-[#0071e3] grid place-items-center shadow-xs text-[10px] sm:text-[11px] font-bold text-[#0071e3] select-none"
                 title={post.day}
               >
                 {idx + 1}

@@ -99,6 +99,12 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
       setResult(data);
       // Atualiza o histórico em segundo plano
       setHistoryKey((k) => k + 1);
+      // No mobile, rola suavemente para o resultado das artes geradas
+      if (typeof window !== "undefined" && window.innerWidth < 1024) {
+        setTimeout(() => {
+          document.getElementById("posts-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 150);
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erro ao gerar posts.";
       setGenerateError(msg);
@@ -111,13 +117,16 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
     <div className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] flex flex-col">
       {/* Navbar Superior Apple: clean white with subtle border and backdrop blur */}
       <header className="border-b border-[#d2d2d7] bg-white/90 backdrop-blur-md sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-3">
           <Logo />
 
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="hidden sm:flex items-center gap-2 text-xs text-[#6e6e73]">
-              <span>Conectado como</span>
-              <span className="font-semibold text-[#1d1d1f] truncate max-w-[200px]">
+          <div className="flex items-center gap-2.5 sm:gap-4">
+            <div className="flex items-center gap-2 text-xs text-[#6e6e73]">
+              <span className="size-6 rounded-full bg-[#1d1d1f] text-white font-semibold flex items-center justify-center text-[10px] shrink-0 sm:hidden">
+                {userEmail.charAt(0).toUpperCase()}
+              </span>
+              <span className="hidden sm:inline">Conectado como</span>
+              <span className="font-semibold text-[#1d1d1f] truncate max-w-[120px] sm:max-w-[200px]">
                 {userEmail}
               </span>
             </div>
@@ -126,7 +135,7 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
               id="btn-logout"
               type="button"
               onClick={handleLogout}
-              className="btn-ghost text-xs py-1.5 px-3 text-[#6e6e73] hover:text-rose-600 hover:border-rose-300"
+              className="btn-ghost text-xs py-1.5 px-3 min-h-[36px] text-[#6e6e73] hover:text-rose-600 hover:border-rose-300 transition"
               title="Sair da conta"
             >
               <LogOutIcon className="size-3.5" />
@@ -137,11 +146,11 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
       </header>
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-7 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-5 sm:space-y-6">
         {/* Apple Segmented Control (Tabs) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#e5e5ea]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 pb-2 border-b border-[#e5e5ea]">
           <div className="space-y-0.5">
-            <h1 className="text-2xl font-semibold text-[#1d1d1f] tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-semibold text-[#1d1d1f] tracking-tight">
               {activeTab === "create"
                 ? "Calendário Editorial Semanal"
                 : activeTab === "history"
@@ -157,14 +166,14 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
             </p>
           </div>
 
-          {/* Segmented Control Pill */}
-          <div className="inline-flex p-1 rounded-full bg-[#e8e8ed] border border-[#d2d2d7] text-xs font-medium self-start sm:self-auto">
+          {/* Segmented Control Pill adaptativo para Mobile */}
+          <div className="w-full sm:w-auto overflow-x-auto no-scrollbar flex items-center p-1 rounded-full bg-[#e8e8ed] border border-[#d2d2d7] text-xs font-medium shrink-0">
             <button
               type="button"
               onClick={() => setActiveTab("create")}
-              className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full transition-all ${
+              className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-full transition-all whitespace-nowrap min-h-[36px] sm:min-h-0 ${
                 activeTab === "create"
-                  ? "bg-white text-[#1d1d1f] shadow-sm font-semibold"
+                  ? "bg-white text-[#1d1d1f] shadow-xs font-semibold"
                   : "text-[#6e6e73] hover:text-[#1d1d1f]"
               }`}
             >
@@ -175,9 +184,9 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
             <button
               type="button"
               onClick={() => setActiveTab("history")}
-              className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full transition-all ${
+              className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-full transition-all whitespace-nowrap min-h-[36px] sm:min-h-0 ${
                 activeTab === "history"
-                  ? "bg-white text-[#1d1d1f] shadow-sm font-semibold"
+                  ? "bg-white text-[#1d1d1f] shadow-xs font-semibold"
                   : "text-[#6e6e73] hover:text-[#1d1d1f]"
               }`}
             >
@@ -188,9 +197,9 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
             <button
               type="button"
               onClick={() => setActiveTab("billing")}
-              className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full transition-all ${
+              className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-full transition-all whitespace-nowrap min-h-[36px] sm:min-h-0 ${
                 activeTab === "billing"
-                  ? "bg-white text-[#1d1d1f] shadow-sm font-semibold"
+                  ? "bg-white text-[#1d1d1f] shadow-xs font-semibold"
                   : "text-[#6e6e73] hover:text-[#1d1d1f]"
               }`}
             >
@@ -222,7 +231,7 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
             </div>
 
             {/* Coluna Direita: Cards Gerados */}
-            <div className="lg:col-span-7 xl:col-span-7">
+            <div id="posts-section" className="lg:col-span-7 xl:col-span-7 scroll-mt-20">
               <PostsSection
                 profile={profile}
                 result={result}
