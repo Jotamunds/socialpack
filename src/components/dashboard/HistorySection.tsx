@@ -39,16 +39,25 @@ export function HistorySection({ currentEmail }: Props) {
 
       const res = await fetch(`/api/packs?${params.toString()}`);
       if (res.ok) {
-        const data = await res.json();
-        setPacks(data.packs || []);
-        setIsCloud(Boolean(data.isCloud));
-        // Auto-select first pack if none selected
-        if (!selectedPackId && data.packs?.length > 0) {
-          setSelectedPackId(data.packs[0].id);
+        const data = await res.json().catch(() => ({ packs: [], isCloud: false }));
+        const list = Array.isArray(data?.packs) ? data.packs : [];
+        setPacks(list);
+        setIsCloud(Boolean(data?.isCloud));
+        if (list.length > 0) {
+          if (!selectedPackId || !list.some((p: SavedPack) => p.id === selectedPackId)) {
+            setSelectedPackId(list[0].id);
+          }
+        } else {
+          setSelectedPackId(null);
         }
+      } else {
+        setPacks([]);
+        setSelectedPackId(null);
       }
     } catch (err) {
       console.warn("Erro ao buscar histórico:", err);
+      setPacks([]);
+      setSelectedPackId(null);
     } finally {
       setLoading(false);
     }
@@ -89,9 +98,11 @@ export function HistorySection({ currentEmail }: Props) {
       colors: pack.brandColors,
     };
 
+    const posts = Array.isArray(pack?.posts) ? pack.posts : [];
+
     try {
-      for (let i = 0; i < pack.posts.length; i++) {
-        const post = pack.posts[i];
+      for (let i = 0; i < posts.length; i++) {
+        const post = posts[i];
         const node = canvasMapRef.current.get(`${pack.id}-${post.id}`);
         if (node) {
           await downloadNodeAsPng(node, fileNameFor(profile, post, i));
@@ -131,6 +142,7 @@ export function HistorySection({ currentEmail }: Props) {
   };
 
   const selectedPack = packs.find((p) => p.id === selectedPackId) || packs[0];
+  const selectedPosts = Array.isArray(selectedPack?.posts) ? selectedPack.posts : [];
 
   return (
     <div className="space-y-6">
@@ -319,7 +331,7 @@ export function HistorySection({ currentEmail }: Props) {
                       </>
                     ) : (
                       <>
-                        <DownloadIcon className="size-3.5" /> Baixar Todos os {selectedPack.posts.length} PNGs
+                        <DownloadIcon className="size-3.5" /> Baixar Todos os {selectedPosts.length} PNGs
                       </>
                     )}
                   </button>
@@ -327,7 +339,7 @@ export function HistorySection({ currentEmail }: Props) {
 
                 {/* Cards do Pack */}
                 <div className="space-y-4">
-                  {selectedPack.posts.map((post, idx) => {
+                  {selectedPosts.map((post, idx) => {
                     const profile: CompanyProfile = {
                       name: selectedPack.clientName,
                       categoryId: selectedPack.categoryId,
@@ -369,7 +381,7 @@ export function HistorySection({ currentEmail }: Props) {
                               <span className="font-semibold uppercase tracking-wider">
                                 {post.day}
                               </span>
-                              <span>Post {idx + 1} de {selectedPack.posts.length}</span>
+                              <span>Post {idx + 1} de {selectedPosts.length}</span>
                             </div>
                             <h4 className="text-base font-semibold text-[#1d1d1f] mt-0.5">
                               {post.customHeadline || post.headline}

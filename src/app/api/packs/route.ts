@@ -1,6 +1,8 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
-import { deletePack, listPacks, updatePackPosts } from "@/lib/pack-store";
+import { deletePack, listPacks, savePack, updatePackPosts } from "@/lib/pack-store";
 import { getSessionEmail } from "@/lib/session";
+import type { SavedPack } from "@/lib/types";
 
 export async function GET(request: NextRequest) {
   const email = await getSessionEmail();
@@ -16,6 +18,52 @@ export async function GET(request: NextRequest) {
   const result = await listPacks(email, { search, startDate, endDate });
   return NextResponse.json(result);
 }
+
+export async function POST(request: NextRequest) {
+  const email = await getSessionEmail();
+  if (!email) {
+    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  }
+
+  try {
+    const body = await request.json();
+    if (!body || !Array.isArray(body.posts)) {
+      return NextResponse.json(
+        { error: "Dados inválidos para criação do pack. 'posts' é obrigatório." },
+        { status: 400 },
+      );
+    }
+
+    const packToSave: SavedPack = {
+      id: body.id || randomUUID(),
+      createdAt: body.createdAt || new Date().toISOString(),
+      userEmail: email.toLowerCase().trim(),
+      clientName: body.clientName || "Cliente",
+      categoryId: body.categoryId || "alimentacao",
+      nicheId: body.nicheId || "restaurante",
+      nicheLabel: body.nicheLabel || "Restaurante",
+      city: body.city || "",
+      instagram: body.instagram || "",
+      toneId: body.toneId || "profissional",
+      brandColors: body.brandColors || {
+        primary: "#000000",
+        secondary: "#6e6e73",
+        accent: "#0071e3",
+      },
+      posts: body.posts,
+      source: body.source || "niche",
+      startDate: body.startDate,
+      endDate: body.endDate,
+    };
+
+    const saved = await savePack(packToSave);
+    return NextResponse.json({ ok: true, pack: saved }, { status: 201 });
+  } catch (err) {
+    console.error("[SocialPack] Erro ao salvar pack via POST:", err);
+    return NextResponse.json({ error: "Erro ao salvar pack." }, { status: 500 });
+  }
+}
+
 
 export async function PATCH(request: NextRequest) {
   const email = await getSessionEmail();
