@@ -121,9 +121,9 @@ export function ProfileForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
-        throw new Error(data.error || "Erro ao salvar perfil.");
+        throw new Error(data?.error || `Erro ao salvar perfil (código ${res.status}).`);
       }
       onProfileSaved(data.profile);
       if (!silent) {

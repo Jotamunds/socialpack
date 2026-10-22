@@ -83,22 +83,34 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 2. Fallback seguro em armazenamento local: public/uploads/
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
+    // 2. Fallback seguro em armazenamento local: public/uploads/ (ou Data URL em serverless)
+    try {
+      const uploadDir = path.join(process.cwd(), "public", "uploads");
+      await mkdir(uploadDir, { recursive: true });
 
-    const targetFilePath = path.join(uploadDir, safeFilename);
-    await writeFile(targetFilePath, fileBuffer);
+      const targetFilePath = path.join(uploadDir, safeFilename);
+      await writeFile(targetFilePath, fileBuffer);
 
-    const publicUrl = `/uploads/${safeFilename}`;
+      const publicUrl = `/uploads/${safeFilename}`;
 
-    return NextResponse.json({
-      url: publicUrl,
-      filename: safeFilename,
-      size: file.size,
-      mimeType,
-      storage: "local",
-    });
+      return NextResponse.json({
+        url: publicUrl,
+        filename: safeFilename,
+        size: file.size,
+        mimeType,
+        storage: "local",
+      });
+    } catch {
+      // Em ambientes serverless onde o sistema de arquivos é somente-leitura (ex: Vercel)
+      const base64Url = `data:${mimeType};base64,${fileBuffer.toString("base64")}`;
+      return NextResponse.json({
+        url: base64Url,
+        filename: safeFilename,
+        size: file.size,
+        mimeType,
+        storage: "base64",
+      });
+    }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro interno ao processar upload.";
     console.error("[SocialPack Upload] Erro:", err);

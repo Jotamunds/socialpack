@@ -1,11 +1,9 @@
 import "server-only";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import path from "node:path";
+import { readDataFile, writeDataFile } from "./storage-dir";
 import { getSupabaseServerClient } from "./supabase";
 import type { PlanId, SubscriptionPlan, SubscriptionStatus, UserSubscription } from "./types";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const FILE = path.join(DATA_DIR, "subscriptions.json");
+const FILENAME = "subscriptions.json";
 
 export const PLANS: SubscriptionPlan[] = [
   {
@@ -60,17 +58,15 @@ type LocalStore = Record<string, UserSubscription>; // email -> sub
 
 async function readLocalStore(): Promise<LocalStore> {
   try {
-    return JSON.parse(await readFile(FILE, "utf8")) as LocalStore;
+    const raw = await readDataFile(FILENAME);
+    return raw ? (JSON.parse(raw) as LocalStore) : {};
   } catch {
     return {};
   }
 }
 
 async function writeLocalStore(store: LocalStore) {
-  await mkdir(DATA_DIR, { recursive: true });
-  const tmp = `${FILE}.tmp`;
-  await writeFile(tmp, JSON.stringify(store, null, 2), "utf8");
-  await rename(tmp, FILE);
+  await writeDataFile(FILENAME, JSON.stringify(store, null, 2));
 }
 
 function mapFromSupabase(row: Record<string, unknown>): UserSubscription {

@@ -1,27 +1,23 @@
 import "server-only";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import path from "node:path";
+import { readDataFile, writeDataFile } from "./storage-dir";
 import { getSupabaseServerClient, isSupabaseConfigured } from "./supabase";
 import type { GeneratedPost, SavedPack } from "./types";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const FILE = path.join(DATA_DIR, "packs.json");
+const FILENAME = "packs.json";
 
 type LocalPacksStore = Record<string, SavedPack[]>; // email -> packs array
 
 async function readLocalStore(): Promise<LocalPacksStore> {
   try {
-    return JSON.parse(await readFile(FILE, "utf8")) as LocalPacksStore;
+    const raw = await readDataFile(FILENAME);
+    return raw ? (JSON.parse(raw) as LocalPacksStore) : {};
   } catch {
     return {};
   }
 }
 
 async function writeLocalStore(store: LocalPacksStore) {
-  await mkdir(DATA_DIR, { recursive: true });
-  const tmp = `${FILE}.tmp`;
-  await writeFile(tmp, JSON.stringify(store, null, 2), "utf8");
-  await rename(tmp, FILE);
+  await writeDataFile(FILENAME, JSON.stringify(store, null, 2));
 }
 
 /**
