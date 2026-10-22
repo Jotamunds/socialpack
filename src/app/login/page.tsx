@@ -29,9 +29,9 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
-        throw new Error(data.error || "E-mail ou senha incorretos.");
+        throw new Error(data?.error || `Falha na autenticação (código ${res.status}).`);
       }
 
       router.push("/dashboard");
