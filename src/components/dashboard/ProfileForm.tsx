@@ -350,17 +350,23 @@ export function ProfileForm({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             {/* Primária */}
             <div className="flex items-center gap-2.5 p-2 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]">
-              <input
-                type="color"
-                value={profile.colors.primary}
-                onChange={(e) =>
-                  setProfile((p) => ({
-                    ...p,
-                    colors: { ...p.colors, primary: e.target.value },
-                  }))
-                }
-                className="size-7 rounded-lg cursor-pointer border border-[#d2d2d7] bg-transparent p-0"
-              />
+              <label
+                className="relative size-7 rounded-lg shrink-0 cursor-pointer overflow-hidden border border-[#d2d2d7] shadow-2xs hover:scale-105 transition-transform"
+                style={{ backgroundColor: profile.colors.primary }}
+                title={`Alterar cor primária (${profile.colors.primary})`}
+              >
+                <input
+                  type="color"
+                  value={profile.colors.primary}
+                  onChange={(e) =>
+                    setProfile((p) => ({
+                      ...p,
+                      colors: { ...p.colors, primary: e.target.value },
+                    }))
+                  }
+                  className="absolute inset-0 size-full opacity-0 cursor-pointer p-0 m-0"
+                />
+              </label>
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] uppercase font-semibold text-[#86868b]">
                   Primária
@@ -382,17 +388,23 @@ export function ProfileForm({
 
             {/* Secundária */}
             <div className="flex items-center gap-2.5 p-2 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]">
-              <input
-                type="color"
-                value={profile.colors.secondary}
-                onChange={(e) =>
-                  setProfile((p) => ({
-                    ...p,
-                    colors: { ...p.colors, secondary: e.target.value },
-                  }))
-                }
-                className="size-7 rounded-lg cursor-pointer border border-[#d2d2d7] bg-transparent p-0"
-              />
+              <label
+                className="relative size-7 rounded-lg shrink-0 cursor-pointer overflow-hidden border border-[#d2d2d7] shadow-2xs hover:scale-105 transition-transform"
+                style={{ backgroundColor: profile.colors.secondary }}
+                title={`Alterar cor secundária (${profile.colors.secondary})`}
+              >
+                <input
+                  type="color"
+                  value={profile.colors.secondary}
+                  onChange={(e) =>
+                    setProfile((p) => ({
+                      ...p,
+                      colors: { ...p.colors, secondary: e.target.value },
+                    }))
+                  }
+                  className="absolute inset-0 size-full opacity-0 cursor-pointer p-0 m-0"
+                />
+              </label>
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] uppercase font-semibold text-[#86868b]">
                   Secundária
@@ -414,17 +426,23 @@ export function ProfileForm({
 
             {/* Destaque / Accent */}
             <div className="flex items-center gap-2.5 p-2 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]">
-              <input
-                type="color"
-                value={profile.colors.accent}
-                onChange={(e) =>
-                  setProfile((p) => ({
-                    ...p,
-                    colors: { ...p.colors, accent: e.target.value },
-                  }))
-                }
-                className="size-7 rounded-lg cursor-pointer border border-[#d2d2d7] bg-transparent p-0"
-              />
+              <label
+                className="relative size-7 rounded-lg shrink-0 cursor-pointer overflow-hidden border border-[#d2d2d7] shadow-2xs hover:scale-105 transition-transform"
+                style={{ backgroundColor: profile.colors.accent }}
+                title={`Alterar cor de destaque (${profile.colors.accent})`}
+              >
+                <input
+                  type="color"
+                  value={profile.colors.accent}
+                  onChange={(e) =>
+                    setProfile((p) => ({
+                      ...p,
+                      colors: { ...p.colors, accent: e.target.value },
+                    }))
+                  }
+                  className="absolute inset-0 size-full opacity-0 cursor-pointer p-0 m-0"
+                />
+              </label>
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] uppercase font-semibold text-[#86868b]">
                   Destaque (CTA)

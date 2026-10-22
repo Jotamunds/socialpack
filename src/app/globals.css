@@ -205,6 +205,35 @@ body {
     display: none;
   }
 
+  /* Normalização cross-browser para inputs de cor (elimina sombras e chanfros nativos) */
+  input[type="color"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    outline: none;
+  }
+
+  input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border: none;
+    border-radius: inherit;
+  }
+
+  input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: inherit;
+  }
+
+  input[type="color"]::-moz-color-swatch {
+    border: none;
+    border-radius: inherit;
+  }
+
   /* Garante touch target ergonômico no mobile (Apple HIG 44px) */
   .touch-target {
     min-height: 44px;
