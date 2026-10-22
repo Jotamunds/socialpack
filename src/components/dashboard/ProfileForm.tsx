@@ -148,7 +148,7 @@ export function ProfileForm({
   };
 
   return (
-    <div className="apple-card p-6 sm:p-7 space-y-6 bg-white">
+    <div className="apple-card p-6 sm:p-7 space-y-6 bg-white mb-2">
       {/* Header do Perfil */}
       <div className="flex items-start justify-between gap-4 border-b border-[#e5e5ea] pb-5">
         <div>
@@ -464,8 +464,8 @@ export function ProfileForm({
           </div>
 
           {/* Quick Palettes */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-            <span className="text-[11px] text-[#86868b] shrink-0 mr-1">Presets:</span>
+          <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1.5 pt-1 scrollbar-thin">
+            <span className="text-[11px] text-[#86868b] shrink-0 mr-1 select-none">Presets:</span>
             {COLOR_PRESETS.map((preset) => (
               <button
                 key={preset.name}
@@ -475,7 +475,7 @@ export function ProfileForm({
                 }
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#d2d2d7] bg-white text-[11px] text-[#1d1d1f] hover:border-[#86868b] hover:bg-[#f5f5f7] transition shrink-0 whitespace-nowrap min-h-[32px]"
               >
-                <span className="flex items-center -space-x-1">
+                <span className="flex items-center -space-x-1 shrink-0">
                   <span
                     className="size-2 rounded-full ring-1 ring-white"
                     style={{ background: preset.colors.primary }}
@@ -489,7 +489,7 @@ export function ProfileForm({
                     style={{ background: preset.colors.accent }}
                   />
                 </span>
-                {preset.name}
+                <span className="shrink-0">{preset.name}</span>
               </button>
             ))}
           </div>

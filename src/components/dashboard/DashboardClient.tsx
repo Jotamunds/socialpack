@@ -218,8 +218,8 @@ export function DashboardClient({ initialProfile, userEmail }: Props) {
         {/* Tab 1: Criação de Novo Pack */}
         {activeTab === "create" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Coluna Esquerda: Formulário de Perfil */}
-            <div className="lg:col-span-5 xl:col-span-5 lg:sticky lg:top-20">
+            {/* Coluna Esquerda: Formulário de Perfil com scroll vertical interno controlado no Desktop */}
+            <div className="lg:col-span-5 xl:col-span-5 lg:sticky lg:top-20 lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto lg:pr-1 scrollbar-thin">
               <ProfileForm
                 initialProfile={profile}
                 onProfileSaved={(p) => setProfile(p)}
