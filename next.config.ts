@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
     "/api/**/*": ["./content/**/*"],
     "/*": ["./content/**/*"],
   },
+  serverExternalPackages: ["@resvg/resvg-js"],
 };
 
 export default nextConfig;
