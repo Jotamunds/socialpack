@@ -68,3 +68,41 @@ export const TemplateLayoutStructureSchema = z
   .passthrough();
 
 export type TemplateLayoutStructure = z.infer<typeof TemplateLayoutStructureSchema>;
+
+export const SignUpInputSchema = z.object({
+  fullName: z
+    .string()
+    .trim()
+    .min(3, "Nome completo deve ter pelo menos 3 caracteres")
+    .max(80, "Nome muito longo"),
+  phone: z
+    .string()
+    .trim()
+    .min(10, "Telefone deve conter DDD + número (mínimo 10 dígitos)")
+    .max(20, "Telefone inválido")
+    .regex(/^[\d\s()+-]+$/, "Formato de telefone inválido"),
+  email: z
+    .string()
+    .trim()
+    .email("E-mail inválido")
+    .toLowerCase(),
+  password: z
+    .string()
+    .min(6, "A senha deve ter no mínimo 6 caracteres"),
+  plan: z.enum(["starter", "pro"]).default("starter"),
+});
+
+export type SignUpInput = z.infer<typeof SignUpInputSchema>;
+
+export const SignInInputSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email("E-mail inválido")
+    .toLowerCase(),
+  password: z
+    .string()
+    .min(1, "Digite sua senha"),
+});
+
+export type SignInInput = z.infer<typeof SignInInputSchema>;
