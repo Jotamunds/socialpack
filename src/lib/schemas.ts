@@ -35,16 +35,36 @@ export const CreateCompanyInputSchema = z.object({
 
 export type CreateCompanyInput = z.infer<typeof CreateCompanyInputSchema>;
 
-export const TemplateLayoutStructureSchema = z.object({
-  layout: z.number().int().min(0).max(6),
-  theme: z.string().min(1),
-  headline: z.string().min(1),
-  subheadline: z.string().default(""),
-  cta: z.string().min(1),
-  caption: z.string().default(""),
-  hashtags: z.array(z.string()).default([]),
-  tones: z.array(z.string()).optional(),
-  imageUrl: z.string().url().optional(),
-});
+export const TemplateLayoutStructureSchema = z
+  .object({
+    layout: z.number().int().min(0).max(6),
+    theme: z.string().min(1),
+    headline: z.string().min(1),
+    subheadline: z.string().default(""),
+    cta: z.string().min(1),
+    caption: z.string().default(""),
+    hashtags: z.array(z.string()).default([]),
+    tones: z.array(z.string()).optional(),
+    imageUrl: z.string().url().optional(),
+    slots: z
+      .object({
+        badge: z.string().optional(),
+        headline: z.string().optional(),
+        subheadline: z.string().optional(),
+        cta: z.string().optional(),
+        handle: z.string().optional(),
+      })
+      .optional(),
+    typography: z
+      .object({
+        fontFamily: z.string().optional(),
+        headlineWeight: z.number().optional(),
+        bodyWeight: z.number().optional(),
+      })
+      .optional(),
+    colors: z.record(z.string()).optional(),
+    fallbackCopy: z.record(z.unknown()).optional(),
+  })
+  .passthrough();
 
 export type TemplateLayoutStructure = z.infer<typeof TemplateLayoutStructureSchema>;
