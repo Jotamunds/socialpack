@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@theme {
+  --color-marketing: #08090a;
+  --color-panel: #0f1011;
+  --color-surface: #191a1b;
+  --color-brand-indigo: #5e6ad2;
+  --color-brand-accent: #7170ff;
+  --color-brand-hover: #828fff;
+  --color-text-primary: #f7f8f8;
+  --color-text-secondary: #d0d6e0;
+  --color-text-tertiary: #8a8f98;
+  --color-text-quaternary: #62666d;
+}
+
+:root {
+  --bg-marketing: #08090a;
+  --bg-panel: #0f1011;
+  --bg-surface: #191a1b;
+  --bg-card: rgba(255, 255, 255, 0.02);
+  --bg-card-hover: rgba(255, 255, 255, 0.04);
+  
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-standard: rgba(255, 255, 255, 0.08);
+  --border-focus: rgba(255, 255, 255, 0.14);
+
+  --accent-primary: #5e6ad2;
+  --accent-hover: #7170ff;
+  --accent-active: #828fff;
+
+  --text-primary: #f7f8f8;
+  --text-secondary: #d0d6e0;
+  --text-tertiary: #8a8f98;
+  --text-quaternary: #62666d;
+}
+
+body {
+  background-color: var(--bg-marketing);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-feature-settings: "cv01", "ss03";
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+}
