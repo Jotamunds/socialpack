@@ -42,3 +42,74 @@ body {
   letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
 }
+
+:root.light,
+html.light,
+body.light {
+  --bg-marketing: #f8fafc;
+  --bg-panel: #ffffff;
+  --bg-surface: #f1f5f9;
+  --bg-card: rgba(0, 0, 0, 0.02);
+  --bg-card-hover: rgba(0, 0, 0, 0.04);
+
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-standard: rgba(0, 0, 0, 0.09);
+  --border-focus: rgba(0, 0, 0, 0.16);
+
+  --accent-primary: #4f5cd1;
+  --accent-hover: #5e6ad2;
+  --accent-active: #7170ff;
+
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-tertiary: #64748b;
+  --text-quaternary: #94a3b8;
+}
+
+html.light body {
+  background-color: var(--bg-marketing);
+  color: var(--text-primary);
+}
+
+/* Adaptação inteligente para classes de paleta escura quando em tema claro */
+html.light .bg-\[\#08090a\] {
+  background-color: var(--bg-marketing) !important;
+}
+html.light .bg-\[\#08090a\]\/85 {
+  background-color: rgba(248, 250, 252, 0.85) !important;
+}
+html.light .bg-\[\#0f1011\] {
+  background-color: var(--bg-panel) !important;
+}
+html.light .bg-\[\#191a1b\] {
+  background-color: var(--bg-surface) !important;
+}
+html.light .text-\[\#f7f8f8\] {
+  color: var(--text-primary) !important;
+}
+html.light .text-\[\#d0d6e0\] {
+  color: var(--text-secondary) !important;
+}
+html.light .text-\[\#8a8f98\] {
+  color: var(--text-tertiary) !important;
+}
+html.light .border-\[rgba\(255\,255\,255\,0\.06\)\] {
+  border-color: var(--border-subtle) !important;
+}
+html.light .border-\[rgba\(255\,255\,255\,0\.08\)\] {
+  border-color: var(--border-standard) !important;
+}
+html.light .bg-\[rgba\(255\,255\,255\,0\.02\)\] {
+  background-color: var(--bg-card) !important;
+}
+html.light .bg-\[rgba\(255\,255\,255\,0\.04\)\] {
+  background-color: var(--bg-card-hover) !important;
+}
+
+/* Transições de tema sem FOUC */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+}

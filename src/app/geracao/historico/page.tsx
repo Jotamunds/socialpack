@@ -54,6 +54,12 @@ export default async function HistoricoSelectPage() {
               >
                 Histórico
               </Link>
+              <Link
+                href="/configuracoes"
+                className="text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors"
+              >
+                Configurações
+              </Link>
             </nav>
           </div>
 

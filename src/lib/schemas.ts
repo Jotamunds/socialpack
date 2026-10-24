@@ -168,3 +168,31 @@ export const SignInInputSchema = z.object({
 });
 
 export type SignInInput = z.infer<typeof SignInInputSchema>;
+
+export const UpdateProfileInputSchema = z
+  .object({
+    fullName: z
+      .string()
+      .trim()
+      .min(2, "Nome deve ter pelo menos 2 caracteres")
+      .max(100, "Nome deve ter no máximo 100 caracteres")
+      .optional(),
+    full_name: z
+      .string()
+      .trim()
+      .min(2, "Nome deve ter pelo menos 2 caracteres")
+      .max(100, "Nome deve ter no máximo 100 caracteres")
+      .optional(),
+    phone: z
+      .string()
+      .trim()
+      .regex(/^(\(?\d{2}\)?\s?)?(\d{4,5}-?\d{4})?$/, "Telefone com formato inválido (ex: (11) 99999-9999)")
+      .optional()
+      .or(z.literal("")),
+  })
+  .refine((data) => Boolean((data.fullName && data.fullName.length >= 2) || (data.full_name && data.full_name.length >= 2)), {
+    message: "Nome completo é obrigatório (mínimo 2 caracteres)",
+    path: ["fullName"],
+  });
+
+export type UpdateProfileInput = z.infer<typeof UpdateProfileInputSchema>;

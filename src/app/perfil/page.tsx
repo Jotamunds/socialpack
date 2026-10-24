@@ -74,11 +74,23 @@ export default async function PerfilPage() {
                 Empresas
               </Link>
               <Link
-                href="/geracao"
+                href="/geracao/instagram/posts"
                 className="text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors inline-flex items-center gap-1.5"
               >
                 <SparklesIcon className="size-3.5 text-[#5e6ad2]" />
                 <span>Geração</span>
+              </Link>
+              <Link
+                href="/geracao/historico"
+                className="text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors"
+              >
+                Histórico
+              </Link>
+              <Link
+                href="/configuracoes"
+                className="text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors"
+              >
+                Configurações
               </Link>
             </nav>
           </div>
