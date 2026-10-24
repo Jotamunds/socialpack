@@ -18,22 +18,84 @@ export const BrandColorsSchema = z.object({
   accent: HexColorSchema,
 });
 
-export const CreateCompanyInputSchema = z.object({
-  name: z.string().trim().min(1, "Nome da empresa é obrigatório").max(60, "Máximo de 60 caracteres"),
-  categoryId: z.string().min(1, "Categoria é obrigatória"),
-  nicheId: z.string().min(1, "Nicho é obrigatório"),
-  city: z.string().trim().min(1, "Cidade é obrigatória").max(60, "Máximo de 60 caracteres"),
-  state: UfSchema,
-  instagram: z
-    .string()
-    .trim()
-    .max(40, "Máximo de 40 caracteres")
-    .transform((val) => val.replace(/^@+/, "")),
-  toneId: z.string().min(1, "Tom de voz é obrigatório"),
-  colors: BrandColorsSchema,
-});
+export const CreateCompanyInputSchema = z
+  .object({
+    name: z.string().trim().min(1, "Nome da empresa é obrigatório").max(100, "Máximo de 100 caracteres"),
+    categoryId: z.string().trim().min(1).max(80).optional(),
+    segment: z.string().trim().min(1).max(80).optional(),
+    nicheId: z.string().trim().min(1).max(80).optional(),
+    niche: z.string().trim().min(1).max(80).optional(),
+    city: z.string().trim().min(1, "Cidade é obrigatória").max(100, "Máximo de 100 caracteres"),
+    state: UfSchema,
+    instagram: z
+      .string()
+      .trim()
+      .max(40, "Máximo de 40 caracteres")
+      .optional()
+      .transform((val) => (val ? val.replace(/^@+/, "") : "")),
+    instagram_handle: z
+      .string()
+      .trim()
+      .regex(/^@?[A-Za-z0-9._]{1,30}$/, "Instagram deve conter apenas letras, números, pontos e sublinhados")
+      .optional()
+      .or(z.literal("")),
+    toneId: z.string().optional(),
+    primary_style: z
+      .enum(["descontraido", "profissional", "elegante", "colorido", "acolhedor", "inspirador", "sofisticado", "divertido"])
+      .optional(),
+    colors: BrandColorsSchema.optional(),
+    brand_colors: z
+      .union([
+        z.array(HexColorSchema).min(1, "Selecione ao menos 1 cor").max(6, "Máximo de 6 cores"),
+        BrandColorsSchema,
+      ])
+      .optional(),
+  })
+  .refine((data) => Boolean(data.categoryId || data.segment), {
+    message: "Categoria ou segmento é obrigatório",
+    path: ["categoryId"],
+  })
+  .refine((data) => Boolean(data.nicheId || data.niche), {
+    message: "Nicho é obrigatório",
+    path: ["nicheId"],
+  });
 
 export type CreateCompanyInput = z.infer<typeof CreateCompanyInputSchema>;
+
+export function normalizeCompanyInput(input: CreateCompanyInput) {
+  const categoryId = input.categoryId || input.segment || "geral";
+  const nicheId = input.nicheId || input.niche || "generico";
+  const rawIg = input.instagram_handle || input.instagram || "";
+  const instagram = rawIg.replace(/^@+/, "");
+  const toneId = input.toneId || input.primary_style || "profissional";
+
+  let colors: { primary: string; secondary: string; accent: string };
+  if (Array.isArray(input.brand_colors)) {
+    const c = input.brand_colors;
+    colors = {
+      primary: c[0] || "#5e6ad2",
+      secondary: c[1] || c[0] || "#7170ff",
+      accent: c[2] || c[1] || c[0] || "#828fff",
+    };
+  } else if (input.brand_colors && typeof input.brand_colors === "object" && "primary" in input.brand_colors) {
+    colors = input.brand_colors as { primary: string; secondary: string; accent: string };
+  } else if (input.colors) {
+    colors = input.colors;
+  } else {
+    colors = { primary: "#5e6ad2", secondary: "#7170ff", accent: "#828fff" };
+  }
+
+  return {
+    name: input.name,
+    categoryId,
+    nicheId,
+    city: input.city,
+    state: input.state.toUpperCase(),
+    instagram,
+    toneId,
+    colors,
+  };
+}
 
 export const TemplateLayoutStructureSchema = z
   .object({
