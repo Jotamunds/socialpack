@@ -79,9 +79,7 @@ export default async function ConfiguracoesPage() {
       <header className="sticky top-0 z-40 w-full border-b border-[rgba(255,255,255,0.06)] bg-[#08090a]/85 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/" className="transition-opacity hover:opacity-90">
-              <Logo />
-            </Link>
+            <Logo variant="with-label" href="/perfil" className="h-7 w-auto" />
 
             <nav className="hidden md:flex items-center gap-5">
               <Link

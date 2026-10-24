@@ -8,9 +8,7 @@ export default function HomePage() {
       {/* Header Fixo Minimalista */}
       <header className="sticky top-0 z-50 w-full border-b border-[rgba(255,255,255,0.06)] bg-[#08090a]/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="transition-opacity hover:opacity-90">
-            <Logo />
-          </Link>
+          <Logo variant="with-label" className="h-8 w-auto" href="/" />
           <nav className="flex items-center gap-6">
             <a
               href="#planos"
@@ -378,7 +376,7 @@ export default function HomePage() {
       <footer className="border-t border-[rgba(255,255,255,0.06)] bg-[#08090a] py-8">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#8a8f98]">
           <div className="flex items-center gap-3">
-            <Logo />
+            <Logo variant="with-label" className="h-7 w-auto opacity-70 hover:opacity-100 transition-opacity" href="/" />
             <span>© {new Date().getFullYear()} SocialPack. Todos os direitos reservados.</span>
           </div>
           <div className="flex items-center gap-6">

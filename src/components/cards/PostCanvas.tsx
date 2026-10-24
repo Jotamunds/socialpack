@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode, Ref } from "react";
 import { INK, alpha, readableOn } from "@/lib/color";
 import { getCuratedPhoto } from "@/lib/curated-images";
 import type { CompanyProfile, GeneratedPost } from "@/lib/types";
+import { Logo } from "@/components/Logo";
 
 // Cada template é renderizado em tamanho real (1080x1080) e reduzido via CSS na prévia.
 // Estilos inline garantem que a exportação PNG (html-to-image) fique 100% idêntica à prévia.
@@ -267,17 +268,20 @@ function EditorialTemplate({ post, profile, index }: TemplateProps) {
           alignItems: "center",
         })}
       >
-        <span
-          style={{
-            fontSize: 16,
-            fontWeight: 700,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: alpha(INK, 0.45),
-          }}
-        >
-          EDIÇÃO ESPECIAL // SOCIALPACK
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span
+            style={{
+              fontSize: 16,
+              fontWeight: 700,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: alpha(INK, 0.45),
+            }}
+          >
+            EDIÇÃO ESPECIAL //
+          </span>
+          <Logo variant="without-borders" href={null} className="w-4 h-4 opacity-70" />
+        </div>
         <span style={{ fontSize: 20, fontWeight: 600, color: alpha(INK, 0.6) }}>{handle}</span>
       </div>
     </Canvas>
@@ -819,17 +823,20 @@ function SplitVerticalTemplate({ post, profile, index }: TemplateProps) {
         {/* Topo */}
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <span style={{ fontSize: 26, fontWeight: 800 }}>{profile.name}</span>
-          <span
-            style={{
-              fontSize: 16,
-              fontWeight: 600,
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              opacity: 0.75,
-            }}
-          >
-            ARQUITETURA // SOCIALPACK
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span
+              style={{
+                fontSize: 16,
+                fontWeight: 600,
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+                opacity: 0.75,
+              }}
+            >
+              ARQUITETURA //
+            </span>
+            <Logo variant="without-borders" href={null} className="w-4 h-4 opacity-70" />
+          </div>
         </div>
 
         {/* Centro */}

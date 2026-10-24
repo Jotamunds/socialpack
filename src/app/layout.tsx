@@ -10,11 +10,15 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "SocialPack — Geração Determinística de Posts",
+    default: "SocialPack — Geração Semanal de Conteúdo",
     template: "%s | SocialPack",
   },
   description:
     "Calendário editorial semanal com artes 1080x1080px e legendas persuasivas em 1 clique.",
+  icons: {
+    icon: "/brand/socialpack-logo.svg",
+    apple: "/brand/socialpack-logo.svg",
+  },
 };
 
 export default function RootLayout({

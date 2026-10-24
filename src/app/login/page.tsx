@@ -69,8 +69,8 @@ function LoginForm() {
     <div className="w-full max-w-[380px] mx-auto space-y-6">
       {/* Header Central com Logo */}
       <div className="text-center space-y-2">
-        <div className="inline-block">
-          <Logo />
+        <div className="flex justify-center mb-6">
+          <Logo className="h-12 w-12" href="/" variant="icon" />
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-[#f7f8f8]">
           Bem-vindo de volta
