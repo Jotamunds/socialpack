@@ -15,8 +15,15 @@ if (!process.env.__TSX_RUNNING__) {
   process.exit(result.status ?? 0);
 }
 
-const { generateWeek } = await import("../src/lib/generator.ts");
+const { generateWeek, pickLayouts, buildTemplateSlug } = await import("../src/lib/generator.ts");
 const { renderPostToPngBuffer, loadInterFonts, sanitizePublicErrorMessage } = await import("../src/lib/rendering/satori-renderer.ts");
+
+function assertLayoutPermutation(posts) {
+  const layouts = posts.map((post) => post.layout).sort((a, b) => a - b);
+  if (layouts.join(",") !== "0,1,2,3,4,5,6") {
+    throw new Error(`Layouts deveriam ser a permutação 0–6, obtidos: ${layouts.join(",")}`);
+  }
+}
 
 async function runPhase5Tests() {
   console.log("=== INICIANDO VALIDAÇÃO DA FASE 5: MOTOR DETERMINÍSTICO & SATORI ===");
@@ -93,15 +100,57 @@ async function runPhase5Tests() {
   if (!post1.caption || post1.caption.includes("{cidade}")) {
     throw new Error(`Placeholder {cidade} não foi interpolado na caption: ${post1.caption}`);
   }
-  if (post1.layout !== 0) {
-    throw new Error(`Primeiro post deveria ter layout 0, obteve ${post1.layout}`);
-  }
+  assertLayoutPermutation(weekResult.posts);
   if (!post1.imageUrl || !post1.imageUrl.startsWith("https://")) {
     throw new Error(`Post sem imagem curada válida do Unsplash: ${post1.imageUrl}`);
   }
+  if (!post1.templateSlug || !post1.templateSlug.includes("/")) {
+    throw new Error(`templateSlug ausente ou inválido: ${post1.templateSlug}`);
+  }
+  const themes = new Set(weekResult.posts.map((post) => post.theme.trim().toLowerCase()));
+  if (themes.size !== 7) {
+    throw new Error(`Temas da semana deveriam ser únicos, obtidos ${themes.size}.`);
+  }
 
   console.log(`   ✓ 7 posts gerados com sucesso para semana de ${weekResult.weekRangeLabel}.`);
-  console.log("   ✓ Variáveis {nome}, {cidade} interpoladas com precisão e fotos curadas atribuídas.");
+  console.log("   ✓ Variáveis {nome}, {cidade} interpoladas, layouts 0–6 sem repetição e fotos curadas atribuídas.");
+
+  // ---------------------------------------------------------------------------
+  // 3b. Histórico: não repetir template no pacote seguinte nem o layout do mesmo dia
+  // ---------------------------------------------------------------------------
+  console.log("3b. Validando seleção sem repetição entre pacotes...");
+  if (buildTemplateSlug("alimentacao/pizzaria", "Borda Recheada") !== "alimentacao/pizzaria/bordarecheada") {
+    throw new Error("buildTemplateSlug não normalizou o tema como o histórico espera.");
+  }
+
+  const canonical = [0, 1, 2, 3, 4, 5, 6];
+  for (let trial = 0; trial < 20; trial++) {
+    const perm = pickLayouts(canonical);
+    assertLayoutPermutation(perm.map((layout, dayIndex) => ({ layout, dayIndex })));
+    perm.forEach((layout, day) => {
+      if (layout === canonical[day]) {
+        throw new Error(`pickLayouts repetiu o layout ${layout} no dia ${day}.`);
+      }
+    });
+  }
+
+  const weekSlugs = weekResult.posts.map((post) => post.templateSlug);
+  const weekLayouts = weekResult.posts.map((post) => post.layout);
+  const nextWeek = generateWeek(testCompany, "2026-11-02", {
+    recentTemplateSlugs: weekSlugs,
+    previousLayouts: weekLayouts,
+  });
+  const repeatedSlug = nextWeek.posts.find((post) => weekSlugs.includes(post.templateSlug));
+  if (repeatedSlug) {
+    throw new Error(`Template repetido no pacote seguinte: ${repeatedSlug.templateSlug}`);
+  }
+  nextWeek.posts.forEach((post, day) => {
+    if (post.layout === weekLayouts[day]) {
+      throw new Error(`Layout ${post.layout} repetido no mesmo dia do pacote anterior.`);
+    }
+  });
+  assertLayoutPermutation(nextWeek.posts);
+  console.log("   ✓ Pacote seguinte evita slugs recentes e o layout do mesmo dia.");
 
   // ---------------------------------------------------------------------------
   // 4. Validar Renderização Server-Side Satori + Resvg (Geração do Buffer PNG 1080x1080)

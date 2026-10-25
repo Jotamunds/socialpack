@@ -80,6 +80,47 @@
       "cta": "Garanta o seu",
       "caption": "Aviso rápido: nossa agenda desta semana está quase lotada! ⏰\n\nSe você estava esperando o momento certo para vir até a {nome}, ele é agora.\n\nChama no direct ou clica no link da bio para garantir o seu horário.",
       "hashtags": ["#ultimasvagas", "#corre"]
+    },
+    {
+      "theme": "Mito ou verdade",
+      "tones": ["descontraido", "divertido", "acolhedor", "inspirador"],
+      "headline": "Mito ou verdade? A gente responde",
+      "subheadline": "Tem muita informação solta por aí. Hoje a {nome} esclarece uma dúvida comum.",
+      "cta": "Tire sua dúvida",
+      "caption": "Mito ou verdade? 🤔\n\nTodo mundo já ouviu alguma \"regra\" sobre {nicho} que ninguém sabe de onde veio. Aqui na {nome} a gente prefere falar a real, com base na nossa experiência em {cidade}.\n\nTem alguma dúvida que você quer ver respondida aqui? Manda nos comentários 👇",
+      "hashtags": ["#mitoouverdade", "#vocesabia"]
+    },
+    {
+      "theme": "Perguntas frequentes",
+      "headline": "As dúvidas que mais recebemos",
+      "subheadline": "Separamos as perguntas mais comuns para você decidir com tranquilidade.",
+      "cta": "Pergunte também",
+      "caption": "Chegam muitas perguntas por aqui, então resolvemos responder as principais de uma vez! 💬\n\n• Como funciona o atendimento?\n• Preciso agendar antes?\n• Atendem em toda a região de {cidade}?\n\nAs respostas estão no direct da {nome}: é só chamar que a gente explica tudo, sem compromisso.",
+      "hashtags": ["#duvidas", "#perguntasfrequentes"]
+    },
+    {
+      "theme": "Agradecimento",
+      "headline": "Obrigado por estar com a gente",
+      "subheadline": "Cada cliente que volta é o motivo de a {nome} seguir crescendo em {cidade}.",
+      "cta": "Siga com a gente",
+      "caption": "Hoje o post é só para agradecer. 🙏\n\nCada visita, cada mensagem e cada indicação fazem a {nome} crescer. Nada disso seria possível sem você, que confia no nosso trabalho aqui em {cidade}.\n\nSe você faz parte dessa história, deixa um ❤️ nos comentários!",
+      "hashtags": ["#gratidao", "#obrigado"]
+    },
+    {
+      "theme": "Primeira visita",
+      "headline": "Primeira vez na {nome}? Veja como é",
+      "subheadline": "Do primeiro contato ao resultado final: um passo a passo simples e sem surpresas.",
+      "cta": "Comece agora",
+      "caption": "Nunca veio até a {nome}? Olha como é simples 👇\n\n1️⃣ Você chama a gente no direct ou pelo link da bio.\n2️⃣ Entendemos exatamente o que você precisa.\n3️⃣ Cuidamos de tudo com atenção a cada detalhe.\n\nSem burocracia e sem surpresas. Bora começar?",
+      "hashtags": ["#primeiravez", "#comofunciona"]
+    },
+    {
+      "theme": "Nossos valores",
+      "headline": "No que a {nome} acredita",
+      "subheadline": "Transparência, respeito e capricho guiam cada atendimento que fazemos.",
+      "cta": "Conheça nossa história",
+      "caption": "Mais do que o que fazemos, importa como fazemos. ✨\n\nNa {nome}, três valores guiam o nosso dia a dia:\n\n🤝 Transparência em cada conversa\n💛 Respeito pelo seu tempo e pela sua escolha\n🛠️ Capricho em cada detalhe\n\nÉ assim que queremos ser lembrados em {cidade}.",
+      "hashtags": ["#valores", "#proposito"]
     }
   ]
 }
