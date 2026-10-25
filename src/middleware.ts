@@ -64,8 +64,9 @@ export async function updateSession(request: NextRequest) {
     return redirectResponse;
   }
 
-  // 2. Autenticado acessando /login ou /cadastro -> redirecionar para /geracao/instagram/posts
-  if (user && isAuthRoute) {
+  // 2. Autenticado acessando /login ou /cadastro -> redirecionar para /geracao/instagram/posts.
+  // Server action (cabeçalho next-action) é POST nesta mesma rota e precisa da resposta da action.
+  if (user && isAuthRoute && !request.headers.has("next-action")) {
     const url = request.nextUrl.clone();
     url.pathname = "/geracao/instagram/posts";
     url.search = "";
