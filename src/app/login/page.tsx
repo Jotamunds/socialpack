@@ -8,11 +8,12 @@ import { SignInInputSchema } from "@/lib/schemas";
 import { activateChosenPlanAction } from "@/app/actions/auth";
 import { Logo } from "@/components/Logo";
 import { SpinnerIcon } from "@/components/icons";
+import { safeInternalRedirect } from "@/lib/safe-redirect";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") || "/perfil";
+  const redirectTo = safeInternalRedirect(searchParams.get("redirectTo"));
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
