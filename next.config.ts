@@ -14,8 +14,8 @@ const nextConfig: NextConfig = {
     ],
   },
   outputFileTracingIncludes: {
-    "/api/**/*": ["./content/**/*"],
-    "/*": ["./content/**/*"],
+    "/api/**/*": ["./content/**/*", "./public/fonts/**/*"],
+    "/*": ["./content/**/*", "./public/fonts/**/*"],
   },
   serverExternalPackages: ["@resvg/resvg-js"],
 };
