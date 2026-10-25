@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { ArrowRightIcon, CheckIcon, SparklesIcon } from "@/components/icons";
+import { getDemoShowcase, type DemoShowcaseItem } from "@/lib/demo-showcase";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const exemplos = await getDemoShowcase();
+
   return (
     <div className="min-h-screen bg-[#08090a] text-[#f7f8f8] flex flex-col selection:bg-[#5e6ad2]/30 selection:text-white">
       {/* Header Fixo Minimalista */}
@@ -237,6 +240,8 @@ export default function HomePage() {
           </div>
         </section>
 
+        {exemplos.length > 0 ? <ExemplosSection items={exemplos} /> : null}
+
         {/* Seção de Preços e Planos (#planos) */}
         <section id="planos" className="py-24 border-t border-[rgba(255,255,255,0.06)] bg-[#0a0b0d]">
           <div className="max-w-5xl mx-auto px-4">
@@ -393,5 +398,58 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function ExemplosSection({ items }: { items: DemoShowcaseItem[] }) {
+  return (
+    <section id="exemplos" className="py-20 border-t border-[rgba(255,255,255,0.06)] bg-[#08090a]">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#7170ff]">
+            Artes reais
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#f7f8f8]">
+            O que a conta de demonstração já gerou
+          </h2>
+          <p className="text-sm text-[#8a8f98]">
+            Até quatro posts concluídos, em 1080×1080.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {items.map((item) => (
+            <article
+              key={item.id}
+              className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] overflow-hidden"
+            >
+              <div className="aspect-square bg-[#08090a]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={item.imageUrl}
+                  alt={item.headline}
+                  width={1080}
+                  height={1080}
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <h3 className="p-3 text-xs font-semibold text-[#f7f8f8] line-clamp-2 leading-snug">
+                {item.headline}
+              </h3>
+            </article>
+          ))}
+        </div>
+
+        <div className="mt-10 flex justify-center">
+          <Link
+            href="/login"
+            className="h-10 px-5 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-[13px] font-medium transition-colors shadow-[0_1px_3px_rgba(0,0,0,0.5)] active:scale-[0.98] inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#828fff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08090a]"
+          >
+            Entrar na demo
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
