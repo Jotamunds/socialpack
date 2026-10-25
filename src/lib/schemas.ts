@@ -196,3 +196,73 @@ export const UpdateProfileInputSchema = z
   });
 
 export type UpdateProfileInput = z.infer<typeof UpdateProfileInputSchema>;
+
+export const GenerateWeeklyBodySchema = z.object({
+  companyId: z.string().uuid("companyId deve ser um UUID válido"),
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "startDate deve estar no formato YYYY-MM-DD")
+    .optional(),
+});
+
+export type GenerateWeeklyBody = z.infer<typeof GenerateWeeklyBodySchema>;
+
+export const WeeklyPackPostSchema = z.object({
+  dayIndex: z.number().int().min(0).max(6),
+  badgeText: z.string().min(2).max(24),
+  headline: z.string().min(10).max(68),
+  subheadline: z.string().min(15).max(120),
+  ctaText: z.string().min(4).max(28),
+  captionCopy: z.string().min(40).max(1200),
+  hashtags: z.array(z.string().min(2)).min(3).max(8),
+  theme: z.string().min(1),
+  layout: z.number().int().min(0).max(6),
+  templateSlug: z.string().min(1),
+  templateVersion: z.number().int().positive(),
+});
+
+export const WeeklyPackContentSchema = z
+  .object({
+    posts: z.array(WeeklyPackPostSchema).length(7),
+  })
+  .refine(
+    (data) => {
+      const days = data.posts.map((p) => p.dayIndex);
+      return new Set(days).size === 7;
+    },
+    { message: "O pacote deve conter exatamente os 7 dias (0–6) sem duplicatas." }
+  )
+  .refine(
+    (data) => {
+      const themes = data.posts.map((p) => p.theme);
+      return new Set(themes).size === themes.length;
+    },
+    { message: "Temas do pacote semanal não podem se repetir." }
+  );
+
+export type WeeklyPackContent = z.infer<typeof WeeklyPackContentSchema>;
+
+/** Alias documental da saída do motor determinístico (sem IA em runtime). */
+export const AiWeeklyPackOutputSchema = WeeklyPackContentSchema;
+
+export const PostGenerationConfigSchema = z.object({
+  templateSlug: z.string().min(1),
+  templateVersion: z.number().int().positive(),
+  resolvedColors: BrandColorsSchema,
+  renderedSlots: z.object({
+    badge: z.string().optional(),
+    headline: z.string().min(1),
+    subheadline: z.string(),
+    cta: z.string().min(1),
+    handle: z.string().optional(),
+  }),
+  theme: z.string().optional(),
+  layout: z.number().int().min(0).max(6).optional(),
+  imageUrl: z.string().optional(),
+});
+
+export type PostGenerationConfig = z.infer<typeof PostGenerationConfigSchema>;
+
+/** Limite MVP: no máximo 4 pacotes (28 posts) por empresa por dia UTC. */
+export const MAX_WEEKLY_PACKS_PER_COMPANY_PER_DAY = 4;
+export const POSTS_PER_WEEKLY_PACK = 7;

@@ -43,6 +43,9 @@ export type GeneratedPost = {
   hashtags: string[];
   /** Índice do template visual (0–6). */
   layout: number;
+  badgeText?: string;
+  templateSlug?: string;
+  templateVersion?: number;
   /** Customizações do usuário */
   imageUrl?: string;
   customHeadline?: string;

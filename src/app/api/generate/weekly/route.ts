@@ -5,19 +5,25 @@ import { requireValidSubscription } from "@/lib/supabase/subscription-guard";
 import { generateWeek } from "@/lib/generator";
 import { renderPostToPngBuffer, sanitizePublicErrorMessage } from "@/lib/rendering/satori-renderer";
 import { assertOwnedStoragePath } from "@/lib/storage-path";
+import {
+  GenerateWeeklyBodySchema,
+  MAX_WEEKLY_PACKS_PER_COMPANY_PER_DAY,
+  POSTS_PER_WEEKLY_PACK,
+  PostGenerationConfigSchema,
+} from "@/lib/schemas";
 import type { CompanyProfile } from "@/lib/types";
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
-interface GenerateWeeklyBody {
-  companyId: string;
-  startDate?: string;
+function startOfUtcDayIso(): string {
+  const d = new Date();
+  d.setUTCHours(0, 0, 0, 0);
+  return d.toISOString();
 }
 
 export async function POST(request: Request) {
   try {
-    // 1. Validar sessão autenticada do usuário (RLS)
     const supabase = await createClient();
     const {
       data: { user },
@@ -31,7 +37,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Validar assinatura do usuário (requireValidSubscription)
     const subCheck = await requireValidSubscription(user.id);
     if (!subCheck.isValid || !subCheck.subscription) {
       return NextResponse.json(
@@ -44,18 +49,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Validar payload de entrada
-    const body: GenerateWeeklyBody = await request.json().catch(() => ({ companyId: "" }));
-    const { companyId, startDate } = body;
-
-    if (!companyId) {
+    const rawBody = await request.json().catch(() => null);
+    const bodyValidation = GenerateWeeklyBodySchema.safeParse(rawBody);
+    if (!bodyValidation.success) {
       return NextResponse.json(
-        { ok: false, error: "O ID da empresa é obrigatório." },
+        {
+          ok: false,
+          code: "VALIDATION_ERROR",
+          error: bodyValidation.error.issues[0]?.message || "Payload de geração inválido.",
+        },
         { status: 400 }
       );
     }
 
-    // 4. Validar se a empresa informada pertence ao usuário autenticado (Tenant Isolation)
+    const { companyId, startDate } = bodyValidation.data;
+
     const { data: companyRecord, error: companyError } = await supabase
       .from("companies")
       .select("*")
@@ -70,7 +78,35 @@ export async function POST(request: Request) {
       );
     }
 
-    // Normalizar objeto CompanyProfile para o motor determinístico
+    const adminSupabase = createAdminClient();
+
+    // Teto MVP: 4 pacotes/empresa/dia (28 posts criados no dia UTC)
+    const { count: postsToday, error: countError } = await adminSupabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("company_id", companyRecord.id)
+      .eq("user_id", user.id)
+      .gte("created_at", startOfUtcDayIso());
+
+    if (countError) {
+      return NextResponse.json(
+        { ok: false, error: "Não foi possível verificar o limite diário de geração." },
+        { status: 500 }
+      );
+    }
+
+    const packsToday = Math.floor((postsToday || 0) / POSTS_PER_WEEKLY_PACK);
+    if (packsToday >= MAX_WEEKLY_PACKS_PER_COMPANY_PER_DAY) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "DAILY_PACK_LIMIT",
+          error: `Limite diário atingido: no máximo ${MAX_WEEKLY_PACKS_PER_COMPANY_PER_DAY} pacotes por empresa por dia.`,
+        },
+        { status: 429 }
+      );
+    }
+
     const companyProfile: CompanyProfile = {
       id: companyRecord.id,
       name: companyRecord.name,
@@ -87,12 +123,17 @@ export async function POST(request: Request) {
       },
     };
 
-    // 5. Gerar pacote determinístico dos 7 posts semanais
-    const weekData = generateWeek(companyProfile, startDate);
-    const { posts: planPosts } = weekData;
+    let weekData;
+    try {
+      weekData = generateWeek(companyProfile, startDate);
+    } catch (genErr) {
+      return NextResponse.json(
+        { ok: false, error: sanitizePublicErrorMessage(genErr) },
+        { status: 500 }
+      );
+    }
 
-    // 6. Criar os 7 registros em public.posts com status = 'pending' via createAdminClient
-    const adminSupabase = createAdminClient();
+    const { posts: planPosts } = weekData;
 
     const insertPayload = planPosts.map((post) => ({
       user_id: user.id,
@@ -119,39 +160,63 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           ok: false,
-          error: sanitizePublicErrorMessage(insertError?.message || "Falha ao inicializar registros de posts."),
+          error: sanitizePublicErrorMessage(
+            insertError?.message || "Falha ao inicializar registros de posts."
+          ),
         },
         { status: 500 }
       );
     }
 
+    const handle = companyProfile.instagram
+      ? `@${companyProfile.instagram.replace(/^@+/, "")}`
+      : companyProfile.name;
+
     const finalResults = [];
 
-    // 7. Iterar sequencialmente sobre cada post respeitando a máquina de estados
     for (let i = 0; i < 7; i++) {
       const postRecord = createdPosts[i];
       const planItem = planPosts[i];
-      // Path canônico: {userId}/{companyId}/{postId}.png — validado antes de upload/rollback
       const storagePath = assertOwnedStoragePath(
         user.id,
         `${user.id}/${companyRecord.id}/${postRecord.id}.png`
       );
 
-      try {
-        // Transição 1: pending ➔ processing
-        const { error: procError } = await adminSupabase
+      // Onda 5: render só depois de processing; falha de render atualiza processing → failed
+      const { error: procError } = await adminSupabase
+        .from("posts")
+        .update({ status: "processing" })
+        .eq("id", postRecord.id)
+        .eq("status", "pending");
+
+      if (procError) {
+        const sanitizedMsg = sanitizePublicErrorMessage(procError.message);
+        await adminSupabase
           .from("posts")
-          .update({ status: "processing" })
-          .eq("id", postRecord.id);
+          .update({ status: "failed", error_message: sanitizedMsg })
+          .eq("id", postRecord.id)
+          .eq("status", "pending");
 
-        if (procError) {
-          throw new Error(`Erro na transição para processing: ${procError.message}`);
-        }
+        finalResults.push({
+          id: postRecord.id,
+          day: planItem.day,
+          date: planItem.date,
+          theme: planItem.theme,
+          headline: planItem.headline,
+          subheadline: planItem.subheadline,
+          cta: planItem.cta,
+          caption: planItem.caption,
+          hashtags: planItem.hashtags,
+          layout: planItem.layout,
+          status: "failed",
+          errorMessage: sanitizedMsg,
+        });
+        continue;
+      }
 
-        // Renderização server-side via Satori + Resvg (1080x1080px)
+      try {
         const pngBuffer = await renderPostToPngBuffer(planItem, companyProfile);
 
-        // Upload no bucket privado generated-arts
         const { error: uploadError } = await adminSupabase.storage
           .from("generated-arts")
           .upload(storagePath, pngBuffer, {
@@ -163,14 +228,28 @@ export async function POST(request: Request) {
           throw new Error(`Erro no upload da arte: ${uploadError.message}`);
         }
 
-        // URL assinada só para a resposta imediata; não persiste em image_url
         const { data: signedData } = await adminSupabase.storage
           .from("generated-arts")
           .createSignedUrl(storagePath, 3600);
 
         const signedUrl = signedData?.signedUrl || null;
 
-        // Transição 2: processing ➔ completed (preenchendo todos os campos da constraint posts_completed_integrity)
+        const generationConfig = PostGenerationConfigSchema.parse({
+          templateSlug: planItem.templateSlug || `week/${planItem.theme}`,
+          templateVersion: planItem.templateVersion || 1,
+          resolvedColors: companyProfile.colors,
+          renderedSlots: {
+            badge: planItem.badgeText || planItem.theme,
+            headline: planItem.headline,
+            subheadline: planItem.subheadline,
+            cta: planItem.cta,
+            handle,
+          },
+          theme: planItem.theme,
+          layout: planItem.layout,
+          imageUrl: planItem.imageUrl,
+        });
+
         const { error: completeError } = await adminSupabase
           .from("posts")
           .update({
@@ -180,19 +259,14 @@ export async function POST(request: Request) {
             image_url: null,
             caption: planItem.caption,
             caption_copy: planItem.caption,
-            generation_config: {
-              layout: planItem.layout,
-              theme: planItem.theme,
-              colors: companyProfile.colors,
-              imageUrl: planItem.imageUrl,
-            },
+            generation_config: generationConfig,
             completed_at: new Date().toISOString(),
             error_message: null,
           })
-          .eq("id", postRecord.id);
+          .eq("id", postRecord.id)
+          .eq("status", "processing");
 
         if (completeError) {
-          // Rollback compensatório de arquivo órfão no Storage conforme Invariante 1.3
           const rollbackPath = assertOwnedStoragePath(user.id, storagePath);
           await adminSupabase.storage.from("generated-arts").remove([rollbackPath]);
           throw new Error(`Falha ao concluir post no banco: ${completeError.message}`);
@@ -216,7 +290,6 @@ export async function POST(request: Request) {
           signedUrl,
         });
       } catch (postErr) {
-        // pending|processing ➔ failed (lifecycle onda 3 + posts_failed_integrity)
         const sanitizedMsg = sanitizePublicErrorMessage(postErr);
         await adminSupabase
           .from("posts")
@@ -225,7 +298,7 @@ export async function POST(request: Request) {
             error_message: sanitizedMsg,
           })
           .eq("id", postRecord.id)
-          .in("status", ["pending", "processing"]);
+          .eq("status", "processing");
 
         finalResults.push({
           id: postRecord.id,
