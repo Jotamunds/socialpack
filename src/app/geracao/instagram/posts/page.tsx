@@ -31,10 +31,12 @@ export default async function GeracaoInstagramPostsPage({
     redirect("/login?redirectTo=/geracao/instagram/posts");
   }
 
-  const { data: rawCompanies } = await supabase
-    .from("companies")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const { data: rawCompanies } = access.ok
+    ? await supabase
+        .from("companies")
+        .select("*")
+        .order("created_at", { ascending: false })
+    : { data: [] };
 
   const resolvedParams = await searchParams;
   const targetCompanyId = resolvedParams?.empresa;

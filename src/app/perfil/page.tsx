@@ -21,10 +21,12 @@ export default async function PerfilPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [companiesResult, subscriptionResult] = await Promise.all([
-    supabase.from("companies").select("*").order("created_at", { ascending: false }),
-    supabase.from("subscriptions").select("*").eq("user_id", access.userId).maybeSingle(),
-  ]);
+  const [companiesResult, subscriptionResult] = access.ok
+    ? await Promise.all([
+        supabase.from("companies").select("*").order("created_at", { ascending: false }),
+        supabase.from("subscriptions").select("*").eq("user_id", access.userId).maybeSingle(),
+      ])
+    : [{ data: [] }, { data: null }];
 
   const companies = companiesResult.data || [];
   const rawSub = subscriptionResult.data;

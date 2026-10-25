@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { SignInInputSchema } from "@/lib/schemas";
-import { activateChosenPlanAction } from "@/app/actions/auth";
 import { Logo } from "@/components/Logo";
 import { SpinnerIcon } from "@/components/icons";
 import { safeInternalRedirect } from "@/lib/safe-redirect";
@@ -55,13 +54,6 @@ function LoginForm() {
       }
 
       if (data.session) {
-        // Ativa assinatura incomplete com selected_plan do metadata (cadastro sem sessão imediata).
-        // Falha aqui não pode impedir o redirect: o middleware pode responder a action com redirect.
-        try {
-          await activateChosenPlanAction();
-        } catch {
-          console.error("Falha ao ativar o plano após o login.");
-        }
         router.refresh();
         router.push(redirectTo);
       }

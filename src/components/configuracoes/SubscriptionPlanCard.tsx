@@ -53,14 +53,13 @@ export function SubscriptionPlanCard({
       setFeedback(null);
       const res = await upgradeToProAction();
       if (res.ok) {
-        setSubscription((prev) => ({
-          ...prev,
-          plan: "pro",
-          company_quota: 3,
-        }));
+        if (res.paymentUrl) {
+          window.location.href = res.paymentUrl;
+          return;
+        }
         setFeedback({
           type: "success",
-          message: res.message || "Upgrade para o Plano Pro realizado com sucesso!",
+          message: res.message || "Upgrade solicitado! Aguardando confirmação do pagamento.",
         });
         setIsUpgradeModalOpen(false);
       } else {

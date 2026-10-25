@@ -8,6 +8,9 @@ const serverEnvSchema = z.object({
     .string()
     .min(1, "SUPABASE_SERVICE_ROLE_KEY é obrigatória no ambiente de servidor"),
   NEXT_PUBLIC_APP_URL: z.string().url("NEXT_PUBLIC_APP_URL deve ser uma URL válida").optional(),
+  ASAAS_API_KEY: z.string().min(1, "ASAAS_API_KEY não configurada").optional(),
+  ASAAS_WEBHOOK_TOKEN: z.string().min(1, "ASAAS_WEBHOOK_TOKEN não configurado").optional(),
+  ASAAS_ENV: z.enum(["sandbox", "production"]).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -40,4 +43,34 @@ export function validateEnv(): ServerEnv {
 /** Alias explícito para o boot (instrumentation). */
 export function assertServerEnv(): ServerEnv {
   return validateEnv();
+}
+
+/**
+ * Retorna as credenciais e endpoint base do Asaas.
+ * Dispara erro caso ASAAS_API_KEY não esteja configurada no momento da cobrança.
+ */
+export function getAsaasConfig() {
+  const env = validateEnv();
+  const apiKey = env.ASAAS_API_KEY || process.env.ASAAS_API_KEY;
+
+  if (!apiKey) {
+    throw new Error(
+      "ASAAS_API_KEY não está configurada no ambiente. Configure a chave de API do Asaas."
+    );
+  }
+
+  const isExplicitSandbox = env.ASAAS_ENV === "sandbox" || process.env.ASAAS_ENV === "sandbox";
+  const isKeySandbox = apiKey.startsWith("$aact_hmlg_");
+  const isSandbox = isExplicitSandbox || isKeySandbox;
+
+  const baseUrl = isSandbox
+    ? "https://api-sandbox.asaas.com/v3"
+    : "https://api.asaas.com/v3";
+
+  return {
+    apiKey,
+    baseUrl,
+    isSandbox,
+    webhookToken: env.ASAAS_WEBHOOK_TOKEN || process.env.ASAAS_WEBHOOK_TOKEN || "",
+  };
 }

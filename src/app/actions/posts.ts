@@ -7,6 +7,7 @@ import {
   getOwnedStoragePathOrNull,
 } from "@/lib/storage-path";
 import { sanitizePublicErrorMessage } from "@/lib/public-error";
+import { assertValidSubscription } from "@/lib/supabase/subscription-guard";
 
 export interface SignedUrlResponse {
   ok: boolean;
@@ -16,7 +17,7 @@ export interface SignedUrlResponse {
 
 /**
  * Gera uma URL assinada temporária (120 segundos) para download seguro de uma arte gerada.
- * Garante tenant isolation validando posse do post e prefixo {userId}/ no storage path.
+ * Garante tenant isolation validando posse do post, assinatura ativa e prefixo {userId}/ no storage path.
  */
 export async function getSignedPostDownloadUrlAction(postId: string): Promise<SignedUrlResponse> {
   if (!postId) {
@@ -33,6 +34,9 @@ export async function getSignedPostDownloadUrlAction(postId: string): Promise<Si
     if (authError || !user) {
       return { ok: false, message: "Não autorizado." };
     }
+
+    // Validação estrita no servidor: assinatura ativa obrigatória para download de artes
+    await assertValidSubscription(user.id);
 
     const { data: post, error: postError } = await supabase
       .from("posts")
@@ -96,6 +100,9 @@ export async function getWeeklyPostsAction(companyId: string, startDate?: string
     if (authError || !user) {
       return { ok: false, message: "Não autorizado.", posts: [] };
     }
+
+    // Validação estrita no servidor: assinatura ativa obrigatória para consultar posts
+    await assertValidSubscription(user.id);
 
     let query = supabase
       .from("posts")

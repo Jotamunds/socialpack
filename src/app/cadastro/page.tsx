@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { SignUpInputSchema } from "@/lib/schemas";
-import { activateChosenPlanAction } from "@/app/actions/auth";
 import { Logo } from "@/components/Logo";
 import { SpinnerIcon } from "@/components/icons";
 
@@ -71,17 +70,8 @@ function RegisterForm() {
 
       if (data.user) {
         if (data.session) {
-          // Ativa o plano escolhido (trigger deixa incomplete; só esta action libera o acesso)
-          const activation = await activateChosenPlanAction(validation.data.plan);
-          if (!activation.ok) {
-            setErrorMessage(
-              activation.error ||
-                "Conta criada, mas a ativação do plano falhou. Faça login e tente novamente."
-            );
-            setIsLoading(false);
-            return;
-          }
-          router.push("/perfil");
+          // Conta criada: redireciona para a tela de escolha e pagamento do plano
+          router.push("/planos");
         } else {
           setSuccessMessage(
             "Conta criada! Confirme o e-mail e faça login para ativar o plano escolhido."

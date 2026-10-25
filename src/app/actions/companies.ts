@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { CreateCompanyInputSchema, normalizeCompanyInput } from "@/lib/schemas";
 import { sanitizePublicErrorMessage } from "@/lib/public-error";
 import { assertOwnedStoragePath, getOwnedStoragePathOrNull } from "@/lib/storage-path";
+import { assertValidSubscription } from "@/lib/supabase/subscription-guard";
 
 export type CompanyActionResponse = {
   ok: boolean;
@@ -55,6 +56,9 @@ export async function createCompanyAction(input: unknown): Promise<CompanyAction
         message: "Você precisa estar conectado para cadastrar uma empresa.",
       };
     }
+
+    // Validação estrita no servidor: assinatura ativa obrigatória para criar empresa
+    await assertValidSubscription(user.id);
 
     const { data, error } = await supabase
       .from("companies")
@@ -138,6 +142,9 @@ export async function deleteCompanyAction(companyId: string): Promise<{ ok: bool
     if (authError || !user) {
       return { ok: false, message: "Acesso não autorizado." };
     }
+
+    // Validação estrita no servidor: assinatura ativa obrigatória para deletar empresa
+    await assertValidSubscription(user.id);
 
     const admin = createAdminClient();
 

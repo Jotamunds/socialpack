@@ -8,6 +8,7 @@ import {
   getOwnedStoragePathOrNull,
 } from "@/lib/storage-path";
 import { sanitizePublicErrorMessage } from "@/lib/public-error";
+import { assertValidSubscription } from "@/lib/supabase/subscription-guard";
 import {
   applyHistoryPostFilters,
   HISTORY_POSTS_SELECT,
@@ -56,6 +57,9 @@ export async function getHistoryPostsAction(rawFilters?: unknown): Promise<{
     if (authError || !user) {
       return { ok: false, posts: [], message: "Não autorizado. Faça login para acessar o histórico." };
     }
+
+    // Validação estrita no servidor: assinatura ativa obrigatória para consultar o histórico
+    await assertValidSubscription(user.id);
 
     const filters = parseHistoryFilters(rawFilters);
 
@@ -143,6 +147,9 @@ export async function deletePostOrchestratedAction(postId: string): Promise<{
     if (authError || !user) {
       return { ok: false, message: "Acesso não autorizado." };
     }
+
+    // Validação estrita no servidor: assinatura ativa obrigatória para gerenciar histórico
+    await assertValidSubscription(user.id);
 
     const adminSupabase = createAdminClient();
 

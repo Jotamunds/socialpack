@@ -10,6 +10,10 @@ import {
 } from "@/lib/schemas";
 import { requireValidSubscription } from "@/lib/supabase/subscription-guard";
 import { sanitizePublicErrorMessage } from "@/lib/public-error";
+import {
+  createPaymentLinkForPlan,
+  cancelAsaasSubscription,
+} from "@/lib/billing/asaas";
 
 export type SettingsActionResponse = {
   ok: boolean;
@@ -146,8 +150,11 @@ export async function updateThemePreferenceAction(
   }
 }
 
-/** Upgrade MVP Starter → Pro (temporário até a onda do gateway). */
-export async function upgradeToProAction(): Promise<SettingsActionResponse> {
+/**
+ * Inicia solicitação de upgrade Starter → Pro via Asaas.
+ * REGRA ESTRITA: O plano e a cota só são promovidos a Pro após confirmação do pagamento de R$ 97,00 pelo Asaas.
+ */
+export async function upgradeToProAction(): Promise<SettingsActionResponse & { paymentUrl?: string }> {
   try {
     const supabase = await createClient();
     const {
@@ -174,20 +181,21 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse> {
       return { ok: true, message: "Sua conta já está no Plano Pro." };
     }
 
-    const now = new Date();
-    const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    // Cria o link de pagamento do Plano Pro (R$ 97,00 fixo do servidor)
+    const link = await createPaymentLinkForPlan({
+      userId: user.id,
+      plan: "pro",
+      userEmail: user.email,
+    });
 
     const admin = createAdminClient();
     const { error: subError } = await admin
       .from("subscriptions")
       .update({
-        plan: "pro",
-        company_quota: 3,
-        status: "active",
-        cancel_at_period_end: false,
-        current_period_start: now.toISOString(),
-        current_period_end: periodEnd.toISOString(),
-        updated_at: now.toISOString(),
+        pending_plan: "pro",
+        payment_link_id: link.id,
+        payment_url: link.url,
+        updated_at: new Date().toISOString(),
       })
       .eq("user_id", user.id)
       .eq("id", guard.subscription.id);
@@ -200,14 +208,15 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse> {
     revalidatePath("/perfil");
     return {
       ok: true,
-      message: "Upgrade realizado com sucesso! Seu plano agora é Pro (limite de 3 empresas).",
+      paymentUrl: link.url,
+      message: "Link de pagamento do Plano Pro gerado. Conclua o pagamento de R$ 97,00 para ativar o Pro.",
     };
   } catch (err) {
     return { ok: false, error: sanitizePublicErrorMessage(err) };
   }
 }
 
-/** Agenda cancelamento: mantém acesso até current_period_end. */
+/** Agenda cancelamento: sincroniza com Asaas e mantém acesso até current_period_end. */
 export async function cancelSubscriptionAction(): Promise<SettingsActionResponse> {
   try {
     const supabase = await createClient();
@@ -233,6 +242,16 @@ export async function cancelSubscriptionAction(): Promise<SettingsActionResponse
         ok: true,
         message: "O cancelamento já está agendado. O acesso segue até o fim do ciclo atual.",
       };
+    }
+
+    // Se houver assinatura vinculada no gateway, notifica o cancelamento no Asaas
+    const gatewaySubId = guard.subscription.gateway_subscription_id as string | undefined;
+    if (gatewaySubId) {
+      try {
+        await cancelAsaasSubscription(gatewaySubId);
+      } catch (gatewayErr) {
+        console.error("Falha ao comunicar cancelamento ao Asaas:", gatewayErr);
+      }
     }
 
     const admin = createAdminClient();

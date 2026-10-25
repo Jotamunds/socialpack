@@ -41,13 +41,15 @@ export default async function HistoricoInstagramPage({
   const filters = parseHistoryFilters(await searchParams);
 
   // Empresas do usuário (RLS) e posts concluídos já filtrados no servidor.
-  const [companiesResult, historyResult] = await Promise.all([
-    supabase
-      .from("companies")
-      .select("*")
-      .order("created_at", { ascending: false }),
-    getHistoryPostsAction(filters),
-  ]);
+  const [companiesResult, historyResult] = access.ok
+    ? await Promise.all([
+        supabase
+          .from("companies")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        getHistoryPostsAction(filters),
+      ])
+    : [{ data: [] }, { ok: false, posts: [] }];
 
   const rawCompanies = companiesResult.data || [];
   const companies = rawCompanies.map((c) => ({

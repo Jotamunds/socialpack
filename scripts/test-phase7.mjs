@@ -113,8 +113,11 @@ async function runPhase7Tests() {
   if (!settingsContent.includes("from(\"subscriptions\")") || !settingsContent.includes(".update(")) {
     throw new Error("upgradeToProAction deve atualizar registros na tabela subscriptions.");
   }
-  if (!settingsContent.includes("plan: \"pro\"") || (!settingsContent.includes("company_quota: 3") && !settingsContent.includes("max_companies: 3"))) {
-    throw new Error("upgradeToProAction deve atualizar plan para 'pro' e cota para 3 empresas.");
+  const updatesProDirectly = settingsContent.includes("plan: \"pro\"") && (settingsContent.includes("company_quota: 3") || settingsContent.includes("max_companies: 3"));
+  const updatesProViaGateway = settingsContent.includes("pending_plan: \"pro\"") || settingsContent.includes("createPaymentLinkForPlan");
+
+  if (!updatesProDirectly && !updatesProViaGateway) {
+    throw new Error("upgradeToProAction deve atualizar registros de plano Pro ou iniciar upgrade pendente no gateway.");
   }
 
   // Mandamento 3: PCI-DSS Invariants
