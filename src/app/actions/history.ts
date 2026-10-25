@@ -8,6 +8,11 @@ import {
   getOwnedStoragePathOrNull,
 } from "@/lib/storage-path";
 import { sanitizePublicErrorMessage } from "@/lib/public-error";
+import {
+  applyHistoryPostFilters,
+  HISTORY_POSTS_SELECT,
+  parseHistoryFilters,
+} from "@/lib/history-filters";
 
 export interface HistoryPostItem {
   id: string;
@@ -31,19 +36,12 @@ export interface HistoryPostItem {
   company_name?: string;
 }
 
-export interface HistoryFilterParams {
-  companyId?: string;
-  search?: string;
-  period?: "7days" | "30days" | "all" | string;
-  startDate?: string;
-  endDate?: string;
-}
-
 /**
  * Consulta postagens salvas com status 'completed' pertencentes ao usuário autenticado (RLS).
+ * Filtros opcionais vêm de query params já validados de novo aqui — nunca autorizam outro usuário.
  * URLs assinadas são geradas na hora; image_url persistida não é usada como fallback.
  */
-export async function getHistoryPostsAction(filters?: HistoryFilterParams): Promise<{
+export async function getHistoryPostsAction(rawFilters?: unknown): Promise<{
   ok: boolean;
   posts: HistoryPostItem[];
   message?: string;
@@ -59,38 +57,16 @@ export async function getHistoryPostsAction(filters?: HistoryFilterParams): Prom
       return { ok: false, posts: [], message: "Não autorizado. Faça login para acessar o histórico." };
     }
 
+    const filters = parseHistoryFilters(rawFilters);
+
     let query = supabase
       .from("posts")
-      .select("*, companies(name)")
+      .select(HISTORY_POSTS_SELECT)
       .eq("user_id", user.id)
       .eq("status", "completed")
       .order("created_at", { ascending: false });
 
-    if (filters?.companyId && filters.companyId !== "all") {
-      query = query.eq("company_id", filters.companyId);
-    }
-
-    if (filters?.search && filters.search.trim()) {
-      const term = `%${filters.search.trim()}%`;
-      query = query.or(`headline.ilike.${term},theme.ilike.${term},caption.ilike.${term}`);
-    }
-
-    if (filters?.period === "7days") {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      query = query.gte("created_at", sevenDaysAgo.toISOString());
-    } else if (filters?.period === "30days") {
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      query = query.gte("created_at", thirtyDaysAgo.toISOString());
-    }
-
-    if (filters?.startDate) {
-      query = query.gte("date", filters.startDate);
-    }
-    if (filters?.endDate) {
-      query = query.lte("date", filters.endDate);
-    }
+    query = applyHistoryPostFilters(query, filters);
 
     const { data: posts, error: queryError } = await query;
 

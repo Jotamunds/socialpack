@@ -10,6 +10,7 @@ interface HistoryGridProps {
   onDownloadPost: (post: HistoryPostItem) => void;
   onRequestDelete: (post: HistoryPostItem) => void;
   onClearFilters?: () => void;
+  filtersActive?: boolean;
 }
 
 function toDisplayPost(post: HistoryPostItem): DisplayPost {
@@ -37,6 +38,7 @@ export function HistoryGrid({
   onDownloadPost,
   onRequestDelete,
   onClearFilters,
+  filtersActive = false,
 }: HistoryGridProps) {
   if (posts.length === 0) {
     return (
@@ -49,10 +51,12 @@ export function HistoryGrid({
             Nenhuma criação encontrada
           </h3>
           <p className="text-xs text-[#8a8f98]">
-            Não encontramos posts correspondentes aos filtros aplicados.
+            {filtersActive
+              ? "Não encontramos posts correspondentes aos filtros aplicados."
+              : "Você ainda não tem artes salvas no Instagram."}
           </p>
         </div>
-        {onClearFilters && (
+        {filtersActive && onClearFilters && (
           <button
             type="button"
             onClick={onClearFilters}

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { categories } from "@/lib/catalog";
 
 export const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{6}$/;
 export const UF_REGEX = /^[A-Z]{2}$/;
@@ -292,3 +293,42 @@ export type PostGenerationConfig = z.infer<typeof PostGenerationConfigSchema>;
 /** Limite MVP: no máximo 4 pacotes (28 posts) por empresa por dia UTC. */
 export const MAX_WEEKLY_PACKS_PER_COMPANY_PER_DAY = 4;
 export const POSTS_PER_WEEKLY_PACK = 7;
+
+const CATALOG_NICHE_IDS = new Set(
+  categories.flatMap((category) => category.niches.map((niche) => niche.id))
+);
+
+/** Presets de período do histórico. Ausente na URL = todo o período. */
+export const HISTORY_PERIOD_VALUES = ["7d", "30d"] as const;
+
+export const HistoryCompanyIdSchema = z.string().trim().uuid("empresa deve ser um UUID");
+
+export const HistorySearchSchema = z
+  .string()
+  .trim()
+  .transform((value) => value.replace(/[\u0000-\u001F\u007F]/g, "").slice(0, 80))
+  .pipe(z.string().min(1).max(80));
+
+export const HistoryPeriodSchema = z.enum(HISTORY_PERIOD_VALUES);
+
+export const HistoryNicheIdSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(80)
+  .refine((id) => CATALOG_NICHE_IDS.has(id), "Nicho desconhecido");
+
+/**
+ * Filtros normalizados do histórico.
+ * Valores ausentes significam "sem restrição", exceto o status, que não entra
+ * aqui: a consulta do acervo fixa `completed`.
+ */
+export const HistoryPostsFilterSchema = z.object({
+  empresa: HistoryCompanyIdSchema.optional(),
+  busca: HistorySearchSchema.optional(),
+  periodo: HistoryPeriodSchema.optional(),
+  nicho: HistoryNicheIdSchema.optional(),
+});
+
+export type HistoryPeriod = z.infer<typeof HistoryPeriodSchema>;
+export type HistoryPostsFilter = z.infer<typeof HistoryPostsFilterSchema>;
