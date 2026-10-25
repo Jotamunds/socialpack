@@ -1,4 +1,101 @@
 {
   "label": "Serviços Profissionais › Imobiliária",
-  "posts": []
+  "posts": [
+    {
+      "theme": "Imóvel da semana",
+      "headline": "O imóvel em destaque esta semana",
+      "subheadline": "Toda semana a casa destaca um endereço. Chama para saber os detalhes.",
+      "cta": "Quero os detalhes",
+      "caption": "Toda semana a {nome} escolhe um imóvel para mostrar com calma.\n\nFotos ajudam, mas metragem, condição e valor a gente confirma com você no direct, porque anúncio muda e este texto não trava um número. O destaque é o convite para perguntar.\n\nEstá buscando em {cidade}? Chama e pede a ficha do imóvel da semana.",
+      "hashtags": ["#imobiliaria", "#imovel", "#imoveldasemana"]
+    },
+    {
+      "theme": "Visita",
+      "headline": "Ver de perto muda a decisão",
+      "subheadline": "A agenda de visitas está aberta. Marque e conheça o imóvel pessoalmente.",
+      "cta": "Agendar visita",
+      "caption": "Foto bonita não substitui a visita.\n\nNa {nome} a gente organiza o horário com o imóvel e com a sua agenda. Você vê luz, barulho, vizinhança e o que o anúncio não mostra. Se o horário pedir encaixe, a equipe avisa com honestidade.\n\nEm {cidade}, chama e marca a visita desta semana.",
+      "hashtags": ["#visita", "#imobiliaria", "#agendarvisita"]
+    },
+    {
+      "theme": "Bairro",
+      "headline": "O bairro pesa na escolha",
+      "subheadline": "Comércio, rotina e o que importa para você no entorno do imóvel.",
+      "cta": "Conheça o bairro",
+      "caption": "O imóvel cabe no bolso e não cabe na rotina. Já vimos isso acontecer.\n\nA {nome} te mostra o bairro junto com a planta: comércio, caminho do dia a dia e o que costuma pesar para quem mora ali. Não descrevemos um endereço que você não pediu. A conversa parte da sua busca em {cidade}.\n\nConta o que não pode faltar e a equipe filtra.",
+      "hashtags": ["#bairro", "#imobiliaria", "#regiao"]
+    },
+    {
+      "theme": "Financiamento",
+      "headline": "Financiamento sem letra miúda",
+      "subheadline": "A gente organiza as perguntas certas antes de você falar com o banco.",
+      "cta": "Tire suas dúvidas",
+      "caption": "Financiamento assusta quando a conversa começa pelo banco, não pelas suas dúvidas.\n\nNa {nome} a equipe ajuda a organizar o que perguntar: entrada, prazo, documentos e o que o imóvel precisa ter. Não aprovamos crédito e não publicamos taxa. Quem decide é a instituição, com os seus dados.\n\nEstá em {cidade}? Chama e vem preparado para a conversa, sem surpresa de última hora.",
+      "hashtags": ["#financiamento", "#imobiliaria", "#creditoparaimovel"]
+    },
+    {
+      "theme": "Lançamento",
+      "headline": "Quando entra um lançamento",
+      "subheadline": "A casa explica planta, prazo e o que perguntar antes de reservar.",
+      "cta": "Saiba do lançamento",
+      "caption": "Lançamento pede leitura calma, não pressa de reserva.\n\nQuando entra uma novidade, a {nome} explica planta, estágio da obra e o que você precisa perguntar antes de avançar. Nome do empreendimento e condições a equipe passa no atendimento, com o que estiver vigente.\n\nBusca lançamento em {cidade}? Chama e pede o que está na mesa agora.",
+      "hashtags": ["#lancamento", "#imobiliaria", "#imovelnovo"]
+    },
+    {
+      "theme": "Avaliação",
+      "headline": "Vamos avaliar o seu imóvel",
+      "subheadline": "Uma leitura conversada do mercado da região, com você do lado.",
+      "cta": "Pedir avaliação",
+      "caption": "Quanto vale o seu imóvel é pergunta de conversa, não de chute.\n\nA {nome} olha localização, estado e o que imóveis parecidos têm pedido em {cidade}. O valor sai dessa leitura, com você do lado.\n\nQuer avaliar para vender ou só para saber? Chama e a equipe marca.",
+      "hashtags": ["#avaliacao", "#imobiliaria", "#venderimovel"]
+    },
+    {
+      "theme": "Chaves na mão",
+      "headline": "Pronto para morar, com conferência",
+      "subheadline": "Quando o imóvel está pronto, a equipe confirma o que já está resolvido.",
+      "cta": "Ver os prontos",
+      "caption": "Chaves na mão só vale quando alguém conferiu o que já está pronto.\n\nNa {nome} a equipe separa os imóveis que estão liberados para morar e te explica o que foi vistoriado e o que ainda depende de você. Não tratamos todo anúncio como pronto. Se não estiver, a gente fala.\n\nEstá em {cidade} e quer entrar logo? Pede essa lista no direct.",
+      "hashtags": ["#chavesnamao", "#imobiliaria", "#imovelpronto"]
+    },
+    {
+      "theme": "Investimento",
+      "headline": "Morar ou investir muda a conversa",
+      "subheadline": "A equipe separa os pontos com você, sem promessa de valorização.",
+      "cta": "Vamos conversar",
+      "caption": "O imóvel para morar e o imóvel para investir não respondem às mesmas perguntas.\n\nNa {nome} a conversa muda conforme o seu plano: uso próprio, renda ou os dois. A equipe organiza os pontos em {cidade}. Valorização e retorno dependem do mercado, e a casa não transforma isso em garantia.\n\nQuer sentar e colocar os números na mesa de verdade? Chama.",
+      "hashtags": ["#investimento", "#imobiliaria", "#imovel"]
+    },
+    {
+      "theme": "Tour",
+      "headline": "Veja o imóvel antes de ir",
+      "subheadline": "Pergunte se há fotos, vídeo ou visita guiada antes de se deslocar.",
+      "cta": "Peça o tour",
+      "caption": "Deslocar até um imóvel que não serve cansa. Dá para filtrar antes.\n\nA {nome} mostra o que o anúncio tiver: fotos, vídeo ou um tour combinado. Nem todo imóvel tem os três, e a equipe diz o que dá para ver antes de você sair de casa. Se precisar ir, a visita continua sendo o passo que decide.\n\nEstá de olho em algo em {cidade}? Pede o tour e a gente te fala o que existe.",
+      "hashtags": ["#tourvirtual", "#imobiliaria", "#visita"]
+    },
+    {
+      "theme": "Documentação",
+      "headline": "Papel certo antes da proposta",
+      "subheadline": "A equipe orienta o caminho. Cada caso pede conferência dos documentos.",
+      "cta": "Organize os papéis",
+      "caption": "Proposta sem documento em ordem vira espera.\n\nNa {nome} a equipe te orienta sobre a papelada que costuma entrar na negociação, antes de você avançar. Isso não substitui conferência jurídica nem do cartório: cada imóvel e cada pessoa têm o seu conjunto.\n\nEm {cidade}, chama e pergunta o que separar para o seu caso.",
+      "hashtags": ["#documentacao", "#imobiliaria", "#compraevenda"]
+    },
+    {
+      "theme": "Destaque",
+      "headline": "Casa, apartamento ou terreno?",
+      "subheadline": "Comenta a sua busca. A equipe responde com o que houver em aberto.",
+      "cta": "Comente a busca",
+      "caption": "A busca começa por uma frase simples: casa, apartamento ou terreno?\n\nComenta aqui. A {nome} te chama com opções que estejam realmente disponíveis, no perfil que você descreveu. Se não tiver o que você pediu hoje, a equipe fala, em vez de empurrar outro imóvel.\n\nSua cidade é {cidade}? Escreve também o bairro ou a região que você aceita.",
+      "hashtags": ["#imobiliaria", "#destaque", "#busca"]
+    },
+    {
+      "theme": "Atendimento local",
+      "headline": "Atendimento de quem é daqui",
+      "subheadline": "Equipe da região, conversa direta e visita sem enrolação.",
+      "cta": "Fale com a gente",
+      "caption": "Quem atende de longe descreve a cidade. Quem é daqui anda nela.\n\nA {nome} atende em {cidade} com gente que conhece rua, horário de visita e o jeito do mercado local. A conversa é direta: o que você busca, o que existe e o próximo passo.\n\nChama no direct ou passa na casa. O primeiro contato já pode marcar uma visita.",
+      "hashtags": ["#atendimentolocal", "#imobiliaria", "#corretor", "#mercadolocal"]
+    }
+  ]
 }
