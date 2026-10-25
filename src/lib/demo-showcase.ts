@@ -1,14 +1,20 @@
 import "server-only";
 
 import { connection } from "next/server";
+import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getOwnedStoragePathOrNull } from "@/lib/storage-path";
 
-/** Conta demo fixa. O helper não recebe id do cliente. */
-const DEMO_USER_ID = "cfe15d67-997c-4f51-9e38-6cf13e6e0b4f";
-
 const SHOWCASE_LIMIT = 4;
 const SIGNED_URL_TTL_SECONDS = 3600;
+
+const demoUserIdSchema = z.string().uuid();
+
+/** Lê DEMO_USER_ID do ambiente. Ausente ou inválido não é erro: a seção some. */
+function readDemoUserId(): string | null {
+  const parsed = demoUserIdSchema.safeParse(process.env.DEMO_USER_ID?.trim());
+  return parsed.success ? parsed.data : null;
+}
 
 export type DemoShowcaseItem = {
   id: string;
@@ -23,13 +29,18 @@ export type DemoShowcaseItem = {
 export async function getDemoShowcase(): Promise<DemoShowcaseItem[]> {
   await connection();
 
+  const demoUserId = readDemoUserId();
+  if (!demoUserId) {
+    return [];
+  }
+
   try {
     const admin = createAdminClient();
 
     const { data: company, error: companyError } = await admin
       .from("companies")
       .select("id")
-      .eq("user_id", DEMO_USER_ID)
+      .eq("user_id", demoUserId)
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
@@ -43,7 +54,7 @@ export async function getDemoShowcase(): Promise<DemoShowcaseItem[]> {
     const { data: posts, error: postsError } = await admin
       .from("posts")
       .select("id, headline, storage_path, image_storage_path, user_id, company_id, status")
-      .eq("user_id", DEMO_USER_ID)
+      .eq("user_id", demoUserId)
       .eq("company_id", companyId)
       .eq("status", "completed")
       .order("created_at", { ascending: false })
@@ -57,7 +68,7 @@ export async function getDemoShowcase(): Promise<DemoShowcaseItem[]> {
 
     for (const post of posts) {
       if (items.length >= SHOWCASE_LIMIT) break;
-      if (post.user_id !== DEMO_USER_ID) continue;
+      if (post.user_id !== demoUserId) continue;
       if (post.company_id !== companyId) continue;
       if (post.status !== "completed") continue;
 
@@ -65,7 +76,7 @@ export async function getDemoShowcase(): Promise<DemoShowcaseItem[]> {
       if (!headline || typeof post.id !== "string") continue;
 
       const filePath = getOwnedStoragePathOrNull(
-        DEMO_USER_ID,
+        demoUserId,
         post.image_storage_path || post.storage_path
       );
       if (!filePath) continue;
@@ -81,7 +92,8 @@ export async function getDemoShowcase(): Promise<DemoShowcaseItem[]> {
     }
 
     return items;
-  } catch {
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : "unknown");
     return [];
   }
 }
