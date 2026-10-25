@@ -1,4 +1,101 @@
 {
   "label": "Alimentação › Hamburgueria",
-  "posts": []
+  "posts": [
+    {
+      "theme": "Smash do dia",
+      "headline": "O smash que está na chapa",
+      "subheadline": "Carne prensada na hora, queijo derretido e pão que chega quente.",
+      "cta": "Peça o smash",
+      "caption": "Smash de verdade se faz na chapa, na hora, com a borda crocante.\n\nNa {nome} o smash do dia é o lanche que a cozinha quer que você prove hoje. O que vai dentro você vê no pedido: pão, carne e queijo, sem enfeite que a casa não sirva.\n\nEstá em {cidade}? Pede no balcão ou chama no direct antes de a fome escolher por você.",
+      "hashtags": ["#smashburger", "#hamburgueria", "#smashdodia"]
+    },
+    {
+      "theme": "Combo lanche",
+      "headline": "Lanche completo, sem complicar",
+      "subheadline": "Burguer, batata e bebida no combo da casa para a fome grande.",
+      "cta": "Monte o combo",
+      "caption": "Quando a fome é grande, pedir item por item só atrasa.\n\nO combo lanche da {nome} junta burguer, batata e bebida. As opções estão no cardápio da casa e o valor você confirma no pedido.\n\nMora em {cidade}? Chama e monta o seu. A cozinha já sabe o caminho.",
+      "hashtags": ["#combolanche", "#hamburgueria", "#lanchecompleto"]
+    },
+    {
+      "theme": "Molho da casa",
+      "headline": "O molho que fica na casa",
+      "subheadline": "Feito na cozinha, no ponto para o smash e também para a batata.",
+      "cta": "Prove o molho",
+      "caption": "Tem detalhe que não vai na foto e muda o lanche inteiro.\n\nO molho da {nome} é feito na cozinha. A receita fica com a casa. O que a gente pode contar é o cuidado: ponto, tempero e a quantidade certa no pão e na batata.\n\nEm {cidade}, pede um pouco a mais se você é do time que não abre mão. A gente entende.",
+      "hashtags": ["#molhodacasa", "#hamburgueria", "#molhoartesanal"]
+    },
+    {
+      "theme": "Batata crocante",
+      "headline": "Batata que estala na mordida",
+      "subheadline": "Sequinha por fora, macia por dentro e pronta para o molho.",
+      "cta": "Adiciona a batata",
+      "caption": "Lanche sem batata crocante fica com cara de incompleto.\n\nNa {nome} a batata sai sequinha por fora e macia por dentro, no ponto de estalar. O acompanhamento é simples de propósito: o sabor fica na fritura e no molho da casa.\n\nEstá em {cidade}? Inclui no pedido. Tem gente que volta mais pela batata do que admite.",
+      "hashtags": ["#batatacrocante", "#hamburgueria", "#fritas"]
+    },
+    {
+      "theme": "Noite de jogo",
+      "headline": "Lanche pronto para o jogo",
+      "subheadline": "Porções fáceis de dividir para a galera não perder o lance.",
+      "cta": "Peça para o jogo",
+      "caption": "Noite de jogo pede lanche que chega e se divide sem cerimônia.\n\nA {nome} monta o pedido para a galera: smash, batata e o que mais couber na mesa ou na sala. Não precisa ter tela aqui na casa. O plano é a comida chegar a tempo do apito.\n\nEstá em {cidade}? Manda a lista no direct e a gente organiza.",
+      "hashtags": ["#noitedejogo", "#hamburgueria", "#lancheemgrupo"]
+    },
+    {
+      "theme": "Veggie",
+      "headline": "Tem veggie de verdade na chapa",
+      "subheadline": "Um lanche sem carne, com crocância e o molho da casa.",
+      "cta": "Peça o veggie",
+      "caption": "Quem não come carne também senta nesta mesa.\n\nNa {nome} o veggie entra na chapa com o mesmo capricho do smash: pão quente, molho da casa e o recheio que estiver no cardápio. Pergunta qual é a versão do dia. A gente não troca o lanche por um prato sem graça.\n\nEm {cidade}, pede o seu e vem com quem come de outro jeito. A mesa comporta os dois.",
+      "hashtags": ["#veggieburger", "#hamburgueria", "#lancheveggie"]
+    },
+    {
+      "theme": "Duplo",
+      "headline": "Quando um só não dá conta",
+      "subheadline": "Duas carnes, queijo no meio e o pão segurando a fome.",
+      "cta": "Quero o duplo",
+      "caption": "Tem fome que uma carne só não conversa.\n\nO duplo da {nome} empilha duas carnes com queijo no meio e o pão que a casa usa para segurar tudo. É lanche de verdade, para quem já sabe que vai querer mais uma mordida.\n\nEstá em {cidade}? Pede o duplo e avisa se a batata vem junto. A chapa aguenta.",
+      "hashtags": ["#burguerduplo", "#hamburgueria", "#duplo"]
+    },
+    {
+      "theme": "Delivery",
+      "headline": "O lanche sai até a sua porta",
+      "subheadline": "Peça de casa e receba o smash pronto para a primeira mordida.",
+      "cta": "Pedir delivery",
+      "caption": "Nem toda fome cabe numa ida até a loja.\n\nO delivery da {nome} leva o smash, a batata e o molho até você em {cidade}. A embalagem é pensada para o lanche aguentar o caminho. O tempo de entrega a gente confirma no pedido, conforme o movimento do dia.\n\nBateu a fome? Chama no direct ou pede pelo link da bio.",
+      "hashtags": ["#delivery", "#hamburgueria", "#lancheemcasa"]
+    },
+    {
+      "theme": "Happy hour",
+      "headline": "Depois do expediente, é aqui",
+      "subheadline": "O convite da casa para o lanche e a conversa de fim de tarde.",
+      "cta": "Vem no happy hour",
+      "caption": "Expediente acabou. A fome, não.\n\nO happy hour da {nome} é o horário em que a casa chama para o lanche e a conversa. Se o dia tiver uma condição especial, a equipe conta no balcão. O convite é aparecer.\n\nEstá em {cidade} saindo do trabalho? Passa aqui antes de ir para casa.",
+      "hashtags": ["#happyhour", "#hamburgueria", "#fimdetarde"]
+    },
+    {
+      "theme": "Ingrediente",
+      "headline": "O que vai no pão importa",
+      "subheadline": "Pão, carne e queijo escolhidos com critério. A casa conta o cuidado.",
+      "cta": "Conheça o lanche",
+      "caption": "Lanche bom não é sorte de chapa. É escolha de ingrediente.\n\nNa {nome} a gente se importa com o pão, a carne e o queijo que entram no smash. Fornecedor e corte do dia a cozinha conta para quem pergunta na loja.\n\nEm {cidade}, vem ver de perto. A primeira mordida explica o resto.",
+      "hashtags": ["#hamburgueriaartesanal", "#ingrediente", "#smashburger"]
+    },
+    {
+      "theme": "Mesa compartilhada",
+      "headline": "Pede um e divide a mesa",
+      "subheadline": "Porções para a galera beliscar enquanto o lanche principal chega.",
+      "cta": "Chame a galera",
+      "caption": "Mesa cheia pede comida que circula, não só um lanche por pessoa.\n\nNa {nome} a mesa compartilhada é batata, molho e o que mais der para ir passando enquanto os lanches saem. Chama o grupo nos comentários e combina quem pede o quê.\n\nA casa está em {cidade}. Se preferirem ficar em casa, o delivery leva a mesma mesa.",
+      "hashtags": ["#mesacompartilhada", "#hamburgueria", "#lancheemgrupo"]
+    },
+    {
+      "theme": "Sobremesa",
+      "headline": "Ainda cabe uma sobremesa",
+      "subheadline": "Um doce curto para quem ainda tem espaço depois do smash.",
+      "cta": "Veja a sobremesa",
+      "caption": "O lanche acabou e ainda tem um espacinho. Acontece.\n\nA {nome} deixa uma sobremesa no cardápio para fechar a refeição sem pesar. Qual doce está disponível você confirma no pedido. A casa não trava um único sabor para sempre.\n\nEstá em {cidade}? Inclui no combo ou pede separado. A cozinha guarda esse final.",
+      "hashtags": ["#sobremesa", "#hamburgueria", "#docedepois"]
+    }
+  ]
 }

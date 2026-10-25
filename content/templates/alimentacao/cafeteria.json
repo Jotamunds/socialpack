@@ -1,4 +1,101 @@
 {
   "label": "Alimentação › Cafeteria",
-  "posts": []
+  "posts": [
+    {
+      "theme": "Espresso do dia",
+      "headline": "O espresso que abre o dia",
+      "subheadline": "Extração curta, crema bonita e o grão que a casa escolheu para hoje.",
+      "cta": "Peça o espresso",
+      "caption": "O primeiro gole do dia merece atenção, não pressa de balcão.\n\nNa {nome} o espresso do dia muda com o grão que está na máquina. A gente conta o perfil da xícara e deixa você provar antes de transformar em hábito.\n\nPassa em {cidade} de manhã ou pede para levar. A casa abre a porta com café de verdade.",
+      "hashtags": ["#espresso", "#cafeteria", "#cafedodia"]
+    },
+    {
+      "theme": "Brunch",
+      "headline": "Brunch sem pressa de sair",
+      "subheadline": "Café, pão e um prato para dividir quando a manhã rende conversa.",
+      "cta": "Venha de brunch",
+      "caption": "Tem manhã que não cabe num café passado no copo e pronto.\n\nO brunch da {nome} é mesa posta para ficar: café, pão e um prato para dividir. O que sai da cozinha você vê no cardápio do dia.\n\nChama quem está em {cidade} e marca a mesa. A conversa a gente não cobra.",
+      "hashtags": ["#brunch", "#cafeteria", "#cafedamanha"]
+    },
+    {
+      "theme": "Grãos da casa",
+      "headline": "Grão escolhido, xícara honesta",
+      "subheadline": "A casa conta qual café está moendo e como ele foi preparado.",
+      "cta": "Conheça os grãos",
+      "caption": "Café bom começa antes da xícara, na escolha do grão.\n\nNa {nome} a gente mostra o que está no moinho e explica o preparo sem enrolação. Se quiser a história do lote, pergunta no balcão para quem está moendo hoje.\n\nEm {cidade}, vem provar com calma. A xícara explica o resto.",
+      "hashtags": ["#cafesespeciais", "#graos", "#cafeteria"]
+    },
+    {
+      "theme": "Cantinho de trabalho",
+      "headline": "Um canto para render de verdade",
+      "subheadline": "Mesa firme, café reabastecido e um lugar para ficar mais um pouco.",
+      "cta": "Fique à vontade",
+      "caption": "Tem dia de trabalho que rende melhor fora de casa.\n\nA {nome} separa um cantinho para quem chega com o notebook e a lista do dia. Você pede o café, senta e fica o tempo que a mesa permitir. O combinado é simples: respeito com quem também está trabalhando do lado.\n\nSe você está em {cidade}, vem ocupar esse canto. A gente cuida da xícara.",
+      "hashtags": ["#cafeteria", "#homeoffice", "#cantinhodecafe"]
+    },
+    {
+      "theme": "Doce da tarde",
+      "headline": "A tarde pede um doce",
+      "subheadline": "Bolo, cookie ou torta para acompanhar o café do meio do dia.",
+      "cta": "Veja os doces",
+      "caption": "Três da tarde é o horário em que a vitrine começa a conversar.\n\nNa {nome} o doce da tarde muda com o que a cozinha assou. Pode ser bolo, cookie ou torta: o que estiver no balcão é o que sai. A gente não promete o mesmo sabor todo dia, promete capricho.\n\nEstá em {cidade}? Passa no meio da tarde ou pede junto com o café.",
+      "hashtags": ["#docedatarde", "#cafeteria", "#bolocaseiro"]
+    },
+    {
+      "theme": "Leite vegetal",
+      "headline": "Seu café, do seu jeito",
+      "subheadline": "Peça as opções de leite vegetal e monte a xícara que você bebe.",
+      "cta": "Peça do seu jeito",
+      "caption": "Nem todo mundo toma café com o mesmo leite, e tudo bem.\n\nNa {nome} você pergunta quais leites vegetais estão no balcão hoje e a gente monta a bebida em cima disso. A carta muda conforme o estoque da casa, então o caminho é perguntar, não adivinhar.\n\nEm {cidade}, chega e fala como você gosta. A {nome} adapta a xícara.",
+      "hashtags": ["#leitevegetal", "#cafeteria", "#cafesemleite"]
+    },
+    {
+      "theme": "Assinatura de café",
+      "headline": "Café todo dia, com a casa",
+      "subheadline": "Pergunte como funciona o plano de quem não abre mão da xícara.",
+      "cta": "Assine o café",
+      "caption": "Quem passa aqui quase todo dia merece um combinado mais simples.\n\nA {nome} tem um jeito de assinatura para o café da casa. Como funciona, em quais dias e o valor a equipe explica no balcão ou no direct.\n\nMora em {cidade} e já é de casa? Chama e pergunta como entrar.",
+      "hashtags": ["#assinaturadecafe", "#cafeteria", "#cafezinhodiario"]
+    },
+    {
+      "theme": "Encontro",
+      "headline": "Marca aquele café pendente",
+      "subheadline": "Duas xícaras, uma mesa e a conversa que vocês estão devendo.",
+      "cta": "Chame alguém",
+      "caption": "Aquele café combinado há semanas ainda está pendente?\n\nA {nome} deixa a mesa pronta para dois: xícara, um doce se quiserem e tempo para colocar a conversa em dia. Marca a pessoa nos comentários e combina o horário.\n\nA casa está em {cidade}. O resto é vocês aparecerem.",
+      "hashtags": ["#encontronocafe", "#cafeteria", "#cafecomamigo"]
+    },
+    {
+      "theme": "Take away",
+      "headline": "Leva o café e segue o dia",
+      "subheadline": "Pedido para viagem, copo fechado e você de volta à rua.",
+      "cta": "Pedir para levar",
+      "caption": "Nem todo café pede cadeira. Às vezes pede caminho.\n\nNa {nome} o take away sai no copo fechado, do jeito que você pediu, para seguir o dia. Se a fila estiver andando, a gente avisa o tempo de preparo na hora. Sem promessa de minuto mágico.\n\nEstá por {cidade}? Pede no balcão ou chama no direct antes de sair de casa.",
+      "hashtags": ["#takeaway", "#cafeteria", "#cafeparalevar"]
+    },
+    {
+      "theme": "Torra da semana",
+      "headline": "A torra que está na xícara",
+      "subheadline": "Cada semana a casa destaca um perfil para você provar sem pressa.",
+      "cta": "Prove a torra",
+      "caption": "Por trás da xícara tem uma torra que a casa escolheu destacar.\n\nNa {nome} a torra da semana é o café que queremos que você prove com atenção. Pode ser mais doce, mais cítrico ou mais encorpado: o perfil a gente descreve no balcão, com o lote que está aberto.\n\nVem em {cidade} provar uma dose. Se gostar, a gente moí para levar.",
+      "hashtags": ["#torradasemana", "#cafesespeciais", "#cafeteria"]
+    },
+    {
+      "theme": "Ambiente",
+      "headline": "Um canto que convida a ficar",
+      "subheadline": "Cheiro de café, luz boa e o barulho certo de uma cafeteria.",
+      "cta": "Vem conhecer",
+      "caption": "Tem lugar que a gente entra para o café e fica pelo canto.\n\nA {nome} cuida do ambiente como cuida da xícara: mesa que convida, cheiro de café e um salão que não parece pressa. Vem ver com os seus olhos. Foto não substitui a porta aberta.\n\nSe você ainda não conhece a casa em {cidade}, hoje é um bom dia para entrar.",
+      "hashtags": ["#cafeteria", "#ambiente", "#cafesimples"]
+    },
+    {
+      "theme": "Combo café e bolo",
+      "headline": "Café e bolo na mesma bandeja",
+      "subheadline": "A dupla da tarde: uma xícara e uma fatia para acompanhar.",
+      "cta": "Peça o combo",
+      "caption": "Café sozinho resolve. Café com bolo resolve melhor.\n\nO combo da {nome} junta a xícara da casa e uma fatia do que estiver na vitrine. O bolo do dia muda, então a gente confirma o sabor na hora do pedido.\n\nEstá em {cidade} no meio da tarde? Pede o combo e senta, ou leva os dois.",
+      "hashtags": ["#cafeebolo", "#cafeteria", "#combodatarde", "#bolocaseiro"]
+    }
+  ]
 }

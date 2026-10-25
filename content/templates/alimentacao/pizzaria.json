@@ -22,7 +22,7 @@
       "headline": "Por que a nossa massa é tão leve?",
       "subheadline": "Fermentação mínima de 48h para uma digestão suave e crocância incomparável.",
       "cta": "Experimente",
-      "caption": "Você sabia que a nossa massa passa por até 48 horas de fermentação natural? ⏳\n\nEsse processo garante que a pizza da {nome} seja super crocante por fora, macia por dentro e levinha para a sua digestão.\n\nQuem prova uma vez nunca mais esquece!",
+      "caption": "Você sabia que a nossa massa passa por até 48 horas de fermentação natural? ⏳\n\nEsse processo garante que a pizza da {nome} seja super crocante por fora, macia por dentro e levinha para a sua digestão.\n\nQuem prova uma vez em {cidade} nunca mais esquece!",
       "hashtags": ["#fermentacaolenta", "#artesanal", "#altagastronomia"]
     },
     {
@@ -30,7 +30,7 @@
       "headline": "A última mordida é a melhor",
       "subheadline": "Bordas recheadas de verdade com Catupiry original ou chocolate cremoso.",
       "cta": "Escolha a Borda",
-      "caption": "A verdade que ninguém pode negar: pizza boa se reconhece pela borda! 🤤\n\nNa {nome}, caprichamos no recheio da primeira até a última fatia. Escolha sua borda recheada favorita e eleve sua experiência hoje.\n\nMarca aqui quem SEMPRE deixa a borda no prato (vai mudar de ideia hoje)! 👇",
+      "caption": "A verdade que ninguém pode negar: pizza boa se reconhece pela borda! 🤤\n\nNa {nome}, em {cidade}, caprichamos no recheio da primeira até a última fatia. Escolha sua borda recheada favorita e eleve sua experiência hoje.\n\nMarca aqui quem SEMPRE deixa a borda no prato (vai mudar de ideia hoje)! 👇",
       "hashtags": ["#bordarecheada", "#catupiry", "#gordice", "#amopizza"]
     },
     {
@@ -38,8 +38,64 @@
       "headline": "Quentinha até a sua porta",
       "subheadline": "Embalagem térmica exclusiva para manter o queijo derretido e a massa crocante.",
       "cta": "Pedir no Delivery",
-      "caption": "Seu pedido chega quentinho como se tivesse acabado de sair do forno! 🛵💨\n\nNossa equipe de entregas em {cidade} cuida para que cada fatia chegue perfeita na sua mesa.\n\nBateu aquela fome? Peça pelo link da bio ou chama no direct!",
+      "caption": "Seu pedido da {nome} chega quentinho como se tivesse acabado de sair do forno! 🛵💨\n\nNossa equipe de entregas em {cidade} cuida para que cada fatia chegue perfeita na sua mesa.\n\nBateu aquela fome? Peça pelo link da bio ou chama no direct!",
       "hashtags": ["#delivery", "#entregarapida", "#pizzahot"]
+    },
+    {
+      "theme": "Combo da casa",
+      "headline": "O combo que a casa montou",
+      "subheadline": "Pizza, borda e um acompanhamento para a mesa não ficar pela metade.",
+      "cta": "Monte o combo",
+      "caption": "Hoje o plano é simples: combo da casa e gente em volta da mesa.\n\nA {nome} junta pizza, borda e um acompanhamento para ninguém ficar só olhando o prato do outro. O que entra no combo está no cardápio, do jeito da casa, e você escolhe na hora do pedido.\n\nEstá em {cidade}? Chama no direct ou vem retirar. A fome não espera conversa longa.",
+      "hashtags": ["#combodacasa", "#pizzaria", "#pedejunto"]
+    },
+    {
+      "theme": "Noite em família",
+      "headline": "Hoje a mesa é da família",
+      "subheadline": "Um sabor para a galera e outro para quem sempre pede diferente.",
+      "cta": "Chame a família",
+      "caption": "Quem escolhe o sabor na sua casa?\n\nNa {nome}, a noite em família funciona assim: uma pizza que agrada geral, outra para quem sempre pede diferente, e a borda que some primeiro. Conta nos comentários qual fatia cada um defende.\n\nA gente entrega em {cidade} ou espera vocês na porta. Marca quem fecha a mesa hoje.",
+      "hashtags": ["#noiteemfamilia", "#pizzaria", "#jantaremfamilia"]
+    },
+    {
+      "theme": "Ingrediente da semana",
+      "headline": "O ingrediente que está no forno",
+      "subheadline": "Toda semana a cozinha destaca um item e mostra como ele entra na pizza.",
+      "cta": "Ver o destaque",
+      "caption": "Antes da pizza ir para o forno, tem uma escolha que pouca gente vê.\n\nNa {nome} a gente separa um ingrediente da semana e mostra, no balcão, como ele entra na receita. O destaque muda conforme a cozinha. O capricho de escolher, não.\n\nQuer saber o da vez? Chama a {nome}. A casa fica em {cidade}.",
+      "hashtags": ["#ingredientedasemana", "#pizzariaartesanal", "#cardapio"]
+    },
+    {
+      "theme": "Forno à lenha",
+      "headline": "O calor que faz a diferença",
+      "subheadline": "A crosta marca, o queijo derrete e o salão inteiro sente o cheiro.",
+      "cta": "Sentir o forno",
+      "caption": "Tem pizza que só fica pronta quando o forno trabalha de verdade.\n\nNa {nome} o forno à lenha marca a crosta, derrete o queijo e espalha aquele cheiro pelo salão. O ponto a gente acompanha de perto, até a massa chegar na cor certa.\n\nEm {cidade}, vem sentir esse calor ou pede para levar enquanto a pizza ainda está quente.",
+      "hashtags": ["#fornoalenha", "#pizzanolenha", "#pizzaria"]
+    },
+    {
+      "theme": "Sobremesa doce",
+      "headline": "A fatia doce que fecha a noite",
+      "subheadline": "Para quem não sai da mesa sem um final açucarado no cardápio.",
+      "cta": "Pedir a doce",
+      "caption": "Nem todo mundo fecha a pizza no salgado.\n\nA {nome} guarda um espaço no cardápio para a pizza doce: a fatia que a mesa pede quando a conversa ainda não acabou. Pergunta quais opções saem hoje. A gente monta do jeito da casa.\n\nEm {cidade}, o final da noite pode ser doce. Chama no direct e reserva a sua.",
+      "hashtags": ["#pizzadoce", "#sobremesa", "#pizzaria"]
+    },
+    {
+      "theme": "Combo casal",
+      "headline": "Noite a dois, pizza no meio",
+      "subheadline": "Um combo para dividir sem discutir o último pedaço da mesa.",
+      "cta": "Pedir o combo",
+      "caption": "Dois, uma pizza e a desculpa certa para não cozinhar.\n\nO combo casal da {nome} é para dividir sem pressa: um sabor que os dois topam, borda para negociar e um final doce se sobrar espaço. O que entra você combina com a gente no pedido.\n\nMarca quem vai junto e pede em {cidade}. A mesa de vocês a casa prepara.",
+      "hashtags": ["#combocasal", "#noiteadois", "#pizzaria"]
+    },
+    {
+      "theme": "Fim de semana",
+      "headline": "O fim de semana pede pizza",
+      "subheadline": "Sexta e sábado a cozinha gira mais. Garante o seu antes da fome.",
+      "cta": "Garantir o pedido",
+      "caption": "Sexta chegou e a vontade de pizza chegou junto.\n\nNa {nome}, o fim de semana é quando mais gente pede ao mesmo tempo. Se você já sabe que vai querer, chama antes de a fome decidir por você. Mesa ou delivery: os dois saem da mesma massa.\n\nEstá em {cidade}? Garante o pedido pelo direct ou pelo link da bio.",
+      "hashtags": ["#fimdesemana", "#sextou", "#pizzaria", "#delivery"]
     }
   ]
 }

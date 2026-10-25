@@ -67,3 +67,7 @@ content/
 1. Adicione o nicho em `content/catalog.json` dentro da categoria desejada.
 2. Rode `npm run templates:scaffold` para criar o arquivo vazio (nada existente é sobrescrito).
 3. Preencha o array `posts`.
+
+## Checagem dos nichos com 12 posts
+
+`npm run templates:check` confere pizzaria, cafeteria, hamburgueria, barbearia, clínica de estética e imobiliária: pelo menos 12 posts, tema único de 2 a 24 caracteres e os limites de headline, subheadline, cta, caption e hashtags.

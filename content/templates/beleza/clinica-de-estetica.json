@@ -1,4 +1,101 @@
 {
   "label": "Beleza e Estética › Clínica de Estética",
-  "posts": []
+  "posts": [
+    {
+      "theme": "Protocolo facial",
+      "headline": "Protocolo feito para a sua pele",
+      "subheadline": "A avaliação define o cuidado. Nada de receita pronta para todo mundo.",
+      "cta": "Conheça o protocolo",
+      "caption": "Protocolo facial bom começa com pergunta, não com pacote fechado.\n\nNa {nome} a equipe olha a sua pele, escuta o que te incomoda e monta um caminho. O que serve para uma pessoa pode não servir para outra. Por isso a avaliação vem antes de qualquer combinação de cuidados.\n\nEstá em {cidade}? Agenda uma conversa e venha sem pressa.",
+      "hashtags": ["#protocolofacial", "#estetica", "#cuidadocomapele"]
+    },
+    {
+      "theme": "Pele luminosa",
+      "headline": "Cuidado para a pele descansar",
+      "subheadline": "Rotina e protocolo para um aspecto mais viçoso no dia a dia.",
+      "cta": "Quero esse cuidado",
+      "caption": "Pele com cara de descansada é cuidado acumulado, não filtro.\n\nNa {nome} o caminho é uma rotina e um protocolo que buscam um aspecto mais viçoso no dia a dia. Não existe fórmula igual para todo mundo, e o ponto de partida da sua pele entra na conversa.\n\nSe você está em {cidade}, agenda uma avaliação e conta o que te incomoda.",
+      "hashtags": ["#pele", "#esteticafacial", "#skincare"]
+    },
+    {
+      "theme": "Limpeza de pele",
+      "headline": "Limpeza de pele, no seu tempo",
+      "subheadline": "Extração com calma e orientação para a rotina quando você chegar em casa.",
+      "cta": "Agende a limpeza",
+      "caption": "Limpeza de pele não é corrida. É cuidado.\n\nNa {nome}, em {cidade}, a sessão segue o que a sua pele aguenta naquele dia: extração com calma e uma orientação para continuar em casa. Vermelhidão e sensibilidade podem aparecer e cedem no tempo de cada pele.\n\nAgenda e vem sem compromisso de sair com a pele nova. O objetivo é cuidar.",
+      "hashtags": ["#limpezadepele", "#estetica", "#cuidadofacial"]
+    },
+    {
+      "theme": "Combo cuidado",
+      "headline": "Cuidados do mês, no seu ritmo",
+      "subheadline": "A equipe junta os cuidados que fazem sentido para você agora.",
+      "cta": "Monte seu combo",
+      "caption": "Combo de estética só funciona quando cabe na sua pele e na sua agenda.\n\nNa {nome} a equipe monta com você a combinação do período, a partir da avaliação. O que entra e o valor saem dessa conversa, não de uma lista igual para todo mundo.\n\nEstá em {cidade}? Chama e marca a avaliação antes de fechar qualquer combo.",
+      "hashtags": ["#combocuidado", "#estetica", "#cuidadocomapele"]
+    },
+    {
+      "theme": "Resultado",
+      "headline": "Resultado leva o tempo da pele",
+      "subheadline": "Cada pele responde de um jeito. O protocolo se ajusta no caminho.",
+      "cta": "Veja como funciona",
+      "caption": "Resultado de estética não é promessa de um dia para o outro.\n\nNa {nome}, em {cidade}, a conversa começa pela sua pele e pelo que faz sentido agora. O protocolo pode ser ajustado. Cada pessoa responde de um jeito, e a equipe acompanha sem vender milagre.\n\nQuer entender o próximo passo? Chama e agenda uma avaliação.",
+      "hashtags": ["#estetica", "#resultado", "#avaliacao"]
+    },
+    {
+      "theme": "Agende avaliação",
+      "headline": "A avaliação é o primeiro passo",
+      "subheadline": "Reserve um horário para conversar sobre a sua pele antes do cuidado.",
+      "cta": "Agendar avaliação",
+      "caption": "Antes de escolher um cuidado, vale sentar e conversar.\n\nA avaliação na {nome} é o horário em que a equipe entende a sua pele, a sua rotina e o que você espera. A agenda enche nos horários mais pedidos, então o caminho é reservar, não aparecer no escuro.\n\nEm {cidade}, chama no direct e segura um horário de avaliação.",
+      "hashtags": ["#avaliacao", "#estetica", "#agende"]
+    },
+    {
+      "theme": "Skincare",
+      "headline": "Menos passo, mais constância",
+      "subheadline": "Uma rotina curta, indicada para o que a sua pele pede agora.",
+      "cta": "Monte sua rotina",
+      "caption": "Skincare que ninguém consegue manter não cuida de pele nenhuma.\n\nNa {nome} a orientação é uma rotina curta, com os passos que cabem no seu dia. Produto e ordem a equipe indica depois de olhar a sua pele. Lista pronta de internet não substitui essa conversa.\n\nEstá em {cidade}? Agenda e monta a rotina com a casa.",
+      "hashtags": ["#skincare", "#rotinadepele", "#estetica"]
+    },
+    {
+      "theme": "Relaxamento",
+      "headline": "Um horário só seu",
+      "subheadline": "Ambiente calmo e um cuidado que também desacelera o dia.",
+      "cta": "Reserve seu horário",
+      "caption": "Tem horário que a gente marca para a pele e acaba descansando junto.\n\nNa {nome} o ambiente é calmo de propósito. O cuidado segue o que foi avaliado, e a hora também serve para desacelerar. Cada pele segue o próprio caminho.\n\nSe você está em {cidade} e precisa de uma hora só sua, chama e reserva.",
+      "hashtags": ["#relaxamento", "#estetica", "#bemestar"]
+    },
+    {
+      "theme": "Estação",
+      "headline": "A estação pede outro cuidado",
+      "subheadline": "Sol, frio ou tempo seco: a pele muda e o protocolo também pode mudar.",
+      "cta": "Ajuste o cuidado",
+      "caption": "A pele do verão não é a pele do frio, e a rotina pode precisar de ajuste.\n\nNa {nome} a equipe conversa sobre o que a estação está pedindo da sua pele: mais conforto, mais proteção no dia a dia ou uma pausa em algum passo. Nada disso substitui a avaliação. É um convite para revisar.\n\nEm {cidade}, marca um horário e conta como a sua pele está nesta época.",
+      "hashtags": ["#estetica", "#cuidadocomapele", "#rotinadepele"]
+    },
+    {
+      "theme": "Depilação",
+      "headline": "Depilação com pele respeitada",
+      "subheadline": "A técnica da casa, as áreas disponíveis e o cuidado depois da sessão.",
+      "cta": "Agende depilação",
+      "caption": "Depilação aqui começa com uma conversa sobre a sua pele.\n\nNa {nome} a equipe explica a técnica da casa, as áreas disponíveis e o cuidado depois da sessão. O que você sente e como a pele responde variam de pessoa para pessoa. Por isso a conversa vem antes de fechar uma sequência.\n\nEm {cidade}, chama no direct e pergunta o próximo horário.",
+      "hashtags": ["#depilacao", "#estetica", "#cuidadocomapele"]
+    },
+    {
+      "theme": "Presente",
+      "headline": "Um presente de cuidado",
+      "subheadline": "Uma avaliação ou um horário de cuidado para quem você quer ver bem.",
+      "cta": "Dê esse presente",
+      "caption": "Presentear cuidado é melhor do que adivinhar o produto certo.\n\nA {nome} separa uma avaliação ou um horário para você oferecer a alguém. A pessoa escolhe o caminho junto com a equipe, porque pele não se presenteia no escuro.\n\nEstá em {cidade}? Chama no direct, conta para quem é e a casa explica como entregar.",
+      "hashtags": ["#presente", "#estetica", "#cuidadocomapele"]
+    },
+    {
+      "theme": "Rotina",
+      "headline": "Qual passo você sempre pula?",
+      "subheadline": "Conta nos comentários. A orientação geral não substitui a avaliação.",
+      "cta": "Comente aqui",
+      "caption": "Quase todo mundo pula um passo da rotina. Qual é o seu?\n\nComenta aqui. A equipe da {nome} responde com uma orientação geral, do tipo que serve para começar a conversa. O que a sua pele precisa de verdade a gente só fecha na avaliação, em {cidade}.\n\nMarca alguém que vive no mesmo passo pulado.",
+      "hashtags": ["#rotina", "#skincare", "#estetica", "#cuidadocomapele"]
+    }
+  ]
 }

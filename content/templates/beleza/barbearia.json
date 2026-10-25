@@ -1,4 +1,101 @@
 {
   "label": "Beleza e Estética › Barbearia",
-  "posts": []
+  "posts": [
+    {
+      "theme": "Corte da semana",
+      "headline": "O corte que a cadeira pede",
+      "subheadline": "A clientela mostra o que está em alta. A tesoura acompanha.",
+      "cta": "Veja o corte",
+      "caption": "Toda semana um corte aparece mais do que os outros na cadeira.\n\nNa {nome} a gente mostra o que a clientela está pedindo, sem cravar tendência de revista. O que fica bem em você a gente decide no espelho, com o seu cabelo e o seu formato.\n\nEstá em {cidade}? Chama e marca. Traz uma referência se quiser, mas confia no olho da casa.",
+      "hashtags": ["#barbearia", "#cortedacabelo", "#cortedasemana"]
+    },
+    {
+      "theme": "Barba",
+      "headline": "Barba no ponto, rosto em ordem",
+      "subheadline": "Toalha quente, navalha e o acabamento caprichado da casa.",
+      "cta": "Agende a barba",
+      "caption": "Barba alinhada muda a cara do dia antes mesmo de você sair da cadeira.\n\nNa {nome} o ritual é toalha quente, navalha e acabamento no contorno. Cada barba pede um jeito: tem fio que só pede ajuste, tem fio que pede desenho. A gente vê na hora.\n\nEm {cidade}, agenda um horário só para a barba ou junta com o corte.",
+      "hashtags": ["#barba", "#barbearia", "#barbeiro"]
+    },
+    {
+      "theme": "Degradê",
+      "headline": "Degradê limpo, sem atalho",
+      "subheadline": "Transição marcada e um corte que conversa com o seu rosto.",
+      "cta": "Quero degradê",
+      "caption": "Degradê mal feito aparece de longe. O bem feito some na transição.\n\nNa {nome} a tesoura e a máquina trabalham sem pressa até o degradê ficar limpo. A altura a gente combina com você, olhando o formato da cabeça e o que você consegue manter em casa.\n\nEstá em {cidade}? Marca e chega com o cabelo seco, se puder. Fica mais fácil acertar o ponto.",
+      "hashtags": ["#degrade", "#barbearia", "#fade"]
+    },
+    {
+      "theme": "Produto da casa",
+      "headline": "O que a bancada usa hoje",
+      "subheadline": "Pomada, óleo ou balm: a casa indica o que combina com você.",
+      "cta": "Peça a indicação",
+      "caption": "O corte dura mais quando o produto certo entra depois da cadeira.\n\nNa {nome} a bancada tem o que a gente realmente usa no dia a dia. A indicação sai do seu cabelo e da sua barba, não de uma prateleira genérica. Marca e linha a gente mostra na loja, se você quiser levar.\n\nPassa em {cidade} e pergunta. Levar para casa é escolha sua.",
+      "hashtags": ["#produtodacasa", "#barbearia", "#cuidadomasculino"]
+    },
+    {
+      "theme": "Agende",
+      "headline": "Não deixa a cadeira para depois",
+      "subheadline": "Os horários da semana saem. Garante o seu antes de lotar.",
+      "cta": "Agendar horário",
+      "caption": "Cabelo cresce em silêncio e, quando você vê, já passou do ponto.\n\nA agenda da {nome} enche nos horários mais pedidos. Se você já sabe o dia, marca agora. A gente confirma pelo direct o que ainda estiver livre.\n\nEstá em {cidade}? Chama e segura o seu horário.",
+      "hashtags": ["#agende", "#barbearia", "#horariomarcado"]
+    },
+    {
+      "theme": "Antes e depois",
+      "headline": "Do começo ao espelho",
+      "subheadline": "O corte aparece no caminho, do primeiro penteado ao acabamento.",
+      "cta": "Veja o cuidado",
+      "caption": "Antes e depois só vale quando mostra o cuidado, não um milagre de filtro.\n\nNa {nome} o resultado é o que você vê no espelho ao levantar da cadeira. Cada cabeça é uma. O que funcionou num cliente não é receita para o próximo, e a gente não vende transformação igual para todo mundo.\n\nEm {cidade}, marca o seu e compara no espelho da casa, não na tela.",
+      "hashtags": ["#antesedepois", "#barbearia", "#corte"]
+    },
+    {
+      "theme": "Combo corte e barba",
+      "headline": "Corte e barba no mesmo horário",
+      "subheadline": "Um combo para sair com cabelo e barba no mesmo acabamento.",
+      "cta": "Peça o combo",
+      "caption": "Fazer os dois separados quebra o dia. Junto, você sai pronto.\n\nO combo corte e barba da {nome} reserva o tempo dos dois serviços na mesma cadeira. O valor e a duração a equipe confirma na hora de agendar, porque a agenda muda.\n\nEstá em {cidade}? Pede o combo no direct e escolhe o dia.",
+      "hashtags": ["#corteebarba", "#barbearia", "#combo"]
+    },
+    {
+      "theme": "Estilo",
+      "headline": "Qual estilo é o seu?",
+      "subheadline": "Clássico, curto ou ousado: comenta e a casa te orienta.",
+      "cta": "Comente o estilo",
+      "caption": "Estilo não é copiar a foto de outra pessoa. É achar o que fica em você.\n\nNa {nome} a conversa começa assim: clássico, curto ou ousado? Comenta aqui embaixo. A equipe responde com uma orientação geral e, se você quiser acertar de verdade, o espelho em {cidade} faz o resto.\n\nMarca um amigo que está há meses no mesmo corte.",
+      "hashtags": ["#estilo", "#barbearia", "#visualmasculino"]
+    },
+    {
+      "theme": "Fidelidade",
+      "headline": "Quem volta, a casa lembra",
+      "subheadline": "Pergunte como funciona o benefício de quem corta sempre aqui.",
+      "cta": "Saiba como funciona",
+      "caption": "Cliente que volta não deveria recomeçar a conversa do zero.\n\nNa {nome} a gente lembra do corte, da barba e do jeito que você gosta de sentar. Se a casa tiver um benefício para quem volta sempre, a equipe explica as regras no balcão.\n\nVocê já é de casa em {cidade}? Pergunta na próxima vez.",
+      "hashtags": ["#fidelidade", "#barbearia", "#cliente"]
+    },
+    {
+      "theme": "Bastidores",
+      "headline": "Antes de você sentar",
+      "subheadline": "Lâmina limpa, bancada organizada e o ritual que o espelho não mostra.",
+      "cta": "Veja os bastidores",
+      "caption": "O que você não vê antes de sentar é o que deixa o corte seguro.\n\nNa {nome} a bancada é organizada, a lâmina troca de cliente e o chão não espera o fim do dia para ser cuidado. Bastidor de barbearia é higiene e ritmo, não pose.\n\nEm {cidade}, a cadeira só abre quando isso está em ordem. Vem ver de perto.",
+      "hashtags": ["#bastidores", "#barbearia", "#barbeiro"]
+    },
+    {
+      "theme": "Presente",
+      "headline": "Um horário de presente",
+      "subheadline": "Corte ou barba para quem merece sair da cadeira renovado.",
+      "cta": "Dê de presente",
+      "caption": "Tem presente que não é objeto. É um horário com o nome da pessoa.\n\nA {nome} prepara um corte ou uma barba para você presentear. A gente combina a data com quem vai sentar, para não virar voucher parado na gaveta.\n\nEstá em {cidade}? Chama no direct, conta para quem é e a casa separa a cadeira.",
+      "hashtags": ["#presente", "#barbearia", "#voucher"]
+    },
+    {
+      "theme": "Horário nobre",
+      "headline": "O fim de tarde lota primeiro",
+      "subheadline": "Sábado e fim de expediente são os mais pedidos. Chama antes.",
+      "cta": "Garanta o horário",
+      "caption": "Todo mundo quer o mesmo horário: fim de tarde e sábado.\n\nNa {nome} esses horários saem primeiro. Se o seu dia só encaixa aí, não deixa para a véspera. A gente olha a agenda de verdade e te fala o que ainda está aberto.\n\nEm {cidade}, chama agora e segura o horário nobre.",
+      "hashtags": ["#horarionobre", "#barbearia", "#agendamento", "#sabado"]
+    }
+  ]
 }
