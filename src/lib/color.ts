@@ -25,6 +25,30 @@ export function readableOn(background: string) {
   return luminance(background) > 0.42 ? INK : "#ffffff";
 }
 
+/** Contraste WCAG entre duas cores hex (`#RGB` ou `#RRGGBB`). */
+export function contrastRatio(a: string, b: string) {
+  const l1 = luminance(a);
+  const l2 = luminance(b);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+/**
+ * Mantém a cor de marca quando ela já contrasta com o fundo.
+ * Se não contrasta, mistura com o preto ou o branco de `readableOn`
+ * até atingir `min` (padrão 3:1, texto grande).
+ */
+export function readableBrand(brand: string, background: string, min = 3) {
+  if (contrastRatio(brand, background) >= min) return brand;
+  const toward = readableOn(background);
+  for (let step = 1; step <= 10; step++) {
+    const next = mix(brand, toward, step / 10);
+    if (contrastRatio(next, background) >= min) return next;
+  }
+  return toward;
+}
+
 export function alpha(hex: string, opacity: number) {
   const [r, g, b] = hexToRgb(hex);
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
