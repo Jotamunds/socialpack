@@ -17,6 +17,9 @@ export type SettingsActionResponse = {
   message?: string;
 };
 
+const PROFILE_MISSING_ERROR =
+  "Não encontramos o perfil desta conta, então nada foi salvo.";
+
 export async function updateProfileAction(input: unknown): Promise<SettingsActionResponse> {
   const validation = UpdateProfileInputSchema.safeParse(input);
 
@@ -41,17 +44,22 @@ export async function updateProfileAction(input: unknown): Promise<SettingsActio
       return { ok: false, error: "Sessão expirada. Faça login novamente." };
     }
 
-    const { error: updateError } = await supabase
+    const { data: updatedRows, error: updateError } = await supabase
       .from("profiles")
       .update({
         full_name: resolvedName,
         phone: phone ? phone.trim() : null,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", user.id);
+      .eq("id", user.id)
+      .select("id");
 
     if (updateError) {
       return { ok: false, error: sanitizePublicErrorMessage(updateError.message) };
+    }
+
+    if (!updatedRows?.length) {
+      return { ok: false, error: PROFILE_MISSING_ERROR };
     }
 
     revalidatePath("/configuracoes");
@@ -114,16 +122,21 @@ export async function updateThemePreferenceAction(
       return { ok: false, error: "Sessão expirada. Faça login novamente." };
     }
 
-    const { error } = await supabase
+    const { data: updatedRows, error } = await supabase
       .from("profiles")
       .update({
         theme_preference: theme.data,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", user.id);
+      .eq("id", user.id)
+      .select("id");
 
     if (error) {
       return { ok: false, error: sanitizePublicErrorMessage(error.message) };
+    }
+
+    if (!updatedRows?.length) {
+      return { ok: false, error: PROFILE_MISSING_ERROR };
     }
 
     revalidatePath("/configuracoes");
