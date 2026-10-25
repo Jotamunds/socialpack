@@ -2,6 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  assertOwnedStoragePath,
+  getOwnedStoragePathOrNull,
+} from "@/lib/storage-path";
 
 export interface SignedUrlResponse {
   ok: boolean;
@@ -11,7 +15,7 @@ export interface SignedUrlResponse {
 
 /**
  * Gera uma URL assinada temporária (120 segundos) para download seguro de uma arte gerada.
- * Garante tenant isolation validando que o post pertence ao usuário autenticado.
+ * Garante tenant isolation validando posse do post e prefixo {userId}/ no storage path.
  */
 export async function getSignedPostDownloadUrlAction(postId: string): Promise<SignedUrlResponse> {
   if (!postId) {
@@ -29,7 +33,6 @@ export async function getSignedPostDownloadUrlAction(postId: string): Promise<Si
       return { ok: false, message: "Não autorizado." };
     }
 
-    // Busca o post garantindo que pertence ao usuário autenticado (RLS)
     const { data: post, error: postError } = await supabase
       .from("posts")
       .select("id, user_id, company_id, storage_path, image_storage_path, status")
@@ -41,12 +44,18 @@ export async function getSignedPostDownloadUrlAction(postId: string): Promise<Si
       return { ok: false, message: "Post não encontrado ou acesso não autorizado." };
     }
 
-    const path = post.image_storage_path || post.storage_path;
-    if (!path) {
+    const rawPath = post.image_storage_path || post.storage_path;
+    if (!rawPath) {
       return { ok: false, message: "Arquivo de imagem ainda não disponível para este post." };
     }
 
-    // Usar cliente admin para gerar URL assinada no bucket privado generated-arts
+    let path: string;
+    try {
+      path = assertOwnedStoragePath(user.id, rawPath);
+    } catch {
+      return { ok: false, message: "Caminho de arquivo inválido para este usuário." };
+    }
+
     const adminSupabase = createAdminClient();
     const { data, error: signedError } = await adminSupabase.storage
       .from("generated-arts")
@@ -55,7 +64,7 @@ export async function getSignedPostDownloadUrlAction(postId: string): Promise<Si
       });
 
     if (signedError || !data?.signedUrl) {
-      return { ok: false, message: signedError?.message || "Falha ao gerar link de download." };
+      return { ok: false, message: "Falha ao gerar link de download." };
     }
 
     return {
@@ -70,6 +79,7 @@ export async function getSignedPostDownloadUrlAction(postId: string): Promise<Si
 
 /**
  * Consulta os posts da empresa para uma determinada data de início de semana.
+ * URLs assinadas são geradas na hora; image_url persistida não é usada como fallback.
  */
 export async function getWeeklyPostsAction(companyId: string, startDate?: string) {
   if (!companyId) {
@@ -104,21 +114,24 @@ export async function getWeeklyPostsAction(companyId: string, startDate?: string
       return { ok: false, message: error.message, posts: [] };
     }
 
-    // Gera URLs assinadas para os posts concluídos
     const adminSupabase = createAdminClient();
     const postsWithSignedUrls = await Promise.all(
       (data || []).map(async (post) => {
-        const path = post.image_storage_path || post.storage_path;
+        const path = getOwnedStoragePathOrNull(
+          user.id,
+          post.image_storage_path || post.storage_path
+        );
         let signedUrl: string | null = null;
         if (path && post.status === "completed") {
           const { data: sData } = await adminSupabase.storage
             .from("generated-arts")
-            .createSignedUrl(path, 3600); // 1 hora para visualização na galeria
+            .createSignedUrl(path, 3600);
           signedUrl = sData?.signedUrl || null;
         }
         return {
           ...post,
-          signedUrl: signedUrl || post.image_url,
+          image_url: null,
+          signedUrl,
         };
       })
     );

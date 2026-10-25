@@ -46,6 +46,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# supabase cli cache
+supabase/.temp/
+
 !.env.example
 
 # perfis salvos localmente

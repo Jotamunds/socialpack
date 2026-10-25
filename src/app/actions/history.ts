@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  assertOwnedStoragePath,
+  getOwnedStoragePathOrNull,
+} from "@/lib/storage-path";
 
 export interface HistoryPostItem {
   id: string;
@@ -36,7 +40,7 @@ export interface HistoryFilterParams {
 
 /**
  * Consulta postagens salvas com status 'completed' pertencentes ao usuário autenticado (RLS).
- * Gera URLs assinadas temporárias para exibição segura de miniaturas sem expor o bucket privado.
+ * URLs assinadas são geradas na hora; image_url persistida não é usada como fallback.
  */
 export async function getHistoryPostsAction(filters?: HistoryFilterParams): Promise<{
   ok: boolean;
@@ -61,18 +65,15 @@ export async function getHistoryPostsAction(filters?: HistoryFilterParams): Prom
       .eq("status", "completed")
       .order("created_at", { ascending: false });
 
-    // 1. Filtro por Empresa
     if (filters?.companyId && filters.companyId !== "all") {
       query = query.eq("company_id", filters.companyId);
     }
 
-    // 2. Filtro por Busca Textual (Tema ou Headline)
     if (filters?.search && filters.search.trim()) {
       const term = `%${filters.search.trim()}%`;
       query = query.or(`headline.ilike.${term},theme.ilike.${term},caption.ilike.${term}`);
     }
 
-    // 3. Filtro por Período
     if (filters?.period === "7days") {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -96,11 +97,13 @@ export async function getHistoryPostsAction(filters?: HistoryFilterParams): Prom
       return { ok: false, posts: [], message: queryError.message };
     }
 
-    // Gera URLs assinadas temporárias para as miniaturas
     const adminSupabase = createAdminClient();
     const postsWithSignedUrls: HistoryPostItem[] = await Promise.all(
       (posts || []).map(async (p) => {
-        const filePath = p.image_storage_path || p.storage_path;
+        const filePath = getOwnedStoragePathOrNull(
+          user.id,
+          p.image_storage_path || p.storage_path
+        );
         let signedUrl: string | null = null;
 
         if (filePath) {
@@ -128,8 +131,8 @@ export async function getHistoryPostsAction(filters?: HistoryFilterParams): Prom
           status: p.status,
           storage_path: p.storage_path,
           image_storage_path: p.image_storage_path,
-          image_url: p.image_url,
-          signedUrl: signedUrl || p.image_url,
+          image_url: null,
+          signedUrl,
           created_at: p.created_at,
           company_name: comp?.name || "Empresa",
         };
@@ -144,11 +147,7 @@ export async function getHistoryPostsAction(filters?: HistoryFilterParams): Prom
 }
 
 /**
- * Exclusão Coordenada de Postagem (Invariante 5: Prevenção de Arquivos Órfãos):
- * 1. Valida sessão e posse do registro pelo solicitante (user_id = auth.uid()).
- * 2. Deleta primeiro o arquivo físico no Supabase Storage (generated-arts).
- * 3. Apenas após a confirmação de exclusão do storage, deleta a linha no banco.
- * 4. Se o Storage falhar, a linha do banco NÃO é apagada.
+ * Exclusão coordenada: valida sessão, prefixo {userId}/, remove o PNG e só então a linha.
  */
 export async function deletePostOrchestratedAction(postId: string): Promise<{
   ok: boolean;
@@ -159,7 +158,6 @@ export async function deletePostOrchestratedAction(postId: string): Promise<{
   }
 
   try {
-    // 1. Validar sessão autenticada do usuário
     const supabase = await createClient();
     const {
       data: { user },
@@ -172,7 +170,6 @@ export async function deletePostOrchestratedAction(postId: string): Promise<{
 
     const adminSupabase = createAdminClient();
 
-    // 2. Verificar posse do registro e obter caminho do arquivo no Storage
     const { data: post, error: findError } = await adminSupabase
       .from("posts")
       .select("id, user_id, storage_path, image_storage_path")
@@ -184,16 +181,24 @@ export async function deletePostOrchestratedAction(postId: string): Promise<{
       return { ok: false, message: "Post não encontrado ou você não tem permissão para excluí-lo." };
     }
 
-    const filePath = post.image_storage_path || post.storage_path;
+    const rawPath = post.image_storage_path || post.storage_path;
 
-    // 3. Deletar primeiro o arquivo físico no Storage antes de remover a linha no banco
-    if (filePath) {
+    if (rawPath) {
+      let filePath: string;
+      try {
+        filePath = assertOwnedStoragePath(user.id, rawPath);
+      } catch {
+        return {
+          ok: false,
+          message: "Caminho de arquivo inválido. O registro no banco foi preservado.",
+        };
+      }
+
       const { error: storageError } = await adminSupabase.storage
         .from("generated-arts")
         .remove([filePath]);
 
       if (storageError) {
-        // Se a exclusão no Storage falhar, NÃO apaga a linha no banco para evitar arquivo órfão
         return {
           ok: false,
           message: `Falha ao excluir arquivo no Storage: ${storageError.message}. O registro no banco foi preservado.`,
@@ -201,7 +206,6 @@ export async function deletePostOrchestratedAction(postId: string): Promise<{
       }
     }
 
-    // 4. Deletar a linha correspondente em public.posts
     const { error: deleteDbError } = await adminSupabase
       .from("posts")
       .delete()
@@ -215,7 +219,6 @@ export async function deletePostOrchestratedAction(postId: string): Promise<{
       };
     }
 
-    // 5. Revalidar rotas afetadas
     revalidatePath("/geracao/historico/instagram");
     revalidatePath("/geracao/instagram/posts");
 

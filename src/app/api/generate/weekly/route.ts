@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireValidSubscription } from "@/lib/supabase/subscription-guard";
 import { generateWeek } from "@/lib/generator";
 import { renderPostToPngBuffer, sanitizePublicErrorMessage } from "@/lib/rendering/satori-renderer";
+import { assertOwnedStoragePath } from "@/lib/storage-path";
 import type { CompanyProfile } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -130,7 +131,11 @@ export async function POST(request: Request) {
     for (let i = 0; i < 7; i++) {
       const postRecord = createdPosts[i];
       const planItem = planPosts[i];
-      const storagePath = `${user.id}/${companyRecord.id}/${postRecord.id}.png`;
+      // Path canônico: {userId}/{companyId}/{postId}.png — validado antes de upload/rollback
+      const storagePath = assertOwnedStoragePath(
+        user.id,
+        `${user.id}/${companyRecord.id}/${postRecord.id}.png`
+      );
 
       try {
         // Transição 1: pending ➔ processing
@@ -158,7 +163,7 @@ export async function POST(request: Request) {
           throw new Error(`Erro no upload da arte: ${uploadError.message}`);
         }
 
-        // URL assinada para visualização imediata no cliente
+        // URL assinada só para a resposta imediata; não persiste em image_url
         const { data: signedData } = await adminSupabase.storage
           .from("generated-arts")
           .createSignedUrl(storagePath, 3600);
@@ -172,7 +177,7 @@ export async function POST(request: Request) {
             status: "completed",
             storage_path: storagePath,
             image_storage_path: storagePath,
-            image_url: signedUrl,
+            image_url: null,
             caption: planItem.caption,
             caption_copy: planItem.caption,
             generation_config: {
@@ -188,7 +193,8 @@ export async function POST(request: Request) {
 
         if (completeError) {
           // Rollback compensatório de arquivo órfão no Storage conforme Invariante 1.3
-          await adminSupabase.storage.from("generated-arts").remove([storagePath]);
+          const rollbackPath = assertOwnedStoragePath(user.id, storagePath);
+          await adminSupabase.storage.from("generated-arts").remove([rollbackPath]);
           throw new Error(`Falha ao concluir post no banco: ${completeError.message}`);
         }
 
