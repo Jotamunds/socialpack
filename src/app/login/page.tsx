@@ -55,8 +55,13 @@ function LoginForm() {
       }
 
       if (data.session) {
-        // Ativa assinatura incomplete com selected_plan do metadata (cadastro sem sessão imediata)
-        await activateChosenPlanAction();
+        // Ativa assinatura incomplete com selected_plan do metadata (cadastro sem sessão imediata).
+        // Falha aqui não pode impedir o redirect: o middleware pode responder a action com redirect.
+        try {
+          await activateChosenPlanAction();
+        } catch {
+          console.error("Falha ao ativar o plano após o login.");
+        }
         router.refresh();
         router.push(redirectTo);
       }
