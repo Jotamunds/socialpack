@@ -123,7 +123,7 @@ export function buildSatoriPostElement(
   const handle = company.instagram ? `@${company.instagram.replace(/^@+/, "")}` : company.name;
 
   // ---------------------------------------------------------------------------
-  // LAYOUT 0: EDITORIAL KINFOLK
+  // LAYOUT 0: EDITORIAL KINFOLK (fundo claro — contraste com shell escuro)
   // ---------------------------------------------------------------------------
   if (layout === 0) {
     return React.createElement(
@@ -134,13 +134,12 @@ export function buildSatoriPostElement(
           flexDirection: "column",
           width: 1080,
           height: 1080,
-          backgroundColor: "#08090a",
+          backgroundColor: "#f4f2ee",
           padding: 72,
           justifyContent: "space-between",
-          color: "#f7f8f8",
+          color: "#1a1b1e",
         },
       },
-      // Topo
       React.createElement(
         "div",
         {
@@ -148,7 +147,7 @@ export function buildSatoriPostElement(
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            borderBottom: "1px solid rgba(255,255,255,0.12)",
+            borderBottom: "1px solid rgba(26,27,30,0.12)",
             paddingBottom: 24,
           },
         },
@@ -167,11 +166,10 @@ export function buildSatoriPostElement(
         ),
         React.createElement(
           "span",
-          { style: { fontSize: 20, color: "#8a8f98", fontWeight: 500 } },
+          { style: { fontSize: 20, color: "#6b7078", fontWeight: 500 } },
           company.city ? `${company.city} • ${post.day || ""}` : post.day || ""
         )
       ),
-      // Centro (Imagem + Texto)
       React.createElement(
         "div",
         {
@@ -185,7 +183,6 @@ export function buildSatoriPostElement(
             paddingBottom: 36,
           },
         },
-        // Coluna de Texto
         React.createElement(
           "div",
           {
@@ -203,7 +200,7 @@ export function buildSatoriPostElement(
                 fontSize: 60,
                 fontWeight: 700,
                 lineHeight: 1.15,
-                color: "#f7f8f8",
+                color: "#141516",
                 marginBottom: 24,
               },
             },
@@ -215,7 +212,7 @@ export function buildSatoriPostElement(
               style: {
                 fontSize: 26,
                 lineHeight: 1.45,
-                color: "#d0d6e0",
+                color: "#4a4f57",
                 fontWeight: 400,
                 marginBottom: 32,
               },
@@ -243,7 +240,6 @@ export function buildSatoriPostElement(
             post.cta || "Saiba mais"
           )
         ),
-        // Coluna da Foto
         React.createElement(
           "div",
           {
@@ -253,7 +249,8 @@ export function buildSatoriPostElement(
               height: 600,
               borderRadius: 16,
               overflow: "hidden",
-              border: "2px solid rgba(255,255,255,0.12)",
+              border: "3px solid rgba(26,27,30,0.08)",
+              boxShadow: "0 18px 40px rgba(20,21,22,0.12)",
             },
           },
           React.createElement("img", {
@@ -264,7 +261,6 @@ export function buildSatoriPostElement(
           })
         )
       ),
-      // Rodapé
       React.createElement(
         "div",
         {
@@ -272,18 +268,18 @@ export function buildSatoriPostElement(
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            borderTop: "1px solid rgba(255,255,255,0.1)",
+            borderTop: "1px solid rgba(26,27,30,0.1)",
             paddingTop: 24,
           },
         },
         React.createElement(
           "span",
-          { style: { fontSize: 24, fontWeight: 700, color: "#f7f8f8" } },
+          { style: { fontSize: 24, fontWeight: 700, color: "#141516" } },
           company.name
         ),
         React.createElement(
           "span",
-          { style: { fontSize: 22, color: accent, fontWeight: 500 } },
+          { style: { fontSize: 22, color: primary, fontWeight: 500 } },
           handle
         )
       )
@@ -302,13 +298,13 @@ export function buildSatoriPostElement(
           flexDirection: "column",
           width: 1080,
           height: 1080,
-          backgroundColor: "#0d0e12",
-          padding: 64,
+          backgroundColor: "#050506",
+          padding: 56,
           alignItems: "center",
           justifyContent: "center",
         },
       },
-      // Card Branco Polaroid
+      // Card Branco Polaroid — contraste forte vs fundo
       React.createElement(
         "div",
         {
@@ -318,9 +314,10 @@ export function buildSatoriPostElement(
             width: 920,
             height: 950,
             backgroundColor: "#ffffff",
-            borderRadius: 16,
-            padding: 36,
-            boxShadow: "0 25px 50px rgba(0,0,0,0.5)",
+            borderRadius: 12,
+            padding: 40,
+            border: "1px solid rgba(255,255,255,0.08)",
+            boxShadow: "0 32px 64px rgba(0,0,0,0.65)",
             justifyContent: "space-between",
           },
         },
@@ -532,7 +529,7 @@ export function buildSatoriPostElement(
   }
 
   // ---------------------------------------------------------------------------
-  // LAYOUT 3: CINEMA MOODY (16:9 Letterbox)
+  // LAYOUT 3: CINEMA MOODY — full-bleed + letterbox/gradiente sobre a foto
   // ---------------------------------------------------------------------------
   if (layout === 3) {
     return React.createElement(
@@ -543,11 +540,50 @@ export function buildSatoriPostElement(
           flexDirection: "column",
           width: 1080,
           height: 1080,
-          backgroundColor: "#050506",
+          backgroundColor: "#000000",
+          position: "relative",
+          overflow: "hidden",
           justifyContent: "space-between",
         },
       },
-      // Barra Superior Cinematográfica
+      React.createElement("img", {
+        src: imageDataUrl,
+        width: 1080,
+        height: 1080,
+        style: {
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: 1080,
+          height: 1080,
+          objectFit: "cover",
+        },
+      }),
+      // Letterbox superior
+      React.createElement("div", {
+        style: {
+          display: "flex",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: 1080,
+          height: 120,
+          backgroundColor: "#000000",
+        },
+      }),
+      // Letterbox inferior
+      React.createElement("div", {
+        style: {
+          display: "flex",
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          width: 1080,
+          height: 280,
+          backgroundImage:
+            "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.72) 55%, rgba(0,0,0,0) 100%)",
+        },
+      }),
       React.createElement(
         "div",
         {
@@ -556,53 +592,36 @@ export function buildSatoriPostElement(
             justifyContent: "space-between",
             alignItems: "center",
             padding: "40px 64px",
-            color: "#8a8f98",
+            color: "#c8ccd2",
             fontSize: 20,
             fontWeight: 500,
             letterSpacing: 2,
+            position: "relative",
           },
         },
         React.createElement("span", null, company.name.toUpperCase()),
         React.createElement("span", { style: { color: primary } }, post.theme.toUpperCase())
       ),
-      // Foto Central 16:9
-      React.createElement(
-        "div",
-        {
-          style: {
-            display: "flex",
-            width: 1080,
-            height: 600,
-            overflow: "hidden",
-            position: "relative",
-          },
-        },
-        React.createElement("img", {
-          src: imageDataUrl,
-          width: 1080,
-          height: 600,
-          style: { objectFit: "cover" },
-        })
-      ),
-      // Barra Inferior com Textos
       React.createElement(
         "div",
         {
           style: {
             display: "flex",
             flexDirection: "column",
-            padding: "40px 64px 50px 64px",
+            padding: "0 64px 56px 64px",
+            position: "relative",
           },
         },
         React.createElement(
           "h2",
           {
             style: {
-              fontSize: 48,
+              fontSize: 52,
               fontWeight: 700,
-              color: "#f7f8f8",
-              lineHeight: 1.2,
+              color: "#ffffff",
+              lineHeight: 1.15,
               marginBottom: 16,
+              maxWidth: 920,
             },
           },
           post.headline
@@ -613,7 +632,7 @@ export function buildSatoriPostElement(
             style: {
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "center",
+              alignItems: "flex-end",
             },
           },
           React.createElement(
@@ -621,8 +640,9 @@ export function buildSatoriPostElement(
             {
               style: {
                 fontSize: 22,
-                color: "#d0d6e0",
+                color: "#d8dde6",
                 maxWidth: 680,
+                lineHeight: 1.4,
               },
             },
             post.subheadline
@@ -911,7 +931,7 @@ export function buildSatoriPostElement(
   }
 
   // ---------------------------------------------------------------------------
-  // LAYOUT 6: PÔSTER BRUTALISTA
+  // LAYOUT 6: PÔSTER BRUTALISTA — faixa primary sólida no header
   // ---------------------------------------------------------------------------
   return React.createElement(
     "div",
@@ -922,12 +942,10 @@ export function buildSatoriPostElement(
         width: 1080,
         height: 1080,
         backgroundColor: "#0a0a0c",
-        padding: 56,
         justifyContent: "space-between",
-        border: `8px solid ${primary}`,
+        border: `10px solid ${primary}`,
       },
     },
-    // Topo Brutalista
     React.createElement(
       "div",
       {
@@ -935,8 +953,8 @@ export function buildSatoriPostElement(
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          borderBottom: `4px solid ${primary}`,
-          paddingBottom: 20,
+          backgroundColor: primary,
+          padding: "28px 48px",
         },
       },
       React.createElement(
@@ -946,85 +964,100 @@ export function buildSatoriPostElement(
             fontSize: 26,
             fontWeight: 700,
             color: "#ffffff",
-            backgroundColor: primary,
-            padding: "6px 16px",
             textTransform: "uppercase",
+            letterSpacing: 1,
           },
         },
         post.theme
       ),
       React.createElement(
         "span",
-        { style: { fontSize: 24, fontWeight: 700, color: secondary } },
+        { style: { fontSize: 24, fontWeight: 700, color: "#ffffff" } },
         company.name.toUpperCase()
       )
     ),
-    // Foto com Moldura Marcante
     React.createElement(
       "div",
       {
         style: {
           display: "flex",
-          width: 952,
-          height: 480,
-          border: "4px solid rgba(255,255,255,0.2)",
-          overflow: "hidden",
-          marginTop: 20,
-          marginBottom: 20,
-        },
-      },
-      React.createElement("img", {
-        src: imageDataUrl,
-        width: 952,
-        height: 480,
-        style: { objectFit: "cover" },
-      })
-    ),
-    // Headline Brutalista
-    React.createElement(
-      "h1",
-      {
-        style: {
-          fontSize: 54,
-          fontWeight: 700,
-          color: "#f7f8f8",
-          lineHeight: 1.15,
-          textTransform: "uppercase",
-          marginBottom: 16,
-        },
-      },
-      post.headline
-    ),
-    // Rodapé
-    React.createElement(
-      "div",
-      {
-        style: {
-          display: "flex",
+          flexDirection: "column",
+          padding: "28px 48px 48px 48px",
+          flex: 1,
           justifyContent: "space-between",
-          alignItems: "center",
-          borderTop: `4px solid ${primary}`,
-          paddingTop: 20,
         },
       },
       React.createElement(
-        "span",
-        { style: { fontSize: 22, color: "#d0d6e0", fontWeight: 600 } },
-        post.cta || "Fale conosco"
-      ),
-      React.createElement(
-        "span",
+        "div",
         {
           style: {
-            fontSize: 22,
-            fontWeight: 700,
-            color: "#ffffff",
-            backgroundColor: "#1f2024",
-            padding: "8px 18px",
-            border: "1px solid rgba(255,255,255,0.2)",
+            display: "flex",
+            width: 964,
+            height: 460,
+            border: "4px solid rgba(255,255,255,0.25)",
+            overflow: "hidden",
           },
         },
-        handle
+        React.createElement("img", {
+          src: imageDataUrl,
+          width: 964,
+          height: 460,
+          style: { objectFit: "cover" },
+        })
+      ),
+      React.createElement(
+        "h1",
+        {
+          style: {
+            fontSize: 52,
+            fontWeight: 700,
+            color: "#f7f8f8",
+            lineHeight: 1.15,
+            textTransform: "uppercase",
+            marginTop: 28,
+            marginBottom: 20,
+          },
+        },
+        post.headline
+      ),
+      React.createElement(
+        "div",
+        {
+          style: {
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderTop: `6px solid ${primary}`,
+            paddingTop: 22,
+          },
+        },
+        React.createElement(
+          "span",
+          {
+            style: {
+              fontSize: 22,
+              color: "#0a0a0c",
+              fontWeight: 700,
+              backgroundColor: secondary,
+              padding: "10px 20px",
+              textTransform: "uppercase",
+            },
+          },
+          post.cta || "Fale conosco"
+        ),
+        React.createElement(
+          "span",
+          {
+            style: {
+              fontSize: 22,
+              fontWeight: 700,
+              color: "#ffffff",
+              backgroundColor: primary,
+              padding: "10px 20px",
+            },
+          },
+          handle
+        )
       )
     )
   );

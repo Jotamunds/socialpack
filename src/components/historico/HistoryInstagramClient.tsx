@@ -6,6 +6,7 @@ import { HistoryGrid } from "./HistoryGrid";
 import { DeletePostModal } from "./DeletePostModal";
 import { PostPreviewModal, type PreviewPostItem } from "@/components/geracao/PostPreviewModal";
 import type { CompanyItem } from "@/components/geracao/CompanySelector";
+import { PostsViewToggle, usePostsViewMode } from "@/components/posts";
 import { deletePostOrchestratedAction, type HistoryPostItem } from "@/app/actions/history";
 import { getSignedPostDownloadUrlAction } from "@/app/actions/posts";
 
@@ -26,6 +27,7 @@ export function HistoryInstagramClient({
   const [previewPost, setPreviewPost] = useState<PreviewPostItem | null>(null);
   const [deleteCandidate, setDeleteCandidate] = useState<HistoryPostItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { viewMode, setViewMode } = usePostsViewMode();
 
   // Filtragem reativa no cliente
   const filteredPosts = posts.filter((post) => {
@@ -129,16 +131,19 @@ export function HistoryInstagramClient({
         onPeriodChange={setSelectedPeriod}
       />
 
-      {/* Contador de Resultados */}
-      <div className="flex items-center justify-between text-xs text-[#8a8f98] px-1">
+      {/* Contador de Resultados + toggle de visualização */}
+      <div className="flex items-center justify-between gap-3 text-xs text-[#8a8f98] px-1">
         <span>
-          Mostrando <strong>{filteredPosts.length}</strong> {filteredPosts.length === 1 ? "arte salva" : "artes salvas"}
+          Mostrando <strong>{filteredPosts.length}</strong>{" "}
+          {filteredPosts.length === 1 ? "arte salva" : "artes salvas"}
         </span>
+        <PostsViewToggle value={viewMode} onChange={setViewMode} />
       </div>
 
       {/* Grid de Postagens */}
       <HistoryGrid
         posts={filteredPosts}
+        viewMode={viewMode}
         onSelectPost={(post) =>
           setPreviewPost({
             id: post.id,

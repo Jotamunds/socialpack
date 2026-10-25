@@ -4,6 +4,7 @@ import { useState } from "react";
 import JSZip from "jszip";
 import { getMondayOfWeek } from "@/lib/date-utils";
 import { DownloadIcon, SparklesIcon, SpinnerIcon } from "@/components/icons";
+import { PostsViewToggle, usePostsViewMode } from "@/components/posts";
 import { CompanySelector, type CompanyItem } from "./CompanySelector";
 import { WeeklyGrid } from "./WeeklyGrid";
 import { PostPreviewModal, type PreviewPostItem } from "./PostPreviewModal";
@@ -24,6 +25,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
   const [isZipping, setIsZipping] = useState(false);
   const [previewPost, setPreviewPost] = useState<PreviewPostItem | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { viewMode, setViewMode } = usePostsViewMode();
 
   const selectedCompany = companies.find((c) => c.id === selectedCompanyId);
   const canGenerate = Boolean(selectedCompanyId && companies.length > 0 && !isGenerating);
@@ -173,22 +175,26 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
           </p>
         </div>
 
-        {/* Botão de Download do Pacote Completo (ZIP) */}
-        {canDownloadAll && (
-          <button
-            type="button"
-            onClick={handleDownloadAllZip}
-            disabled={isZipping}
-            className="h-9 px-4 rounded-md bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.07)] border border-[rgba(255,255,255,0.1)] text-[#f7f8f8] text-xs font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-          >
-            {isZipping ? (
-              <SpinnerIcon className="size-3.5 animate-spin text-[#5e6ad2]" />
-            ) : (
-              <DownloadIcon className="size-3.5" />
-            )}
-            <span>{isZipping ? "Compactando ZIP..." : "Baixar Todas (ZIP)"}</span>
-          </button>
-        )}
+        <div className="flex items-center gap-2 self-start md:self-auto">
+          {(posts.length > 0 || isGenerating) && (
+            <PostsViewToggle value={viewMode} onChange={setViewMode} />
+          )}
+          {canDownloadAll && (
+            <button
+              type="button"
+              onClick={handleDownloadAllZip}
+              disabled={isZipping}
+              className="h-9 px-4 rounded-md bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.07)] border border-[rgba(255,255,255,0.1)] text-[#f7f8f8] text-xs font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              {isZipping ? (
+                <SpinnerIcon className="size-3.5 animate-spin text-[#5e6ad2]" />
+              ) : (
+                <DownloadIcon className="size-3.5" />
+              )}
+              <span>{isZipping ? "Compactando ZIP..." : "Baixar Todas (ZIP)"}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Barra de Controles e Configuração de Geração */}
@@ -253,6 +259,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
       <WeeklyGrid
         posts={posts}
         isGenerating={isGenerating}
+        viewMode={viewMode}
         onSelectPost={(post) => setPreviewPost(post)}
         onDownloadPost={handleDownloadSingle}
       />

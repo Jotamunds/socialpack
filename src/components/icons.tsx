@@ -169,6 +169,17 @@ export const GridIcon = (p: IconProps) => (
   </Base>
 );
 
+export const ListIcon = (p: IconProps) => (
+  <Base {...p}>
+    <line x1="8" y1="6" x2="21" y2="6" />
+    <line x1="8" y1="12" x2="21" y2="12" />
+    <line x1="8" y1="18" x2="21" y2="18" />
+    <line x1="3" y1="6" x2="3.01" y2="6" />
+    <line x1="3" y1="12" x2="3.01" y2="12" />
+    <line x1="3" y1="18" x2="3.01" y2="18" />
+  </Base>
+);
+
 export const CreditCardIcon = (p: IconProps) => (
   <Base {...p}>
     <rect x="2" y="5" width="20" height="14" rx="2" />
