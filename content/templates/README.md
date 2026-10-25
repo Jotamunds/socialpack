@@ -19,8 +19,12 @@ content/
 
 1. O sistema lê `templates/<tipo>/<nicho>.json` do perfil da empresa.
 2. Filtra os posts compatíveis com o **tom de voz** escolhido (veja `tones` abaixo).
-3. Sorteia até 5 posts com temas diferentes (cada clique gera uma combinação nova).
-4. Se o nicho tiver menos de 5 posts, completa com `_generic.json`.
+3. Escolhe 7 posts com temas diferentes, priorizando os que a empresa **ainda não usou**
+   ou usou há mais tempo (histórico em `posts.generation_config.templateSlug`).
+   Um template só se repete quando todos os outros compatíveis já foram usados.
+4. Se o nicho tiver menos de 7 posts disponíveis, completa com `_generic.json`.
+5. Os 7 layouts são distribuídos sem repetir na semana e sem repetir o layout
+   do mesmo dia no pacote anterior.
 
 ## Formato de um arquivo de nicho
 

@@ -20,6 +20,24 @@ interface TemplateJsonFile {
 interface RankedTemplate extends PostTemplate {
   pool: "niche" | "generic";
   slugBase: string;
+  slug: string;
+}
+
+/**
+ * Histórico recente da empresa, usado para evitar repetição entre pacotes.
+ * - recentTemplateSlugs: slugs dos posts anteriores, do mais recente para o mais antigo.
+ * - previousLayouts: layouts do último pacote, na ordem dos dias (0–6).
+ */
+export interface GenerationHistory {
+  recentTemplateSlugs?: string[];
+  previousLayouts?: number[];
+}
+
+export const POSTS_PER_PACK = 7;
+export const LAYOUT_COUNT = 7;
+
+export function buildTemplateSlug(slugBase: string, theme: string): string {
+  return `${slugBase}/${slugTag(theme.trim()) || "sem-tema"}`;
 }
 
 function interpolate(text: string, vars: Record<string, string>): string {
@@ -172,47 +190,66 @@ function buildLocalHashtags(
   return list.slice(0, 8);
 }
 
+/**
+ * Seleção "menos usado primeiro" (LRU) em vez de sorteio puro:
+ * 1. Templates nunca usados pela empresa vêm primeiro (nicho antes do genérico),
+ *    embaralhados só entre si para manter variedade.
+ * 2. Depois vêm os já usados, do uso mais antigo para o mais recente.
+ * 3. Continua evitando tema repetido dentro da mesma semana.
+ * Resultado: um template só volta quando todos os outros compatíveis já saíram,
+ * e nunca volta no pacote seguinte se houver pelo menos 7 alternativas.
+ */
 function selectWeeklyTemplates(
   nichePosts: PostTemplate[],
   genericPosts: PostTemplate[],
   toneId: string,
-  nicheSlugBase: string
+  nicheSlugBase: string,
+  recentTemplateSlugs: string[] = []
 ): { selected: RankedTemplate[]; source: ContentSource } {
-  const nichePool = shuffle(
-    nichePosts
+  // slug -> posição no histórico (0 = mais recente). Só a primeira ocorrência conta.
+  const lastUse = new Map<string, number>();
+  recentTemplateSlugs.forEach((slug, idx) => {
+    if (slug && !lastUse.has(slug)) lastUse.set(slug, idx);
+  });
+
+  const toRanked = (
+    posts: PostTemplate[],
+    pool: "niche" | "generic",
+    slugBase: string
+  ): RankedTemplate[] =>
+    posts
       .filter((p) => matchesTone(p, toneId))
-      .map((p) => ({ ...p, pool: "niche" as const, slugBase: nicheSlugBase }))
-  );
-  const genericPool = shuffle(
-    genericPosts
-      .filter((p) => matchesTone(p, toneId))
-      .map((p) => ({ ...p, pool: "generic" as const, slugBase: "_generic" }))
-  );
+      .map((p) => ({ ...p, pool, slugBase, slug: buildTemplateSlug(slugBase, p.theme) }));
+
+  const niche = toRanked(nichePosts, "niche", nicheSlugBase);
+  const generic = toRanked(genericPosts, "generic", "_generic");
+
+  const unused = (list: RankedTemplate[]) => shuffle(list.filter((t) => !lastUse.has(t.slug)));
+  const used = [...niche, ...generic]
+    .filter((t) => lastUse.has(t.slug))
+    // maior índice = uso mais antigo = vem primeiro
+    .sort((a, b) => (lastUse.get(b.slug) ?? 0) - (lastUse.get(a.slug) ?? 0));
+
+  const ordered: RankedTemplate[] = [...unused(niche), ...unused(generic), ...used];
 
   const selected: RankedTemplate[] = [];
   const usedThemes = new Set<string>();
+  const usedSlugs = new Set<string>();
 
-  const takeFrom = (pool: RankedTemplate[]) => {
-    for (const candidate of pool) {
-      if (selected.length >= 7) break;
-      const key = candidate.theme.trim().toLowerCase();
-      if (usedThemes.has(key)) continue;
-      usedThemes.add(key);
-      selected.push(candidate);
-    }
-  };
+  for (const candidate of ordered) {
+    if (selected.length >= POSTS_PER_PACK) break;
+    const key = candidate.theme.trim().toLowerCase();
+    if (usedThemes.has(key) || usedSlugs.has(candidate.slug)) continue;
+    usedThemes.add(key);
+    usedSlugs.add(candidate.slug);
+    selected.push(candidate);
+  }
 
-  takeFrom(nichePool);
-  takeFrom(genericPool);
-
-  // Fallback de emergência se pools forem insuficientes
-  let emergency = 0;
-  while (selected.length < 7) {
-    const theme = `Destaque ${selected.length + 1}`;
-    if (usedThemes.has(theme.toLowerCase())) {
-      emergency += 1;
-      continue;
-    }
+  // Fallback de emergência se pools forem insuficientes.
+  // (Corrige loop infinito da versão anterior: o tema agora muda a cada tentativa.)
+  for (let attempt = 1; selected.length < POSTS_PER_PACK && attempt <= 50; attempt++) {
+    const theme = `Destaque ${attempt}`;
+    if (usedThemes.has(theme.toLowerCase())) continue;
     usedThemes.add(theme.toLowerCase());
     selected.push({
       theme,
@@ -224,9 +261,8 @@ function selectWeeklyTemplates(
       hashtags: ["#novidade", "#destaque", "#qualidade"],
       pool: "generic",
       slugBase: "_generic",
+      slug: buildTemplateSlug("_generic", theme),
     });
-    emergency += 1;
-    if (emergency > 20) break;
   }
 
   const usedNiche = selected.some((s) => s.pool === "niche");
@@ -234,15 +270,41 @@ function selectWeeklyTemplates(
   const source: ContentSource =
     usedNiche && usedGeneric ? "mixed" : usedNiche ? "niche" : "generic";
 
-  return { selected: selected.slice(0, 7), source };
+  return { selected: selected.slice(0, POSTS_PER_PACK), source };
+}
+
+/**
+ * Permutação dos 7 layouts sem repetição na semana (shuffle sem reposição) e,
+ * quando há pacote anterior, sem repetir o mesmo layout no mesmo dia (derangement).
+ */
+export function pickLayouts(previousLayouts: number[] = []): number[] {
+  const base = Array.from({ length: LAYOUT_COUNT }, (_, i) => i);
+  const prev = previousLayouts.slice(0, LAYOUT_COUNT);
+  if (prev.length === 0) return shuffle(base);
+
+  const clashes = (perm: number[]) => perm.some((layout, day) => prev[day] === layout);
+  for (let tries = 0; tries < 30; tries++) {
+    const perm = shuffle(base);
+    if (!clashes(perm)) return perm;
+  }
+  // Garantido: rotacionar a sequência anterior em 1 posição.
+  if (prev.length === LAYOUT_COUNT && new Set(prev).size === LAYOUT_COUNT) {
+    return prev.map((_, day) => prev[(day + 1) % LAYOUT_COUNT]);
+  }
+  return shuffle(base);
 }
 
 /**
  * Motor determinístico de geração semanal (7 posts).
- * Filtra tom, embaralha nicho→genérico, evita tema repetido, injeta signoff,
- * aplica regra de emoji, monta hashtags locais e distribui layouts 0–6.
+ * Filtra tom, prioriza templates menos usados pela empresa (nicho→genérico),
+ * evita tema repetido, injeta signoff, aplica regra de emoji, monta hashtags
+ * locais e distribui layouts 0–6 sem repetir o dia do pacote anterior.
  */
-export function generateWeek(company: CompanyProfile, startDate?: string): GenerateResponse {
+export function generateWeek(
+  company: CompanyProfile,
+  startDate?: string,
+  history: GenerationHistory = {}
+): GenerateResponse {
   const schedule = calculateWeekSchedule(startDate);
   const nicheMeta = findNiche(company.categoryId, company.nicheId);
   const categoryMeta = findCategory(company.categoryId);
@@ -261,7 +323,8 @@ export function generateWeek(company: CompanyProfile, startDate?: string): Gener
     nichePosts,
     genericPosts,
     company.toneId,
-    slugBase
+    slugBase,
+    history.recentTemplateSlugs ?? []
   );
 
   const handle = company.instagram
@@ -278,15 +341,18 @@ export function generateWeek(company: CompanyProfile, startDate?: string): Gener
     tipo: tipoLabel,
   };
 
-  const layouts = shuffle([0, 1, 2, 3, 4, 5, 6]);
+  const layouts = pickLayouts(history.previousLayouts);
   const allowEmojis = Boolean(tone?.emojis);
   const signoff = tone?.signoff?.trim() || "";
 
   const selectedPosts: GeneratedPost[] = [];
 
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < POSTS_PER_PACK; i++) {
     const daySchedule = schedule[i];
     const template = selected[i];
+    if (!template) {
+      throw new Error("Pacote semanal incompleto: não há templates suficientes.");
+    }
 
     let headline = interpolate(template.headline, vars);
     let subheadline = interpolate(template.subheadline, vars);
@@ -328,7 +394,7 @@ export function generateWeek(company: CompanyProfile, startDate?: string): Gener
 
     const badgeText = clampText(template.theme, 2, 24, daySchedule.shortDay);
     const themeKey = template.theme.trim();
-    const templateSlug = `${template.slugBase}/${slugTag(themeKey) || `dia-${i + 1}`}`;
+    const templateSlug = template.slug;
 
     selectedPosts.push({
       id: `post-${i}-${daySchedule.isoDate}`,

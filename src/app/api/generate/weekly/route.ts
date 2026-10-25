@@ -14,12 +14,48 @@ import {
 import type { CompanyProfile } from "@/lib/types";
 
 export const maxDuration = 60;
+// ~4 pacotes. Cobre o pool atual: nicho (≤5) + genérico (15).
+const RECENT_HISTORY_POSTS = 28;
 export const dynamic = "force-dynamic";
 
 function startOfUtcDayIso(): string {
   const d = new Date();
   d.setUTCHours(0, 0, 0, 0);
   return d.toISOString();
+}
+
+type RecentCompletedPost = {
+  template_slug: string | null;
+  layout: number | null;
+  date: string | null;
+  created_at: string;
+};
+
+/**
+ * Layouts do último pacote concluído, na ordem dos dias.
+ * O insert semanal grava os 7 posts no mesmo `created_at`. Se o pacote mais
+ * recente não fechou 7 posts (falha no meio), não empresta dias do pacote anterior.
+ */
+function layoutsFromLatestCompletedPack(rows: RecentCompletedPost[]): number[] {
+  if (rows.length === 0) return [];
+
+  const newestAt = rows[0].created_at;
+  const pack = rows
+    .filter((row) => row.created_at === newestAt)
+    .sort((a, b) => String(a.date ?? "").localeCompare(String(b.date ?? "")));
+
+  if (pack.length !== POSTS_PER_WEEKLY_PACK) return [];
+
+  const dates = pack.map((row) => row.date);
+  if (dates.some((date) => !date) || new Set(dates).size !== POSTS_PER_WEEKLY_PACK) return [];
+
+  const layouts = pack.map((row) => row.layout);
+  const layoutsArePermutation =
+    layouts.every(
+      (layout) => typeof layout === "number" && Number.isInteger(layout) && layout >= 0 && layout <= 6
+    ) && new Set(layouts).size === POSTS_PER_WEEKLY_PACK;
+
+  return layoutsArePermutation ? (layouts as number[]) : [];
 }
 
 export async function POST(request: Request) {
@@ -123,9 +159,39 @@ export async function POST(request: Request) {
       },
     };
 
+    // Histórico para evitar repetição: últimos pacotes concluídos desta empresa.
+    // templateSlug só entra em generation_config na transição para "completed"
+    // (PostGenerationConfigSchema). Posts antigos backfillados só com hashtags
+    // não têm a chave e ficam de fora da memória de templates.
+    // PostgREST preserva o camelCase: ->>templateSlug vira ->>'templateSlug'.
+    const { data: recentPosts, error: historyError } = await adminSupabase
+      .from("posts")
+      .select("template_slug:generation_config->>templateSlug, layout, date, created_at")
+      .eq("company_id", companyRecord.id)
+      .eq("user_id", user.id)
+      .eq("status", "completed")
+      .order("created_at", { ascending: false })
+      .limit(RECENT_HISTORY_POSTS);
+
+    if (historyError) {
+      console.error(
+        "Falha ao ler histórico de templates; a geração segue sem memória de repetição.",
+        historyError.message
+      );
+    }
+
+    const recentRows = (historyError ? [] : (recentPosts ?? [])) as RecentCompletedPost[];
+    const recentTemplateSlugs = recentRows
+      .map((row) => row.template_slug)
+      .filter((slug): slug is string => Boolean(slug));
+    const previousLayouts = layoutsFromLatestCompletedPack(recentRows);
+
     let weekData;
     try {
-      weekData = generateWeek(companyProfile, startDate);
+      weekData = generateWeek(companyProfile, startDate, {
+        recentTemplateSlugs,
+        previousLayouts,
+      });
     } catch (genErr) {
       return NextResponse.json(
         { ok: false, error: sanitizePublicErrorMessage(genErr) },
