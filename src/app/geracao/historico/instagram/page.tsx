@@ -8,6 +8,7 @@ import { LogOutIcon, SparklesIcon } from "@/components/icons";
 import { signOutAction } from "@/app/actions/companies";
 import { getHistoryPostsAction } from "@/app/actions/history";
 import { HistoryInstagramClient } from "@/components/historico/HistoryInstagramClient";
+import { historyNicheOptions, parseHistoryFilters } from "@/lib/history-filters";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,16 @@ export const metadata = {
   description: "Gerencie, visualize e baixe suas artes geradas para o Instagram.",
 };
 
-export default async function HistoricoInstagramPage() {
+export default async function HistoricoInstagramPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    empresa?: string | string[];
+    nicho?: string | string[];
+    periodo?: string | string[];
+    busca?: string | string[];
+  }>;
+}) {
   const access = await requirePageAccess("/geracao/historico/instagram");
   const supabase = await createClient();
   const {
@@ -28,13 +38,15 @@ export default async function HistoricoInstagramPage() {
     redirect("/login?redirectTo=/geracao/historico/instagram");
   }
 
-  // 2. Consultar empresas e posts concluídos em paralelo
+  const filters = parseHistoryFilters(await searchParams);
+
+  // Empresas do usuário (RLS) e posts concluídos já filtrados no servidor.
   const [companiesResult, historyResult] = await Promise.all([
     supabase
       .from("companies")
       .select("*")
       .order("created_at", { ascending: false }),
-    getHistoryPostsAction(),
+    getHistoryPostsAction(filters),
   ]);
 
   const rawCompanies = companiesResult.data || [];
@@ -55,6 +67,7 @@ export default async function HistoricoInstagramPage() {
   }));
 
   const initialPosts = historyResult.posts || [];
+  const niches = historyNicheOptions(companies, filters.nicho);
 
   return (
     <div className="min-h-screen bg-[#08090a] text-[#f7f8f8] flex flex-col selection:bg-[#5e6ad2]/30 selection:text-white">
@@ -140,7 +153,12 @@ export default async function HistoricoInstagramPage() {
               </Link>
             </div>
 
-            <HistoryInstagramClient initialPosts={initialPosts} companies={companies} />
+            <HistoryInstagramClient
+              initialPosts={initialPosts}
+              companies={companies}
+              niches={niches}
+              filters={filters}
+            />
           </>
         )}
       </main>
