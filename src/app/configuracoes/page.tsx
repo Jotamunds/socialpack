@@ -41,7 +41,7 @@ export default async function ConfiguracoesPage() {
       .maybeSingle(),
     supabase
       .from("subscriptions")
-      .select("plan, status, company_quota, current_period_end")
+      .select("plan, status, company_quota, current_period_end, cancel_at_period_end")
       .eq("user_id", user.id)
       .maybeSingle(),
     supabase
@@ -62,9 +62,10 @@ export default async function ConfiguracoesPage() {
 
   const subscription = {
     plan,
-    status: rawSub?.status || "active",
+    status: rawSub?.status || "incomplete",
     company_quota: quota,
     current_period_end: rawSub?.current_period_end || null,
+    cancel_at_period_end: Boolean(rawSub?.cancel_at_period_end),
   };
 
   const profile = {

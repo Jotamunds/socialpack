@@ -18,6 +18,7 @@ interface ConfiguracoesClientProps {
     status: string;
     company_quota: number;
     current_period_end?: string | null;
+    cancel_at_period_end?: boolean;
   };
   companyCount: number;
   initialTab?: SettingsTabKey;

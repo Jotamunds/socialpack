@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { UpdateProfileInputSchema } from "@/lib/schemas";
+import { requireValidSubscription } from "@/lib/supabase/subscription-guard";
 
 export type SettingsActionResponse = {
   ok: boolean;
@@ -13,7 +14,6 @@ export type SettingsActionResponse = {
 
 /**
  * Atualiza os dados cadastrais do perfil (full_name, phone) do usuário autenticado.
- * O e-mail permanece protegido e não pode ser arbitrariamente alterado aqui.
  */
 export async function updateProfileAction(input: unknown): Promise<SettingsActionResponse> {
   const validation = UpdateProfileInputSchema.safeParse(input);
@@ -43,7 +43,6 @@ export async function updateProfileAction(input: unknown): Promise<SettingsActio
       };
     }
 
-    // Atualiza nome e telefone no registro public.profiles do usuário autenticado (auth.uid() = id)
     const { error: updateError } = await supabase
       .from("profiles")
       .update({
@@ -56,7 +55,7 @@ export async function updateProfileAction(input: unknown): Promise<SettingsActio
     if (updateError) {
       return {
         ok: false,
-        error: "Erro ao salvar alterações no perfil: " + updateError.message,
+        error: "Erro ao salvar alterações no perfil.",
       };
     }
 
@@ -75,8 +74,8 @@ export async function updateProfileAction(input: unknown): Promise<SettingsActio
 }
 
 /**
- * Realiza o upgrade seguro da assinatura do usuário de 'starter' para 'pro'.
- * Atualiza plan = 'pro', company_quota = 3 (max_companies = 3) na tabela public.subscriptions.
+ * Upgrade MVP Starter → Pro (temporário até a onda do gateway).
+ * Ajusta plano, cota e renova o período em 30 dias.
  */
 export async function upgradeToProAction(): Promise<SettingsActionResponse> {
   try {
@@ -93,39 +92,43 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse> {
       };
     }
 
-    // 1. Tenta atualizar com o cliente de sessão autenticado
-    // Compatibilidade de cota: plan = 'pro', company_quota = 3 (max_companies = 3)
-    const updatePayload: Record<string, unknown> = {
-      plan: "pro",
-      company_quota: 3,
-      status: "active",
-      updated_at: new Date().toISOString(),
-    };
-
-    let { error: subError } = await supabase
-      .from("subscriptions")
-      .update(updatePayload)
-      .eq("user_id", user.id);
-
-    // 2. Se RLS restringir UPDATE direto a partir do client autenticado sem webhook,
-    // utiliza o cliente de orquestração interna do backend
-    if (subError) {
-      try {
-        const admin = createAdminClient();
-        const adminRes = await admin
-          .from("subscriptions")
-          .update(updatePayload)
-          .eq("user_id", user.id);
-        subError = adminRes.error;
-      } catch {
-        // mantém erro inicial
-      }
+    const guard = await requireValidSubscription(user.id);
+    if (!guard.isValid || !guard.subscription) {
+      return {
+        ok: false,
+        error: guard.error || "É necessária uma assinatura ativa para fazer upgrade.",
+      };
     }
+
+    if (guard.subscription.plan === "pro") {
+      return {
+        ok: true,
+        message: "Sua conta já está no Plano Pro.",
+      };
+    }
+
+    const now = new Date();
+    const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    const admin = createAdminClient();
+    const { error: subError } = await admin
+      .from("subscriptions")
+      .update({
+        plan: "pro",
+        company_quota: 3,
+        status: "active",
+        cancel_at_period_end: false,
+        current_period_start: now.toISOString(),
+        current_period_end: periodEnd.toISOString(),
+        updated_at: now.toISOString(),
+      })
+      .eq("user_id", user.id)
+      .eq("id", guard.subscription.id);
 
     if (subError) {
       return {
         ok: false,
-        error: "Não foi possível concluir o upgrade: " + subError.message,
+        error: "Não foi possível concluir o upgrade.",
       };
     }
 
@@ -145,7 +148,7 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse> {
 }
 
 /**
- * Ação simulada de cancelamento/gerenciamento de assinatura.
+ * Agenda o cancelamento: mantém status e acesso até current_period_end.
  */
 export async function cancelSubscriptionAction(): Promise<SettingsActionResponse> {
   try {
@@ -162,33 +165,35 @@ export async function cancelSubscriptionAction(): Promise<SettingsActionResponse
       };
     }
 
-    const updatePayload = {
-      status: "canceled",
-      updated_at: new Date().toISOString(),
-    };
-
-    let { error: subError } = await supabase
-      .from("subscriptions")
-      .update(updatePayload)
-      .eq("user_id", user.id);
-
-    if (subError) {
-      try {
-        const admin = createAdminClient();
-        const adminRes = await admin
-          .from("subscriptions")
-          .update(updatePayload)
-          .eq("user_id", user.id);
-        subError = adminRes.error;
-      } catch {
-        // mantém erro
-      }
+    const guard = await requireValidSubscription(user.id);
+    if (!guard.isValid || !guard.subscription) {
+      return {
+        ok: false,
+        error: guard.error || "Nenhuma assinatura ativa para cancelar.",
+      };
     }
+
+    if (guard.subscription.cancel_at_period_end) {
+      return {
+        ok: true,
+        message: "O cancelamento já está agendado. O acesso segue até o fim do ciclo atual.",
+      };
+    }
+
+    const admin = createAdminClient();
+    const { error: subError } = await admin
+      .from("subscriptions")
+      .update({
+        cancel_at_period_end: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", user.id)
+      .eq("id", guard.subscription.id);
 
     if (subError) {
       return {
         ok: false,
-        error: "Falha ao registrar cancelamento: " + subError.message,
+        error: "Falha ao registrar cancelamento.",
       };
     }
 
@@ -196,7 +201,8 @@ export async function cancelSubscriptionAction(): Promise<SettingsActionResponse
     revalidatePath("/perfil");
     return {
       ok: true,
-      message: "Assinatura cancelada com sucesso. Seu acesso continuará ativo até o término do ciclo atual.",
+      message:
+        "Cancelamento agendado. Seu acesso continuará ativo até o término do ciclo atual.",
     };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Erro inesperado ao cancelar assinatura.";

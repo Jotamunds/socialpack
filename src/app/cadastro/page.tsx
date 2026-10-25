@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { SignUpInputSchema } from "@/lib/schemas";
+import { activateChosenPlanAction } from "@/app/actions/auth";
 import { Logo } from "@/components/Logo";
 import { SpinnerIcon } from "@/components/icons";
 
@@ -53,6 +54,7 @@ function RegisterForm() {
           data: {
             full_name: validation.data.fullName,
             phone: validation.data.phone,
+            selected_plan: validation.data.plan,
           },
         },
       });
@@ -69,15 +71,23 @@ function RegisterForm() {
 
       if (data.user) {
         if (data.session) {
-          // Sessão já iniciada
+          // Ativa o plano escolhido (trigger deixa incomplete; só esta action libera o acesso)
+          const activation = await activateChosenPlanAction(validation.data.plan);
+          if (!activation.ok) {
+            setErrorMessage(
+              activation.error ||
+                "Conta criada, mas a ativação do plano falhou. Faça login e tente novamente."
+            );
+            setIsLoading(false);
+            return;
+          }
           router.push("/perfil");
         } else {
-          // Caso confirmação por e-mail esteja ativada no Supabase
           setSuccessMessage(
-            "Conta criada com sucesso! Verifique seu e-mail para confirmar o cadastro ou faça login."
+            "Conta criada! Confirme o e-mail e faça login para ativar o plano escolhido."
           );
           setTimeout(() => {
-            router.push("/perfil");
+            router.push("/login");
           }, 1500);
         }
       }

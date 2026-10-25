@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { SignInInputSchema } from "@/lib/schemas";
+import { activateChosenPlanAction } from "@/app/actions/auth";
 import { Logo } from "@/components/Logo";
 import { SpinnerIcon } from "@/components/icons";
 
@@ -53,7 +54,8 @@ function LoginForm() {
       }
 
       if (data.session) {
-        // Redirecionamento com fallback seguro
+        // Ativa assinatura incomplete com selected_plan do metadata (cadastro sem sessão imediata)
+        await activateChosenPlanAction();
         router.refresh();
         router.push(redirectTo);
       }

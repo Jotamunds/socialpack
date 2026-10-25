@@ -16,6 +16,7 @@ interface SubscriptionPlanCardProps {
     status: string;
     company_quota: number;
     current_period_end?: string | null;
+    cancel_at_period_end?: boolean;
   };
   companyCount: number;
 }
@@ -33,8 +34,12 @@ export function SubscriptionPlanCard({
   const isPro = subscription.plan === "pro";
   const maxQuota = subscription.company_quota || (isPro ? 3 : 1);
   const progressPercent = Math.min(100, Math.max(0, Math.round((companyCount / maxQuota) * 100)));
+  const isCancelScheduled = Boolean(subscription.cancel_at_period_end);
+  const isActiveAccess =
+    (subscription.status === "active" || subscription.status === "trialing") ||
+    (subscription.status === "canceled" && isCancelScheduled);
 
-  // Formatação segura da data de renovação
+  // Formatação segura da data de renovação / fim de acesso
   const renewalDate = subscription.current_period_end
     ? new Date(subscription.current_period_end).toLocaleDateString("pt-BR", {
         day: "2-digit",
@@ -74,11 +79,11 @@ export function SubscriptionPlanCard({
       if (res.ok) {
         setSubscription((prev) => ({
           ...prev,
-          status: "canceled",
+          cancel_at_period_end: true,
         }));
         setFeedback({
           type: "success",
-          message: res.message || "Assinatura cancelada com sucesso.",
+          message: res.message || "Cancelamento agendado com sucesso.",
         });
         setIsManageModalOpen(false);
       } else {
@@ -127,7 +132,12 @@ export function SubscriptionPlanCard({
               <h2 className="text-xl font-semibold tracking-tight text-[#f7f8f8]">
                 {isPro ? "Plano Pro" : "Plano Starter"}
               </h2>
-              {subscription.status === "active" ? (
+              {isCancelScheduled ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                  <span className="size-1.5 rounded-full bg-amber-400" />
+                  Cancela em {renewalDate}
+                </span>
+              ) : isActiveAccess ? (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/30">
                   <span className="size-1.5 rounded-full bg-[#10b981]" />
                   Plano Ativo
@@ -147,7 +157,9 @@ export function SubscriptionPlanCard({
           </div>
 
           <div className="flex flex-col sm:items-end text-xs text-[#8a8f98]">
-            <span className="text-[11px] uppercase tracking-wider text-[#62666d]">Próxima Renovação</span>
+            <span className="text-[11px] uppercase tracking-wider text-[#62666d]">
+              {isCancelScheduled ? "Acesso até" : "Próxima Renovação"}
+            </span>
             <span className="font-medium text-[#d0d6e0]">{renewalDate}</span>
           </div>
         </div>
@@ -185,29 +197,32 @@ export function SubscriptionPlanCard({
             <span>Faturamento seguro em conformidade com PCI-DSS (dados sensíveis não armazenados)</span>
           </div>
 
-          {!isPro ? (
-            <button
-              type="button"
-              onClick={() => setIsUpgradeModalOpen(true)}
-              className="h-9 px-4 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-[13px] font-medium tracking-tight transition-all shadow-[0_1px_2px_rgba(0,0,0,0.4)] active:scale-[0.98] inline-flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <SparklesIcon className="size-3.5" />
-              <span>Fazer Upgrade para Pro</span>
-            </button>
-          ) : (
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            {isPro && !isCancelScheduled && (
               <span className="text-xs text-[#10b981] font-medium hidden sm:inline-block">
                 Plano máximo atingido
               </span>
+            )}
+            {!isPro && isActiveAccess && !isCancelScheduled && (
+              <button
+                type="button"
+                onClick={() => setIsUpgradeModalOpen(true)}
+                className="h-9 px-4 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-[13px] font-medium tracking-tight transition-all shadow-[0_1px_2px_rgba(0,0,0,0.4)] active:scale-[0.98] inline-flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <SparklesIcon className="size-3.5" />
+                <span>Fazer Upgrade para Pro</span>
+              </button>
+            )}
+            {isActiveAccess && !isCancelScheduled && (
               <button
                 type="button"
                 onClick={() => setIsManageModalOpen(true)}
                 className="h-9 px-4 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-[#d0d6e0] hover:text-[#f7f8f8] text-[13px] font-medium transition-colors cursor-pointer"
               >
-                Gerenciar Assinatura
+                {isPro ? "Gerenciar Assinatura" : "Cancelar Assinatura"}
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -277,25 +292,25 @@ export function SubscriptionPlanCard({
         </div>
       )}
 
-      {/* MODAL DE GERENCIAMENTO / CANCELAMENTO (Pro) */}
+      {/* MODAL DE CANCELAMENTO AGENDADO */}
       {isManageModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="w-full max-w-md rounded-xl border border-[rgba(255,255,255,0.12)] bg-[#0f1011] p-6 space-y-5 shadow-2xl">
             <div className="space-y-2">
               <h3 className="text-lg font-semibold text-[#f7f8f8]">
-                Gerenciar Assinatura Pro
+                Cancelar Assinatura {isPro ? "Pro" : "Starter"}
               </h3>
               <p className="text-xs text-[#8a8f98] leading-relaxed">
-                Sua assinatura Pro está ativa com renovação prevista para{" "}
+                Sua assinatura está ativa com ciclo até{" "}
                 <strong className="text-[#f7f8f8]">{renewalDate}</strong>.
               </p>
             </div>
 
             <div className="p-3.5 rounded-lg border border-red-500/20 bg-red-500/5 text-xs text-red-300 space-y-2">
-              <p className="font-medium text-red-200">Deseja cancelar sua assinatura?</p>
+              <p className="font-medium text-red-200">Deseja agendar o cancelamento?</p>
               <p className="text-[11px] text-red-300/80 leading-relaxed">
-                Ao cancelar, seu plano continuará ativo até o final do ciclo faturado.
-                Após esse período, sua cota retornará para 1 empresa.
+                O acesso permanece até o fim do ciclo atual. Depois disso, a geração e a cota
+                de empresas deixam de estar disponíveis até uma nova ativação.
               </p>
             </div>
 

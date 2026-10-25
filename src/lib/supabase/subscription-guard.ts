@@ -8,6 +8,9 @@ export interface SubscriptionRecord {
   status: "active" | "trialing" | "past_due" | "canceled" | "incomplete" | string;
   plan: "starter" | "pro" | string;
   current_period_end: string;
+  current_period_start?: string | null;
+  cancel_at_period_end?: boolean;
+  company_quota?: number;
   created_at?: string;
   updated_at?: string;
   [key: string]: unknown;
@@ -19,9 +22,39 @@ export interface SubscriptionGuardResult {
   error?: string;
 }
 
+function hasValidPeriod(periodEndRaw: string | null | undefined): boolean {
+  if (!periodEndRaw) return false;
+  const periodEnd = new Date(periodEndRaw);
+  return !isNaN(periodEnd.getTime()) && periodEnd.getTime() > Date.now();
+}
+
 /**
- * Valida no servidor se o usuário possui uma assinatura válida em public.subscriptions
- * com status "active" ou "trialing" e data de expiração (current_period_end) maior que agora.
+ * Assinatura com acesso: active/trialing com período vigente,
+ * ou canceled com cancel_at_period_end e período ainda vigente.
+ */
+export function subscriptionGrantsAccess(
+  subscription: Pick<
+    SubscriptionRecord,
+    "status" | "current_period_end" | "cancel_at_period_end"
+  >
+): boolean {
+  if (!hasValidPeriod(subscription.current_period_end)) {
+    return false;
+  }
+
+  if (subscription.status === "active" || subscription.status === "trialing") {
+    return true;
+  }
+
+  if (subscription.status === "canceled" && subscription.cancel_at_period_end === true) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Valida no servidor se o usuário possui assinatura com direito de uso.
  */
 export async function requireValidSubscription(
   userId: string
@@ -63,29 +96,34 @@ export async function requireValidSubscription(
       };
     }
 
-    const isActiveStatus = data.status === "active" || data.status === "trialing";
-    const periodEnd = new Date(data.current_period_end);
-    const isPeriodValid = !isNaN(periodEnd.getTime()) && periodEnd.getTime() > Date.now();
+    const subscription = data as SubscriptionRecord;
 
-    if (!isActiveStatus) {
+    if (subscription.status === "incomplete") {
       return {
         isValid: false,
-        subscription: data as SubscriptionRecord,
-        error: `Status da assinatura (${data.status}) não permite operação. Requer active ou trialing.`,
+        subscription,
+        error: "Assinatura incompleta. Conclua a ativação do plano para continuar.",
       };
     }
 
-    if (!isPeriodValid) {
+    if (!subscriptionGrantsAccess(subscription)) {
+      if (!hasValidPeriod(subscription.current_period_end)) {
+        return {
+          isValid: false,
+          subscription,
+          error: "Período da assinatura expirado.",
+        };
+      }
       return {
         isValid: false,
-        subscription: data as SubscriptionRecord,
-        error: "Período da assinatura expirado.",
+        subscription,
+        error: `Status da assinatura (${subscription.status}) não permite operação.`,
       };
     }
 
     return {
       isValid: true,
-      subscription: data as SubscriptionRecord,
+      subscription,
     };
   } catch (err: unknown) {
     const message =
@@ -100,7 +138,6 @@ export async function requireValidSubscription(
 
 /**
  * Lança exceção caso a assinatura não seja válida.
- * Útil para chamadas de Server Action que exigem assinatura válida como pré-condição.
  */
 export async function assertValidSubscription(
   userId: string
