@@ -50,37 +50,7 @@ export function loadInterFonts(): Font[] {
   }
 }
 
-/**
- * Sanitiza mensagens de erro públicas para evitar information leakage.
- */
-export function sanitizePublicErrorMessage(err: unknown): string {
-  if (!err) return "Erro desconhecido ao processar requisição.";
-  const msg = err instanceof Error ? err.message : String(err);
-
-  if (msg.includes("P0003") || msg.toLowerCase().includes("limite de empresas")) {
-    return "Limite de empresas atingido para o seu plano.";
-  }
-  if (msg.includes("P0002") || msg.toLowerCase().includes("assinatura")) {
-    return "Assinatura inativa ou expirada.";
-  }
-  if (msg.includes("JWT") || msg.includes("apikey") || msg.includes("service_role")) {
-    return "Falha de credenciais ou autorização interna.";
-  }
-  if (msg.includes("22000") || msg.toLowerCase().includes("transição")) {
-    return "Transição de ciclo de vida do post inválida.";
-  }
-
-  // Mascarar URLs de conexão contendo senhas (ex: postgresql://user:pass@host:5432/db)
-  let sanitized = msg.replace(/:\/\/[^:]+:[^@]+@/gi, "://[credenciais-ocultas]@");
-
-  // Mascarar caminhos absolutos do Windows (ex: D:\... ou C:\...)
-  sanitized = sanitized.replace(/[a-zA-Z]:\\[^:\s]+/gi, "[caminho-local]");
-
-  // Mascarar caminhos absolutos do Unix
-  sanitized = sanitized.replace(/\/(Users|home|var|tmp|etc|usr|opt)\/[^\s]+/gi, "[caminho-local]");
-
-  return sanitized.slice(0, 200);
-}
+export { sanitizePublicErrorMessage } from "../public-error";
 
 /**
  * Busca uma imagem remota e a converte em base64 Data URL para inserção segura no Satori.

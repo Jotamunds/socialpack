@@ -3,8 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { UpdateProfileInputSchema } from "@/lib/schemas";
+import {
+  ChangePasswordInputSchema,
+  ThemePreferenceSchema,
+  UpdateProfileInputSchema,
+} from "@/lib/schemas";
 import { requireValidSubscription } from "@/lib/supabase/subscription-guard";
+import { sanitizePublicErrorMessage } from "@/lib/public-error";
 
 export type SettingsActionResponse = {
   ok: boolean;
@@ -12,17 +17,13 @@ export type SettingsActionResponse = {
   message?: string;
 };
 
-/**
- * Atualiza os dados cadastrais do perfil (full_name, phone) do usuário autenticado.
- */
 export async function updateProfileAction(input: unknown): Promise<SettingsActionResponse> {
   const validation = UpdateProfileInputSchema.safeParse(input);
 
   if (!validation.success) {
-    const firstError = validation.error.issues[0]?.message || "Dados de perfil inválidos.";
     return {
       ok: false,
-      error: firstError,
+      error: validation.error.issues[0]?.message || "Dados de perfil inválidos.",
     };
   }
 
@@ -37,10 +38,7 @@ export async function updateProfileAction(input: unknown): Promise<SettingsActio
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return {
-        ok: false,
-        error: "Sessão expirada. Faça login novamente.",
-      };
+      return { ok: false, error: "Sessão expirada. Faça login novamente." };
     }
 
     const { error: updateError } = await supabase
@@ -53,30 +51,89 @@ export async function updateProfileAction(input: unknown): Promise<SettingsActio
       .eq("id", user.id);
 
     if (updateError) {
-      return {
-        ok: false,
-        error: "Erro ao salvar alterações no perfil.",
-      };
+      return { ok: false, error: sanitizePublicErrorMessage(updateError.message) };
     }
 
     revalidatePath("/configuracoes");
-    return {
-      ok: true,
-      message: "Dados atualizados com sucesso.",
-    };
+    return { ok: true, message: "Dados atualizados com sucesso." };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Erro inesperado ao salvar perfil.";
-    return {
-      ok: false,
-      error: msg,
-    };
+    return { ok: false, error: sanitizePublicErrorMessage(err) };
   }
 }
 
-/**
- * Upgrade MVP Starter → Pro (temporário até a onda do gateway).
- * Ajusta plano, cota e renova o período em 30 dias.
- */
+export async function changePasswordAction(input: unknown): Promise<SettingsActionResponse> {
+  const validation = ChangePasswordInputSchema.safeParse(input);
+  if (!validation.success) {
+    return {
+      ok: false,
+      error: validation.error.issues[0]?.message || "Senha inválida.",
+    };
+  }
+
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return { ok: false, error: "Sessão expirada. Faça login novamente." };
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      password: validation.data.password,
+    });
+
+    if (error) {
+      return { ok: false, error: sanitizePublicErrorMessage(error.message) };
+    }
+
+    return { ok: true, message: "Senha atualizada com sucesso." };
+  } catch (err) {
+    return { ok: false, error: sanitizePublicErrorMessage(err) };
+  }
+}
+
+export async function updateThemePreferenceAction(
+  themeInput: unknown
+): Promise<SettingsActionResponse> {
+  const theme = ThemePreferenceSchema.safeParse(themeInput);
+  if (!theme.success) {
+    return { ok: false, error: "Tema inválido. Use dark ou light." };
+  }
+
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return { ok: false, error: "Sessão expirada. Faça login novamente." };
+    }
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        theme_preference: theme.data,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", user.id);
+
+    if (error) {
+      return { ok: false, error: sanitizePublicErrorMessage(error.message) };
+    }
+
+    revalidatePath("/configuracoes");
+    return { ok: true, message: "Preferência de tema salva." };
+  } catch (err) {
+    return { ok: false, error: sanitizePublicErrorMessage(err) };
+  }
+}
+
+/** Upgrade MVP Starter → Pro (temporário até a onda do gateway). */
 export async function upgradeToProAction(): Promise<SettingsActionResponse> {
   try {
     const supabase = await createClient();
@@ -101,10 +158,7 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse> {
     }
 
     if (guard.subscription.plan === "pro") {
-      return {
-        ok: true,
-        message: "Sua conta já está no Plano Pro.",
-      };
+      return { ok: true, message: "Sua conta já está no Plano Pro." };
     }
 
     const now = new Date();
@@ -126,10 +180,7 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse> {
       .eq("id", guard.subscription.id);
 
     if (subError) {
-      return {
-        ok: false,
-        error: "Não foi possível concluir o upgrade.",
-      };
+      return { ok: false, error: sanitizePublicErrorMessage(subError.message) };
     }
 
     revalidatePath("/configuracoes");
@@ -139,17 +190,11 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse> {
       message: "Upgrade realizado com sucesso! Seu plano agora é Pro (limite de 3 empresas).",
     };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Erro inesperado ao processar upgrade.";
-    return {
-      ok: false,
-      error: msg,
-    };
+    return { ok: false, error: sanitizePublicErrorMessage(err) };
   }
 }
 
-/**
- * Agenda o cancelamento: mantém status e acesso até current_period_end.
- */
+/** Agenda cancelamento: mantém acesso até current_period_end. */
 export async function cancelSubscriptionAction(): Promise<SettingsActionResponse> {
   try {
     const supabase = await createClient();
@@ -159,10 +204,7 @@ export async function cancelSubscriptionAction(): Promise<SettingsActionResponse
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return {
-        ok: false,
-        error: "Sessão expirada. Faça login novamente.",
-      };
+      return { ok: false, error: "Sessão expirada. Faça login novamente." };
     }
 
     const guard = await requireValidSubscription(user.id);
@@ -191,10 +233,7 @@ export async function cancelSubscriptionAction(): Promise<SettingsActionResponse
       .eq("id", guard.subscription.id);
 
     if (subError) {
-      return {
-        ok: false,
-        error: "Falha ao registrar cancelamento.",
-      };
+      return { ok: false, error: sanitizePublicErrorMessage(subError.message) };
     }
 
     revalidatePath("/configuracoes");
@@ -205,10 +244,6 @@ export async function cancelSubscriptionAction(): Promise<SettingsActionResponse
         "Cancelamento agendado. Seu acesso continuará ativo até o término do ciclo atual.",
     };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Erro inesperado ao cancelar assinatura.";
-    return {
-      ok: false,
-      error: msg,
-    };
+    return { ok: false, error: sanitizePublicErrorMessage(err) };
   }
 }

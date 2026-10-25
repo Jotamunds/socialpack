@@ -36,7 +36,7 @@ export default async function ConfiguracoesPage() {
   const [profileResult, subscriptionResult, companiesCountResult] = await Promise.all([
     supabase
       .from("profiles")
-      .select("full_name, phone, email")
+      .select("full_name, phone, email, theme_preference")
       .eq("id", user.id)
       .maybeSingle(),
     supabase
@@ -73,6 +73,11 @@ export default async function ConfiguracoesPage() {
     phone: rawProfile?.phone || "",
     email: rawProfile?.email || user.email || "",
   };
+
+  const themePreference =
+    rawProfile?.theme_preference === "light" || rawProfile?.theme_preference === "dark"
+      ? rawProfile.theme_preference
+      : "dark";
 
   return (
     <div className="min-h-screen bg-[#08090a] text-[#f7f8f8] flex flex-col selection:bg-[#5e6ad2]/30 selection:text-white">
@@ -161,6 +166,7 @@ export default async function ConfiguracoesPage() {
             profile={profile}
             subscription={subscription}
             companyCount={companyCount}
+            initialTheme={themePreference}
           />
         </Suspense>
       </main>

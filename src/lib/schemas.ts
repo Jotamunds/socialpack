@@ -20,7 +20,11 @@ export const BrandColorsSchema = z.object({
 
 export const CreateCompanyInputSchema = z
   .object({
-    name: z.string().trim().min(1, "Nome da empresa é obrigatório").max(100, "Máximo de 100 caracteres"),
+    name: z
+      .string()
+      .trim()
+      .min(2, "Nome da empresa deve ter pelo menos 2 caracteres")
+      .max(120, "Máximo de 120 caracteres"),
     categoryId: z.string().trim().min(1).max(80).optional(),
     segment: z.string().trim().min(1).max(80).optional(),
     nicheId: z.string().trim().min(1).max(80).optional(),
@@ -30,15 +34,23 @@ export const CreateCompanyInputSchema = z
     instagram: z
       .string()
       .trim()
-      .max(40, "Máximo de 40 caracteres")
-      .optional()
-      .transform((val) => (val ? val.replace(/^@+/, "") : "")),
+      .transform((val) => (val ? val.replace(/^@+/, "") : ""))
+      .pipe(
+        z
+          .string()
+          .regex(/^[A-Za-z0-9._]{0,30}$/, "Instagram deve conter apenas letras, números, pontos e sublinhados")
+      )
+      .optional(),
     instagram_handle: z
       .string()
       .trim()
-      .regex(/^@?[A-Za-z0-9._]{1,30}$/, "Instagram deve conter apenas letras, números, pontos e sublinhados")
-      .optional()
-      .or(z.literal("")),
+      .transform((val) => (val ? val.replace(/^@+/, "") : ""))
+      .pipe(
+        z
+          .string()
+          .regex(/^[A-Za-z0-9._]{0,30}$/, "Instagram deve conter apenas letras, números, pontos e sublinhados")
+      )
+      .optional(),
     toneId: z.string().optional(),
     primary_style: z
       .enum(["descontraido", "profissional", "elegante", "colorido", "acolhedor", "inspirador", "sofisticado", "divertido"])
@@ -196,6 +208,20 @@ export const UpdateProfileInputSchema = z
   });
 
 export type UpdateProfileInput = z.infer<typeof UpdateProfileInputSchema>;
+
+export const ChangePasswordInputSchema = z
+  .object({
+    password: z.string().min(6, "A nova senha deve ter no mínimo 6 caracteres"),
+    confirmPassword: z.string().min(6, "Confirme a nova senha"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "As senhas não coincidem",
+    path: ["confirmPassword"],
+  });
+
+export type ChangePasswordInput = z.infer<typeof ChangePasswordInputSchema>;
+
+export const ThemePreferenceSchema = z.enum(["dark", "light"]);
 
 export const GenerateWeeklyBodySchema = z.object({
   companyId: z.string().uuid("companyId deve ser um UUID válido"),

@@ -1,4 +1,5 @@
 import "server-only";
+import { sanitizePublicErrorMessage } from "@/lib/public-error";
 import { createAdminClient } from "./admin";
 import { createClient } from "./server";
 
@@ -126,12 +127,10 @@ export async function requireValidSubscription(
       subscription,
     };
   } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Erro desconhecido ao verificar assinatura.";
     return {
       isValid: false,
       subscription: null,
-      error: message,
+      error: sanitizePublicErrorMessage(err),
     };
   }
 }

@@ -1,8 +1,9 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/supabase/require-page-access";
 import { Logo } from "@/components/Logo";
 import { GeracaoClient } from "@/components/geracao/GeracaoClient";
+import { SubscriptionInactiveState } from "@/components/SubscriptionInactiveState";
 import { LogOutIcon, SparklesIcon } from "@/components/icons";
 import { signOutAction } from "@/app/actions/companies";
 
@@ -18,19 +19,12 @@ export default async function GeracaoInstagramPostsPage({
 }: {
   searchParams: Promise<{ empresa?: string }>;
 }) {
+  const access = await requirePageAccess("/geracao/instagram/posts");
   const supabase = await createClient();
-
-  // 1. Validar autenticação do usuário
   const {
     data: { user },
-    error: authError,
   } = await supabase.auth.getUser();
 
-  if (authError || !user) {
-    redirect("/login?redirectTo=/geracao/instagram/posts");
-  }
-
-  // 2. Consultar empresas cadastradas pelo usuário
   const { data: rawCompanies } = await supabase
     .from("companies")
     .select("*")
@@ -120,9 +114,12 @@ export default async function GeracaoInstagramPostsPage({
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 sm:py-10">
-        <GeracaoClient companies={companies} />
+        {!access.ok ? (
+          <SubscriptionInactiveState message={access.error} />
+        ) : (
+          <GeracaoClient companies={companies} />
+        )}
       </main>
 
       {/* Footer Minimalista */}

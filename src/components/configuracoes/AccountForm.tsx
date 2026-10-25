@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useId } from "react";
 import { LockIcon, SaveIcon, SpinnerIcon, CheckCircleIcon, UserIcon } from "@/components/icons";
-import { updateProfileAction } from "@/app/actions/settings";
+import { changePasswordAction, updateProfileAction } from "@/app/actions/settings";
 
 interface AccountFormProps {
   initialProfile: {
@@ -29,7 +29,14 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
   const [phone, setPhone] = useState(initialProfile.phone || "");
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isPasswordPending, startPasswordTransition] = useTransition();
+  const passwordInputId = useId();
+  const confirmPasswordInputId = useId();
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
@@ -119,7 +126,7 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
             placeholder="Seu nome completo"
             required
             minLength={2}
-            maxLength={100}
+            maxLength={120}
             className="w-full h-9 px-3 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors"
           />
         </div>
@@ -142,14 +149,12 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
           </p>
         </div>
 
-        {/* Mensagem de Erro */}
         {errorMessage && (
           <div className="p-3 rounded-md border border-red-500/30 bg-red-500/10 text-xs text-red-400">
             {errorMessage}
           </div>
         )}
 
-        {/* Barra de Ações & Feedback Tátil */}
         <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
           <div>
             {savedSuccess && (
@@ -179,6 +184,86 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
           </button>
         </div>
       </form>
+
+      <div className="pt-6 border-t border-[rgba(255,255,255,0.06)] space-y-4">
+        <div className="space-y-1">
+          <h3 className="text-sm font-semibold text-[#f7f8f8]">Alterar senha</h3>
+          <p className="text-xs text-[#8a8f98]">
+            A nova senha é atualizada diretamente no Supabase Auth da sessão atual.
+          </p>
+        </div>
+        <form
+          className="space-y-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setPasswordError(null);
+            setPasswordMessage(null);
+            startPasswordTransition(async () => {
+              const res = await changePasswordAction({ password, confirmPassword });
+              if (res.ok) {
+                setPassword("");
+                setConfirmPassword("");
+                setPasswordMessage(res.message || "Senha atualizada.");
+              } else {
+                setPasswordError(res.error || "Falha ao alterar senha.");
+              }
+            });
+          }}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label htmlFor={passwordInputId} className="text-xs font-medium text-[#d0d6e0]">
+                Nova senha
+              </label>
+              <input
+                id={passwordInputId}
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                minLength={6}
+                required
+                className="w-full h-9 px-3 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] outline-none focus:border-[#5e6ad2]"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor={confirmPasswordInputId} className="text-xs font-medium text-[#d0d6e0]">
+                Confirmar senha
+              </label>
+              <input
+                id={confirmPasswordInputId}
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                minLength={6}
+                required
+                className="w-full h-9 px-3 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] outline-none focus:border-[#5e6ad2]"
+              />
+            </div>
+          </div>
+          {passwordError && (
+            <div className="p-3 rounded-md border border-red-500/30 bg-red-500/10 text-xs text-red-400">
+              {passwordError}
+            </div>
+          )}
+          {passwordMessage && (
+            <div className="text-xs text-[#10b981] font-medium">{passwordMessage}</div>
+          )}
+          <button
+            type="submit"
+            disabled={isPasswordPending}
+            className="h-9 px-4 rounded-md border border-[rgba(255,255,255,0.08)] text-[#d0d6e0] hover:text-[#f7f8f8] text-[13px] font-medium inline-flex items-center gap-2 disabled:opacity-50"
+          >
+            {isPasswordPending ? (
+              <>
+                <SpinnerIcon className="size-3.5" />
+                Atualizando...
+              </>
+            ) : (
+              "Atualizar senha"
+            )}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

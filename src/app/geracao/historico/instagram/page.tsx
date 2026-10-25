@@ -1,7 +1,8 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/supabase/require-page-access";
 import { Logo } from "@/components/Logo";
+import { SubscriptionInactiveState } from "@/components/SubscriptionInactiveState";
 import { LogOutIcon, SparklesIcon } from "@/components/icons";
 import { signOutAction } from "@/app/actions/companies";
 import { getHistoryPostsAction } from "@/app/actions/history";
@@ -15,17 +16,11 @@ export const metadata = {
 };
 
 export default async function HistoricoInstagramPage() {
+  const access = await requirePageAccess("/geracao/historico/instagram");
   const supabase = await createClient();
-
-  // 1. Validar autenticação do usuário
   const {
     data: { user },
-    error: authError,
   } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    redirect("/login?redirectTo=/geracao/historico/instagram");
-  }
 
   // 2. Consultar empresas e posts concluídos em paralelo
   const [companiesResult, historyResult] = await Promise.all([
@@ -111,37 +106,37 @@ export default async function HistoricoInstagramPage() {
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 sm:py-10 space-y-6">
-        {/* Barra Superior com Navegação e Atalho */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[rgba(255,255,255,0.06)]">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs text-[#8a8f98]">
-              <Link href="/geracao/historico" className="hover:text-[#f7f8f8] transition-colors">
-                Histórico
+        {!access.ok ? (
+          <SubscriptionInactiveState message={access.error} />
+        ) : (
+          <>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[rgba(255,255,255,0.06)]">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs text-[#8a8f98]">
+                  <Link href="/geracao/historico" className="hover:text-[#f7f8f8] transition-colors">
+                    Histórico
+                  </Link>
+                  <span>/</span>
+                  <span className="text-[#d0d6e0]">Instagram</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#f7f8f8]">
+                  Histórico de Criações — Instagram
+                </h1>
+              </div>
+
+              <Link
+                href="/geracao/instagram/posts"
+                className="h-9 px-4 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-xs font-semibold transition-all shadow-[0_1px_3px_rgba(0,0,0,0.4)] active:scale-[0.98] inline-flex items-center justify-center gap-2 cursor-pointer self-start sm:self-auto"
+              >
+                <SparklesIcon className="size-3.5" />
+                <span>Nova Geração</span>
               </Link>
-              <span>/</span>
-              <span className="text-[#d0d6e0]">Instagram</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#f7f8f8]">
-              Histórico de Criações — Instagram
-            </h1>
-          </div>
 
-          <Link
-            href="/geracao/instagram/posts"
-            className="h-9 px-4 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-xs font-semibold transition-all shadow-[0_1px_3px_rgba(0,0,0,0.4)] active:scale-[0.98] inline-flex items-center justify-center gap-2 cursor-pointer self-start sm:self-auto"
-          >
-            <SparklesIcon className="size-3.5" />
-            <span>Nova Geração</span>
-          </Link>
-        </div>
-
-        {/* Cliente Interativo de Histórico */}
-        <HistoryInstagramClient
-          initialPosts={initialPosts}
-          companies={companies}
-        />
+            <HistoryInstagramClient initialPosts={initialPosts} companies={companies} />
+          </>
+        )}
       </main>
 
       {/* Footer Minimalista */}

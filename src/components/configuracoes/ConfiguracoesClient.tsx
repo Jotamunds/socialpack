@@ -22,6 +22,7 @@ interface ConfiguracoesClientProps {
   };
   companyCount: number;
   initialTab?: SettingsTabKey;
+  initialTheme?: "dark" | "light";
 }
 
 const VALID_TABS: SettingsTabKey[] = ["plano", "conta", "aparencia"];
@@ -31,6 +32,7 @@ export function ConfiguracoesClient({
   subscription,
   companyCount,
   initialTab = "plano",
+  initialTheme = "dark",
 }: ConfiguracoesClientProps) {
   const searchParams = useSearchParams();
   const urlTab = searchParams.get("tab") as SettingsTabKey | null;
@@ -88,7 +90,7 @@ export function ConfiguracoesClient({
 
         {activeTab === "aparencia" && (
           <div className="animate-in fade-in duration-150">
-            <AppearanceSelector />
+            <AppearanceSelector initialTheme={initialTheme} />
           </div>
         )}
       </div>

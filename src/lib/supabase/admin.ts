@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
+import { validateEnv } from "@/lib/env";
 
 /**
  * Cliente Supabase com privilégios administrativos (service_role).
@@ -7,16 +8,9 @@ import { createClient } from "@supabase/supabase-js";
  * NUNCA importar ou referenciar no cliente.
  */
 export function createAdminClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const env = validateEnv();
 
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error(
-      "Configuração administrativa incompleta: NEXT_PUBLIC_SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY não definidos."
-    );
-  }
-
-  return createClient(supabaseUrl, serviceRoleKey, {
+  return createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sanitizePublicErrorMessage } from "@/lib/public-error";
 
 export type AuthActionResponse = {
   ok: boolean;
@@ -159,7 +160,10 @@ export async function activateChosenPlanAction(
           : "Plano Starter ativado por 30 dias.",
     };
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Erro inesperado na ativação.";
-    return { ok: false, code: "ACTIVATION_ERROR", error: msg };
+    return {
+      ok: false,
+      code: "ACTIVATION_ERROR",
+      error: sanitizePublicErrorMessage(err),
+    };
   }
 }

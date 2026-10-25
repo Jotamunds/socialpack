@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { CreateCompanyInputSchema, normalizeCompanyInput } from "@/lib/schemas";
+import { sanitizePublicErrorMessage } from "@/lib/public-error";
+import { assertOwnedStoragePath, getOwnedStoragePathOrNull } from "@/lib/storage-path";
 
 export type CompanyActionResponse = {
   ok: boolean;
@@ -24,10 +27,6 @@ export type CompanyActionResponse = {
   };
 };
 
-/**
- * Cria uma nova empresa garantindo validação de entrada, tenant isolation (RLS)
- * e captura do trigger atômico de cotas (P0003 / P0002).
- */
 export async function createCompanyAction(input: unknown): Promise<CompanyActionResponse> {
   const validation = CreateCompanyInputSchema.safeParse(input);
 
@@ -74,7 +73,6 @@ export async function createCompanyAction(input: unknown): Promise<CompanyAction
       .single();
 
     if (error) {
-      // Captura do erro P0003 emitido pelo trigger enforce_company_quota
       if (
         error.code === "P0003" ||
         error.message?.includes("P0003") ||
@@ -88,7 +86,6 @@ export async function createCompanyAction(input: unknown): Promise<CompanyAction
         };
       }
 
-      // Captura do erro P0002 emitido quando não há assinatura ativa
       if (
         error.code === "P0002" ||
         error.message?.includes("P0002") ||
@@ -97,14 +94,14 @@ export async function createCompanyAction(input: unknown): Promise<CompanyAction
         return {
           ok: false,
           code: "SUBSCRIPTION_REQUIRED",
-          message: "É necessária uma assinatura ativa ou em período de testes para cadastrar empresas.",
+          message: "É necessária uma assinatura ativa para cadastrar empresas.",
         };
       }
 
       return {
         ok: false,
         code: "DATABASE_ERROR",
-        message: error.message || "Erro ao salvar a empresa no banco de dados.",
+        message: sanitizePublicErrorMessage(error.message || "Erro ao salvar a empresa."),
       };
     }
 
@@ -115,17 +112,16 @@ export async function createCompanyAction(input: unknown): Promise<CompanyAction
       company: data,
     };
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro inesperado ao processar solicitação.";
     return {
       ok: false,
       code: "DATABASE_ERROR",
-      message,
+      message: sanitizePublicErrorMessage(err),
     };
   }
 }
 
 /**
- * Exclui uma empresa pertencente ao usuário autenticado (protegido por RLS).
+ * Exclusão coordenada: remove PNGs do Storage e só então a empresa (cascade nos posts).
  */
 export async function deleteCompanyAction(companyId: string): Promise<{ ok: boolean; message?: string }> {
   if (!companyId) {
@@ -143,26 +139,64 @@ export async function deleteCompanyAction(companyId: string): Promise<{ ok: bool
       return { ok: false, message: "Acesso não autorizado." };
     }
 
-    const { error } = await supabase.from("companies").delete().eq("id", companyId);
+    const admin = createAdminClient();
+
+    const { data: company, error: companyError } = await admin
+      .from("companies")
+      .select("id, user_id")
+      .eq("id", companyId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (companyError || !company) {
+      return { ok: false, message: "Empresa não encontrada ou acesso negado." };
+    }
+
+    const { data: posts } = await admin
+      .from("posts")
+      .select("id, storage_path, image_storage_path")
+      .eq("company_id", companyId)
+      .eq("user_id", user.id);
+
+    const paths = (posts || [])
+      .map((p) => getOwnedStoragePathOrNull(user.id, p.image_storage_path || p.storage_path))
+      .filter((p): p is string => Boolean(p));
+
+    if (paths.length > 0) {
+      // Validação explícita de prefixo antes do remove em lote
+      const ownedPaths = paths.map((p) => assertOwnedStoragePath(user.id, p));
+      const { error: storageError } = await admin.storage.from("generated-arts").remove(ownedPaths);
+      if (storageError) {
+        return {
+          ok: false,
+          message: sanitizePublicErrorMessage(
+            `Falha ao excluir artes no Storage: ${storageError.message}`
+          ),
+        };
+      }
+    }
+
+    const { error } = await admin
+      .from("companies")
+      .delete()
+      .eq("id", companyId)
+      .eq("user_id", user.id);
 
     if (error) {
-      return { ok: false, message: `Erro ao excluir empresa: ${error.message}` };
+      return { ok: false, message: sanitizePublicErrorMessage(error.message) };
     }
 
     revalidatePath("/perfil");
+    revalidatePath("/geracao/historico/instagram");
+    revalidatePath("/geracao/instagram/posts");
     return { ok: true };
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro inesperado ao excluir empresa.";
-    return { ok: false, message };
+    return { ok: false, message: sanitizePublicErrorMessage(err) };
   }
 }
 
-/**
- * Encerra a sessão do usuário autenticado e redireciona para a tela de login.
- */
 export async function signOutAction(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");
 }
-

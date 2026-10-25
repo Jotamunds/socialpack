@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { categories, tones } from "@/lib/catalog";
+import { citiesForUf } from "@/lib/brazil-cities";
 import { createCompanyAction } from "@/app/actions/companies";
 import { SpinnerIcon } from "@/components/icons";
 
@@ -204,12 +205,21 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
               <input
                 id="city"
                 type="text"
+                list={`cities-${state}`}
                 required
+                minLength={2}
+                maxLength={100}
                 placeholder="São Paulo"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 className="w-full h-9 px-3 rounded-md bg-[#08090a] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors"
+                autoComplete="address-level2"
               />
+              <datalist id={`cities-${state}`}>
+                {citiesForUf(state).map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
             </div>
 
             <div className="space-y-1.5">
@@ -244,7 +254,12 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
                   type="text"
                   placeholder="pizzaria.napoli"
                   value={instagram}
-                  onChange={(e) => setInstagram(e.target.value.replace(/^@+/, ""))}
+                  pattern="[A-Za-z0-9._]{0,30}"
+                  maxLength={30}
+                  title="Apenas letras, números, pontos e sublinhados (até 30)"
+                  onChange={(e) =>
+                    setInstagram(e.target.value.replace(/^@+/, "").replace(/[^A-Za-z0-9._]/g, "").slice(0, 30))
+                  }
                   className="w-full h-9 pl-7 pr-3 rounded-md bg-[#08090a] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors font-mono"
                 />
               </div>

@@ -1,8 +1,9 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/supabase/require-page-access";
 import { Logo } from "@/components/Logo";
 import { PerfilClient } from "@/components/perfil/PerfilClient";
+import { SubscriptionInactiveState } from "@/components/SubscriptionInactiveState";
 import { LogOutIcon, SparklesIcon } from "@/components/icons";
 import { signOutAction } from "@/app/actions/companies";
 
@@ -14,35 +15,19 @@ export const metadata = {
 };
 
 export default async function PerfilPage() {
+  const access = await requirePageAccess("/perfil");
   const supabase = await createClient();
-
-  // 1. Validar autenticação do usuário
   const {
     data: { user },
-    error: authError,
   } = await supabase.auth.getUser();
 
-  if (authError || !user) {
-    redirect("/login?redirectTo=/perfil");
-  }
-
-  // 2. Consultas em paralelo: empresas cadastradas e assinatura do usuário
   const [companiesResult, subscriptionResult] = await Promise.all([
-    supabase
-      .from("companies")
-      .select("*")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("subscriptions")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle(),
+    supabase.from("companies").select("*").order("created_at", { ascending: false }),
+    supabase.from("subscriptions").select("*").eq("user_id", access.userId).maybeSingle(),
   ]);
 
   const companies = companiesResult.data || [];
   const rawSub = subscriptionResult.data;
-
-  // Normalização da cota da assinatura (compatibilidade entre company_quota e max_companies)
   const plan = rawSub?.plan || "starter";
   const quota =
     rawSub?.company_quota ??
@@ -51,19 +36,17 @@ export default async function PerfilPage() {
 
   const subscription = {
     plan,
-    status: rawSub?.status || "active",
+    status: rawSub?.status || "incomplete",
     company_quota: quota,
     max_companies: quota,
   };
 
   return (
     <div className="min-h-screen bg-[#08090a] text-[#f7f8f8] flex flex-col selection:bg-[#5e6ad2]/30 selection:text-white">
-      {/* Header Fixo Minimalista do App */}
       <header className="sticky top-0 z-40 w-full border-b border-[rgba(255,255,255,0.06)] bg-[#08090a]/85 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Logo variant="with-label" href="/perfil" className="h-7 w-auto" />
-
             <nav className="hidden md:flex items-center gap-5">
               <Link
                 href="/perfil"
@@ -92,18 +75,15 @@ export default async function PerfilPage() {
               </Link>
             </nav>
           </div>
-
-          {/* Área do Usuário Autenticado */}
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex flex-col items-end">
               <span className="text-[12px] font-medium text-[#f7f8f8] max-w-[180px] truncate">
-                {user.email}
+                {user?.email}
               </span>
               <span className="text-[10px] text-[#8a8f98] uppercase tracking-wider">
                 Plano {plan}
               </span>
             </div>
-
             <form action={signOutAction}>
               <button
                 type="submit"
@@ -117,9 +97,12 @@ export default async function PerfilPage() {
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 sm:py-10">
-        <PerfilClient companies={companies} subscription={subscription} />
+        {!access.ok ? (
+          <SubscriptionInactiveState message={access.error} />
+        ) : (
+          <PerfilClient companies={companies} subscription={subscription} />
+        )}
       </main>
 
       {/* Footer Minimalista */}

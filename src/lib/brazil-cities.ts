@@ -1,0 +1,47 @@
+/** Cidades brasileiras frequentes para autocompletar (UF → cidades). */
+export const BRAZIL_CITIES_BY_UF: Record<string, string[]> = {
+  AC: ["Rio Branco", "Cruzeiro do Sul"],
+  AL: ["Maceió", "Arapiraca"],
+  AM: ["Manaus", "Parintins"],
+  AP: ["Macapá", "Santana"],
+  BA: ["Salvador", "Feira de Santana", "Vitória da Conquista", "Ilhéus"],
+  CE: ["Fortaleza", "Juazeiro do Norte", "Sobral"],
+  DF: ["Brasília"],
+  ES: ["Vitória", "Vila Velha", "Serra", "Cariacica"],
+  GO: ["Goiânia", "Anápolis", "Aparecida de Goiânia"],
+  MA: ["São Luís", "Imperatriz"],
+  MG: ["Belo Horizonte", "Uberlândia", "Contagem", "Juiz de Fora", "Betim"],
+  MS: ["Campo Grande", "Dourados"],
+  MT: ["Cuiabá", "Várzea Grande"],
+  PA: ["Belém", "Ananindeua", "Santarém"],
+  PB: ["João Pessoa", "Campina Grande"],
+  PE: ["Recife", "Olinda", "Jaboatão dos Guararapes", "Caruaru"],
+  PI: ["Teresina", "Parnaíba"],
+  PR: ["Curitiba", "Londrina", "Maringá", "Ponta Grossa"],
+  RJ: ["Rio de Janeiro", "Niterói", "Duque de Caxias", "Nova Iguaçu", "Petrópolis"],
+  RN: ["Natal", "Mossoró"],
+  RO: ["Porto Velho", "Ji-Paraná"],
+  RR: ["Boa Vista"],
+  RS: ["Porto Alegre", "Caxias do Sul", "Pelotas", "Canoas"],
+  SC: ["Florianópolis", "Joinville", "Blumenau", "Chapecó"],
+  SE: ["Aracaju"],
+  SP: [
+    "São Paulo",
+    "Campinas",
+    "Guarulhos",
+    "São Bernardo do Campo",
+    "Santo André",
+    "Osasco",
+    "Ribeirão Preto",
+    "Sorocaba",
+    "Santos",
+    "Cotia",
+    "Barueri",
+    "Jundiaí",
+  ],
+  TO: ["Palmas", "Araguaína"],
+};
+
+export function citiesForUf(uf: string): string[] {
+  return BRAZIL_CITIES_BY_UF[uf.toUpperCase()] || [];
+}

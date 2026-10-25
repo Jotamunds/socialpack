@@ -6,6 +6,7 @@ import {
   assertOwnedStoragePath,
   getOwnedStoragePathOrNull,
 } from "@/lib/storage-path";
+import { sanitizePublicErrorMessage } from "@/lib/public-error";
 
 export interface SignedUrlResponse {
   ok: boolean;
@@ -72,8 +73,7 @@ export async function getSignedPostDownloadUrlAction(postId: string): Promise<Si
       signedUrl: data.signedUrl,
     };
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Erro inesperado ao gerar URL assinada.";
-    return { ok: false, message: msg };
+    return { ok: false, message: sanitizePublicErrorMessage(err) };
   }
 }
 
@@ -111,7 +111,7 @@ export async function getWeeklyPostsAction(companyId: string, startDate?: string
     const { data, error } = await query.limit(7);
 
     if (error) {
-      return { ok: false, message: error.message, posts: [] };
+      return { ok: false, message: sanitizePublicErrorMessage(error.message), posts: [] };
     }
 
     const adminSupabase = createAdminClient();
@@ -138,7 +138,6 @@ export async function getWeeklyPostsAction(companyId: string, startDate?: string
 
     return { ok: true, posts: postsWithSignedUrls };
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Erro ao consultar posts semanais.";
-    return { ok: false, message: msg, posts: [] };
+    return { ok: false, message: sanitizePublicErrorMessage(err), posts: [] };
   }
 }

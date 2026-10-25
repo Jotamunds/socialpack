@@ -7,6 +7,7 @@ import {
   assertOwnedStoragePath,
   getOwnedStoragePathOrNull,
 } from "@/lib/storage-path";
+import { sanitizePublicErrorMessage } from "@/lib/public-error";
 
 export interface HistoryPostItem {
   id: string;
@@ -94,7 +95,7 @@ export async function getHistoryPostsAction(filters?: HistoryFilterParams): Prom
     const { data: posts, error: queryError } = await query;
 
     if (queryError) {
-      return { ok: false, posts: [], message: queryError.message };
+      return { ok: false, posts: [], message: sanitizePublicErrorMessage(queryError.message) };
     }
 
     const adminSupabase = createAdminClient();
@@ -141,8 +142,7 @@ export async function getHistoryPostsAction(filters?: HistoryFilterParams): Prom
 
     return { ok: true, posts: postsWithSignedUrls };
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Erro desconhecido ao carregar histórico.";
-    return { ok: false, posts: [], message: msg };
+    return { ok: false, posts: [], message: sanitizePublicErrorMessage(err) };
   }
 }
 
@@ -201,7 +201,9 @@ export async function deletePostOrchestratedAction(postId: string): Promise<{
       if (storageError) {
         return {
           ok: false,
-          message: `Falha ao excluir arquivo no Storage: ${storageError.message}. O registro no banco foi preservado.`,
+          message: sanitizePublicErrorMessage(
+            `Falha ao excluir arquivo no Storage: ${storageError.message}. O registro no banco foi preservado.`
+          ),
         };
       }
     }
@@ -215,7 +217,7 @@ export async function deletePostOrchestratedAction(postId: string): Promise<{
     if (deleteDbError) {
       return {
         ok: false,
-        message: `Falha ao remover registro no banco: ${deleteDbError.message}`,
+        message: sanitizePublicErrorMessage(deleteDbError.message),
       };
     }
 
@@ -224,7 +226,6 @@ export async function deletePostOrchestratedAction(postId: string): Promise<{
 
     return { ok: true };
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Erro inesperado ao excluir postagem.";
-    return { ok: false, message: msg };
+    return { ok: false, message: sanitizePublicErrorMessage(err) };
   }
 }
