@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/supabase/require-page-access";
 import { Logo } from "@/components/Logo";
@@ -20,7 +21,12 @@ export default async function HistoricoInstagramPage() {
   const supabase = await createClient();
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    redirect("/login?redirectTo=/geracao/historico/instagram");
+  }
 
   // 2. Consultar empresas e posts concluídos em paralelo
   const [companiesResult, historyResult] = await Promise.all([
