@@ -216,7 +216,7 @@ export async function POST(request: Request) {
           signedUrl,
         });
       } catch (postErr) {
-        // Transição de falha: processing ➔ failed (preenchendo error_message conforme posts_failed_integrity)
+        // pending|processing ➔ failed (lifecycle onda 3 + posts_failed_integrity)
         const sanitizedMsg = sanitizePublicErrorMessage(postErr);
         await adminSupabase
           .from("posts")
@@ -224,7 +224,8 @@ export async function POST(request: Request) {
             status: "failed",
             error_message: sanitizedMsg,
           })
-          .eq("id", postRecord.id);
+          .eq("id", postRecord.id)
+          .in("status", ["pending", "processing"]);
 
         finalResults.push({
           id: postRecord.id,

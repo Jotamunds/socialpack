@@ -11,7 +11,7 @@ import {
 export interface HistoryPostItem {
   id: string;
   user_id: string;
-  company_id: string | null;
+  company_id: string;
   day: string;
   date: string | null;
   theme: string;
@@ -118,7 +118,7 @@ export async function getHistoryPostsAction(filters?: HistoryFilterParams): Prom
         return {
           id: p.id,
           user_id: p.user_id,
-          company_id: p.company_id,
+          company_id: p.company_id as string,
           day: p.day,
           date: p.date,
           theme: p.theme,
