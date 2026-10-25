@@ -202,6 +202,26 @@ export async function cancelAsaasSubscription(subscriptionId: string): Promise<v
 }
 
 /**
+ * Remove ou invalida um link de pagamento no Asaas.
+ * Utilizado para invalidar links pendentes anteriores quando o cliente gera um novo link.
+ */
+export async function deleteAsaasPaymentLink(paymentLinkId: string): Promise<void> {
+  const res = await asaasFetch<{ id: string; deleted: boolean }>(
+    `/paymentLinks/${paymentLinkId}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  if (!res.ok) {
+    // Se já foi deletado (404), sucesso idempotente
+    if (res.status === 404) return;
+    console.warn(`[Asaas] Não foi possível remover link de pagamento ${paymentLinkId}: ${res.error}`);
+  }
+}
+
+
+/**
  * Validação de segurança do token de webhook com timingSafeEqual para mitigar timing attacks.
  */
 export function verifyAsaasWebhookToken(receivedToken: string | null | undefined): boolean {

@@ -56,6 +56,46 @@ export function getPlanServerConfig(plan: BillingPlanId): BillingPlanConfig {
 }
 
 /**
+ * Adiciona uma quantidade de dias úteis a uma data UTC, pulando sábados e domingos.
+ */
+export function addBusinessDays(startDate: Date, businessDays: number): Date {
+  const result = new Date(startDate.getTime());
+  let added = 0;
+  while (added < businessDays) {
+    result.setUTCDate(result.getUTCDate() + 1);
+    const dayOfWeek = result.getUTCDay();
+    // 0 = Domingo, 6 = Sábado
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      added++;
+    }
+  }
+  return result;
+}
+
+/**
+ * Calcula a data de término do ciclo de acesso.
+ * O ciclo contratado cobre 1 mês a partir da data de vencimento da fatura (dueDate),
+ * mais 3 dias úteis de tolerância (grace period) para compensação bancária da próxima fatura.
+ */
+export function calculatePeriodEnd(
+  dueDateStr: string | null | undefined,
+  baseDate: Date = new Date()
+): Date {
+  let cycleEnd: Date;
+
+  if (dueDateStr && /^\d{4}-\d{2}-\d{2}/.test(dueDateStr)) {
+    const [year, month, day] = dueDateStr.split("-").map(Number);
+    cycleEnd = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
+    cycleEnd.setUTCMonth(cycleEnd.getUTCMonth() + 1);
+  } else {
+    cycleEnd = new Date(baseDate.getTime());
+    cycleEnd.setUTCMonth(cycleEnd.getUTCMonth() + 1);
+  }
+
+  return addBusinessDays(cycleEnd, GRACE_PERIOD_DAYS);
+}
+
+/**
  * Valida se o valor recebido pelo gateway é suficiente para ativar o plano pretendido.
  * Para Pro: o valor deve ser exatamente ou maior que R$ 97,00.
  * Para Starter: o valor deve ser suficiente para R$ 49,90.
@@ -65,6 +105,7 @@ export function validatePaymentAmountForPlan(
   paidAmount: number
 ): boolean {
   const config = getPlanServerConfig(plan);
-  // Aceita com pequena tolerância de arredondamento de centavos caso haja desconto/centavos
+  // Aceita com pequena tolerância de arredondamento de centavos (0.05)
   return paidAmount >= config.price - 0.05;
 }
+

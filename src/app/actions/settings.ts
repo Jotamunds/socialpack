@@ -13,6 +13,7 @@ import { sanitizePublicErrorMessage } from "@/lib/public-error";
 import {
   createPaymentLinkForPlan,
   cancelAsaasSubscription,
+  deleteAsaasPaymentLink,
 } from "@/lib/billing/asaas";
 
 export type SettingsActionResponse = {
@@ -181,6 +182,21 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse & { p
       return { ok: true, message: "Sua conta já está no Plano Pro." };
     }
 
+    // Se houver link de pagamento pendente anterior, remove no Asaas
+    const currentSub = guard.subscription as {
+      id: string;
+      gateway_subscription_id?: string | null;
+      payment_link_id?: string | null;
+    };
+
+    if (currentSub.payment_link_id) {
+      try {
+        await deleteAsaasPaymentLink(currentSub.payment_link_id);
+      } catch (linkErr) {
+        console.warn("[Upgrade] Não foi possível remover link anterior:", linkErr);
+      }
+    }
+
     // Cria o link de pagamento do Plano Pro (R$ 97,00 fixo do servidor)
     const link = await createPaymentLinkForPlan({
       userId: user.id,
@@ -189,16 +205,18 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse & { p
     });
 
     const admin = createAdminClient();
+    // Salva previous_gateway_subscription_id para cancelamento automático após a confirmação do pagamento do Pro
     const { error: subError } = await admin
       .from("subscriptions")
       .update({
         pending_plan: "pro",
         payment_link_id: link.id,
         payment_url: link.url,
+        previous_gateway_subscription_id: currentSub.gateway_subscription_id || null,
         updated_at: new Date().toISOString(),
       })
       .eq("user_id", user.id)
-      .eq("id", guard.subscription.id);
+      .eq("id", currentSub.id);
 
     if (subError) {
       return { ok: false, error: sanitizePublicErrorMessage(subError.message) };
@@ -250,7 +268,13 @@ export async function cancelSubscriptionAction(): Promise<SettingsActionResponse
       try {
         await cancelAsaasSubscription(gatewaySubId);
       } catch (gatewayErr) {
-        console.error("Falha ao comunicar cancelamento ao Asaas:", gatewayErr);
+        console.error("[Cancelamento Asaas] Falha ao comunicar cancelamento ao Asaas:", gatewayErr);
+        // PONTO CRÍTICO: Não declara sucesso nem altera o banco se a chamada ao gateway falhar!
+        return {
+          ok: false,
+          error:
+            "Não foi possível confirmar o cancelamento junto à operadora Asaas. Sua assinatura permanece ativa sem alterações. Por favor, tente novamente em alguns instantes.",
+        };
       }
     }
 
@@ -279,3 +303,4 @@ export async function cancelSubscriptionAction(): Promise<SettingsActionResponse
     return { ok: false, error: sanitizePublicErrorMessage(err) };
   }
 }
+
