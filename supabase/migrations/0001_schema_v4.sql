@@ -128,6 +128,7 @@ security definer
 set search_path = ''
 as $$
 begin
+  -- 1. Cria o perfil cadastral do usuário
   insert into public.profiles (id, full_name, phone, email)
   values (
     new.id,
@@ -139,6 +140,18 @@ begin
     full_name = coalesce(excluded.full_name, public.profiles.full_name),
     phone = coalesce(excluded.phone, public.profiles.phone),
     updated_at = timezone('utc'::text, now());
+
+  -- 2. Cria automaticamente a assinatura em período de teste (trialing de 30 dias)
+  insert into public.subscriptions (user_id, plan, status, company_quota, current_period_end)
+  values (
+    new.id,
+    'starter',
+    'trialing',
+    1,
+    timezone('utc'::text, now()) + interval '30 days'
+  )
+  on conflict (user_id) do nothing;
+
   return new;
 end;
 $$;
