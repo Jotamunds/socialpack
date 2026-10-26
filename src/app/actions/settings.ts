@@ -157,6 +157,9 @@ export async function updateThemePreferenceAction(
  * REGRA ESTRITA: O plano e a cota só são promovidos a Pro após confirmação do pagamento de R$ 97,00 pelo Asaas.
  */
 export async function upgradeToProAction(): Promise<SettingsActionResponse & { paymentUrl?: string }> {
+  let createdLinkId: string | null = null;
+  let linkPersisted = false;
+
   try {
     const supabase = await createClient();
     const {
@@ -212,6 +215,8 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse & { p
       checkoutId,
     });
 
+    createdLinkId = link.id;
+
     const admin = createAdminClient();
     // Salva previous_gateway_subscription_id para cancelamento automático após a confirmação do pagamento do Pro
     const { data: updatedSub, error: subError } = await admin
@@ -229,8 +234,18 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse & { p
       .select("id");
 
     if (subError || !updatedSub?.length) {
+      if (createdLinkId) {
+        try {
+          await deleteAsaasPaymentLink(createdLinkId);
+          console.log(`[Upgrade] Link órfão ${createdLinkId} removido no Asaas após erro de persistência.`);
+        } catch (cleanupErr) {
+          console.error("[Upgrade] Falha ao remover link órfão no Asaas após erro de persistência:", cleanupErr);
+        }
+      }
       return { ok: false, error: sanitizePublicErrorMessage(subError?.message || "Falha ao registrar tentativa de upgrade no servidor.") };
     }
+
+    linkPersisted = true;
 
     revalidatePath("/configuracoes");
     revalidatePath("/perfil");
@@ -240,6 +255,14 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse & { p
       message: "Link de pagamento do Plano Pro gerado. Conclua o pagamento de R$ 97,00 para ativar o Pro.",
     };
   } catch (err) {
+    if (createdLinkId && !linkPersisted) {
+      try {
+        await deleteAsaasPaymentLink(createdLinkId);
+        console.log(`[Upgrade] Link órfão ${createdLinkId} removido no Asaas após exceção.`);
+      } catch (cleanupErr) {
+        console.error("[Upgrade] Falha ao remover link órfão no Asaas após exceção:", cleanupErr);
+      }
+    }
     return { ok: false, error: sanitizePublicErrorMessage(err) };
   }
 }

@@ -83,94 +83,42 @@ async function acquireWebhookLock(
   payload: AsaasWebhookPayload,
   timeoutSeconds: number = 60
 ): Promise<"already_processed" | "in_progress" | "acquired"> {
-  // 1. Tenta usar a RPC transacional se disponível
-  try {
-    if (typeof admin.rpc === "function") {
-      const { data: rpcResult, error: rpcError } = await admin.rpc(
-        "acquire_billing_webhook_event",
-        {
-          p_event_id: eventId,
-          p_event_type: eventType,
-          p_payload: payload,
-          p_timeout_seconds: timeoutSeconds,
-        }
-      );
-
-      if (!rpcError && rpcResult) {
-        return rpcResult as "already_processed" | "in_progress" | "acquired";
-      }
-    }
-  } catch {
-    // Fallback para query direta se RPC não estiver instalada
+  // Tarefas 1, 2 e 3: A aquisição do lock de concorrência DEVE ser estritamente atômica via RPC PostgreSQL.
+  // Nenhum fallback não atômico em JavaScript é permitido. Se a RPC não estiver disponível
+  // ou falhar, o webhook falha de forma segura para impedir processamento duplicado ou desprotegido.
+  if (!admin || typeof admin.rpc !== "function") {
+    throw new Error(
+      "Falha na proteção de concorrência: cliente de banco de dados não suporta a RPC 'acquire_billing_webhook_event'."
+    );
   }
 
-  // 2. Fallback idempotente direto no banco
-  const { data: existing, error: selectErr } = await admin
-    .from("billing_webhook_events")
-    .select("id, status, last_attempt_at, created_at, attempts")
-    .eq("id", eventId)
-    .maybeSingle();
+  const { data: rpcResult, error: rpcError } = await admin.rpc(
+    "acquire_billing_webhook_event",
+    {
+      p_event_id: eventId,
+      p_event_type: eventType,
+      p_payload: payload,
+      p_timeout_seconds: timeoutSeconds,
+    }
+  );
 
-  if (selectErr) {
-    throw new Error(`Erro ao consultar evento de webhook: ${selectErr.message}`);
+  if (rpcError) {
+    throw new Error(
+      `Falha na RPC de concorrência acquire_billing_webhook_event: ${rpcError.message}`
+    );
   }
 
-  const now = new Date();
-
-  if (existing) {
-    if (existing.status === "processed") {
-      return "already_processed";
-    }
-
-    if (existing.status === "processing") {
-      const lastTime = new Date(existing.last_attempt_at || existing.created_at).getTime();
-      const ageSec = (now.getTime() - lastTime) / 1000;
-      if (ageSec < timeoutSeconds) {
-        return "in_progress";
-      }
-    }
-
-    // Evento failed ou processing abandonado além do timeout: reabre tentativa
-    const { error: updateErr } = await admin
-      .from("billing_webhook_events")
-      .update({
-        status: "processing",
-        attempts: (existing.attempts || 1) + 1,
-        last_attempt_at: now.toISOString(),
-        payload,
-        error_message: null,
-      })
-      .eq("id", eventId);
-
-    if (updateErr) {
-      throw new Error(`Falha ao reabrir evento de webhook: ${updateErr.message}`);
-    }
-
-    return "acquired";
+  if (
+    rpcResult !== "acquired" &&
+    rpcResult !== "already_processed" &&
+    rpcResult !== "in_progress"
+  ) {
+    throw new Error(
+      `Retorno inesperado da RPC acquire_billing_webhook_event: ${String(rpcResult)}`
+    );
   }
 
-  // Inserção de novo evento
-  const { error: insertErr } = await admin.from("billing_webhook_events").insert({
-    id: eventId,
-    event: eventType,
-    status: "processing",
-    payload,
-    attempts: 1,
-    last_attempt_at: now.toISOString(),
-  });
-
-  if (insertErr) {
-    if (
-      insertErr.code === "23505" ||
-      insertErr.message?.toLowerCase().includes("duplicate") ||
-      insertErr.message?.toLowerCase().includes("unique")
-    ) {
-      return "in_progress";
-    }
-    throw new Error(`Falha ao registrar novo evento de webhook: ${insertErr.message}`);
-  }
-
-  return "acquired";
+  return rpcResult;
 }
 
 /**
@@ -241,17 +189,18 @@ export async function processAsaasWebhookEvent(
     }
 
     // 3. Marcação confirmada como 'processed'
-    const { error: processedErr } = await admin
+    const { data: processedRows, error: processedErr } = await admin
       .from("billing_webhook_events")
       .update({
         status: "processed",
         processed_at: getNow().toISOString(),
         error_message: null,
       })
-      .eq("id", payload.id);
+      .eq("id", payload.id)
+      .select("id");
 
-    if (processedErr) {
-      throw new Error(`Falha ao persistir status processed do evento: ${processedErr.message}`);
+    if (processedErr || !processedRows || processedRows.length === 0) {
+      throw new Error(`Falha ao persistir status processed do evento: ${processedErr?.message || "Nenhum registro atualizado"}`);
     }
 
     return {
@@ -379,33 +328,82 @@ async function handlePaymentEvent(params: {
   }
 
   // ============================================================================
-  // PRIORIDADE P0: PAGAMENTO DE ASSINATURA ANTERIOR EM TRANSIÇÃO
+  // DIFERENCIAÇÃO EXPLÍCITA DE ASSINATURAS (Tarefas 2 e 3):
+  // 1. Assinatura atual (gateway_subscription_id)
+  // 2. Assinatura anterior já substituída (previous_gateway_subscription_id diferente da atual)
+  // 3. Assinatura nova ainda pendente de confirmação (pending_plan / pending_checkout_id / link)
   // ============================================================================
-  const isPreviousSubPayment = Boolean(
-    realPayment.subscription &&
-    userSub.previous_gateway_subscription_id &&
-    userSub.previous_gateway_subscription_id === realPayment.subscription
+  const paymentSubId = realPayment.subscription || null;
+  const currentSubId = userSub.gateway_subscription_id || null;
+  const previousSubId = userSub.previous_gateway_subscription_id || null;
+
+  // 1. Assinatura atual: coincide com gateway_subscription_id
+  // REGRA INVIOLÁVEL: Nunca trate a assinatura como antiga quando seu identificador for igual a gateway_subscription_id!
+  const isCurrentSubPayment = Boolean(
+    paymentSubId &&
+    currentSubId &&
+    paymentSubId === currentSubId
   );
 
+  // 2. Assinatura anterior já substituída:
+  // Deve coincidir com previous_gateway_subscription_id E ser ESTRITAMENTE DIFERENTE de gateway_subscription_id
+  const isPreviousSubPayment = Boolean(
+    paymentSubId &&
+    previousSubId &&
+    paymentSubId === previousSubId &&
+    !isCurrentSubPayment
+  );
+
+  // 3. Assinatura nova ainda pendente de confirmação (upgrade pendente):
+  // Ocorre quando o usuário tem pending_plan === "pro", o pagamento correlaciona-se estritamente
+  // com o checkout ou link de pagamento pendente e NÃO é um pagamento da assinatura atual
+  const isPendingUpgradeConfirmation = Boolean(
+    userSub.pending_plan === "pro" &&
+    !isCurrentSubPayment &&
+    (
+      (checkoutId && userSub.pending_checkout_id ? checkoutId === userSub.pending_checkout_id : false) ||
+      (realPayment.paymentLink && userSub.payment_link_id ? realPayment.paymentLink === userSub.payment_link_id : false) ||
+      (!userSub.pending_checkout_id && !userSub.payment_link_id && fallbackPlan === "pro")
+    )
+  );
+
+  // ============================================================================
+  // PRIORIDADE P0: PAGAMENTO DE ASSINATURA ANTERIOR JÁ SUBSTITUÍDA EM TRANSIÇÃO
+  // ============================================================================
   if (isPreviousSubPayment) {
     console.log(
-      `[Webhook Asaas] Pagamento ${paymentId} pertence à assinatura anterior em transição (${realPayment.subscription}). Registrando no histórico sem alterar plano atual.`
+      `[Webhook Asaas] Pagamento ${paymentId} pertence à assinatura anterior substituída (${realPayment.subscription}). Registrando no histórico sem alterar plano atual.`
     );
 
     // 1. Registra no histórico financeiro vinculado ao usuário com plano Starter e ID da assinatura antiga
     await recordBillingPayment(admin, userSub.user_id, realPayment, "starter");
 
-    // 2. Se a assinatura anterior ainda precisa de cancelamento remoto no Asaas, tenta cancelá-la
-    if (userSub.previous_gateway_subscription_id) {
+    // 2. Cancela assinatura anterior no Asaas se ainda houver previousSubId
+    if (previousSubId) {
       try {
-        await cancelSub(userSub.previous_gateway_subscription_id);
-        console.log(`[Webhook Asaas] Assinatura anterior ${userSub.previous_gateway_subscription_id} cancelada com sucesso.`);
+        await cancelSub(previousSubId);
+        console.log(`[Webhook Asaas] Assinatura anterior ${previousSubId} cancelada com sucesso.`);
       } catch (cancelErr) {
-        console.warn(
-          `[Webhook Asaas] Falha ao cancelar assinatura anterior ${userSub.previous_gateway_subscription_id} durante recebimento de pagamento tardio:`,
-          cancelErr
+        // Tarefa 6: Se o cancelamento da assinatura antiga falhar, preserve os identificadores necessários
+        // e NÃO marque silenciosamente o evento como concluído. Garante estratégia de retentativa/recuperação.
+        const msg = cancelErr instanceof Error ? cancelErr.message : String(cancelErr);
+        throw new Error(
+          `Falha ao cancelar assinatura anterior ${previousSubId} no Asaas durante recebimento de pagamento tardio: ${msg}`
         );
-        // Preserva previous_gateway_subscription_id intacto para reconciliação posterior
+      }
+
+      // Limpa previous_gateway_subscription_id apenas após confirmação do cancelamento remoto
+      const { data: clearedRows, error: clearErr } = await admin
+        .from("subscriptions")
+        .update({
+          previous_gateway_subscription_id: null,
+          updated_at: getNow().toISOString(),
+        })
+        .eq("user_id", userSub.user_id)
+        .select("id");
+
+      if (clearErr || !clearedRows || clearedRows.length === 0) {
+        throw new Error(`Falha ao limpar previous_gateway_subscription_id no banco: ${clearErr?.message || "Nenhum registro atualizado"}`);
       }
     }
 
@@ -413,40 +411,109 @@ async function handlePaymentEvent(params: {
     return;
   }
 
-  // Proteção contra links antigos obsoletos
+  // ============================================================================
+  // ETAPA 2 — VALIDAÇÃO DA CORRELAÇÃO ENTRE CHECKOUT, PAGAMENTO E PLANO
+  // ============================================================================
+
+  // Tarefa 9: Proteção contra rebaixamento involuntário de Pro para Starter
+  // Conta Pro (ativa, past_due ou incomplete) NUNCA pode ser rebaixada para Starter por pagamento de checkout antigo ou avulso
+  if (userSub.plan === "pro" && !isCurrentSubPayment && !isPendingUpgradeConfirmation) {
+    const isStarterPayment =
+      fallbackPlan === "starter" ||
+      (!paymentSubId && realPayment.value === 49.9) ||
+      (paymentSubId && paymentSubId !== currentSubId);
+
+    if (isStarterPayment) {
+      console.warn(
+        `[Webhook Asaas] Pagamento ${paymentId} do plano Starter recebido para conta Pro (${userSub.status}). Rebaixamento automático rejeitado.`
+      );
+      await recordBillingPayment(admin, userSub.user_id, realPayment, "starter");
+      if (paymentSubId && paymentSubId !== currentSubId && paymentSubId !== previousSubId) {
+        try {
+          await cancelSub(paymentSubId);
+        } catch (cancelErr) {
+          const msg = cancelErr instanceof Error ? cancelErr.message : String(cancelErr);
+          throw new Error(`Falha ao cancelar assinatura legada ${paymentSubId} no Asaas: ${msg}`);
+        }
+      }
+      return;
+    }
+  }
+
+  // Tarefas 4 e 5: Proteção universal contra links de pagamento obsoletos
+  // Impede que pagamentos de links antigos ativem assinaturas em QUALQUER estado (active, incomplete, past_due)
   if (
+    !isCurrentSubPayment &&
     userSub.payment_link_id &&
     realPayment.paymentLink &&
     userSub.payment_link_id !== realPayment.paymentLink
   ) {
     console.warn(
-      `[Webhook Asaas] Pagamento ${paymentId} pertence a link obsoleto (${realPayment.paymentLink} vs ${userSub.payment_link_id}).`
+      `[Webhook Asaas] Pagamento ${paymentId} pertence a link obsoleto (${realPayment.paymentLink} vs ${userSub.payment_link_id}). Nenhuma assinatura ativada ou alterada.`
     );
-    if (userSub.status === "active" && userSub.plan === "pro") {
-      console.warn("[Webhook Asaas] Ignorando alteração de plano para preservar Pro contra link antigo.");
-      await recordBillingPayment(admin, userSub.user_id, realPayment, userSub.plan);
-      return;
-    }
+    await recordBillingPayment(admin, userSub.user_id, realPayment, fallbackPlan || userSub.plan);
+    return;
   }
 
-  // Proteção contra tentativas de checkouts antigos substituídos
+  // Tarefas 2, 4 e 5: Proteção universal contra checkouts divergentes ou substituídos
+  // Se houver pending_checkout_id, um pagamento com checkoutId diferente NÃO pode ativar a conta (mesmo se incomplete ou past_due)
   if (
+    !isCurrentSubPayment &&
     userSub.pending_checkout_id &&
     checkoutId &&
     userSub.pending_checkout_id !== checkoutId
   ) {
     console.warn(
-      `[Webhook Asaas] Pagamento ${paymentId} com checkoutId ${checkoutId} divergente do pendente ${userSub.pending_checkout_id}.`
+      `[Webhook Asaas] Pagamento ${paymentId} com checkoutId ${checkoutId} divergente do pendente ${userSub.pending_checkout_id}. Nenhuma assinatura ativada ou alterada.`
     );
-    if (userSub.status === "active") {
-      await recordBillingPayment(admin, userSub.user_id, realPayment, userSub.plan);
-      return;
-    }
+    await recordBillingPayment(admin, userSub.user_id, realPayment, fallbackPlan || userSub.plan);
+    return;
   }
 
-  // Determina o plano pretendido no servidor
-  const intendedPlan: BillingPlanId =
-    userSub.pending_plan === "pro" || fallbackPlan === "pro" ? "pro" : "starter";
+  // Tarefa 5: Proteção contra divergência entre plano do pagamento e plano pendente da assinatura
+  // Um checkout com plano diferente do plano pendente não pode alterar o registro
+  if (!isCurrentSubPayment && userSub.pending_plan && fallbackPlan && fallbackPlan !== userSub.pending_plan) {
+    console.warn(
+      `[Webhook Asaas] Pagamento ${paymentId} para plano ${fallbackPlan} diverge do plano pendente ${userSub.pending_plan}. Nenhuma assinatura ativada.`
+    );
+    await recordBillingPayment(admin, userSub.user_id, realPayment, fallbackPlan);
+    return;
+  }
+
+  // Tarefas 1, 2 e 6: Validação de dados suficientes para correlação segura
+  // Se NÃO for recorrência da assinatura atual, deve haver comprovação confiável da intenção de checkout:
+  // 1. Ou checkoutId coincidente com userSub.pending_checkout_id
+  // 2. Ou paymentLink coincidente com userSub.payment_link_id
+  // 3. Ou, na ausência de checkout pendente, checkoutId explícito com plano informado
+  const hasCorrelationAnchor =
+    isCurrentSubPayment ||
+    (userSub.pending_checkout_id && checkoutId && checkoutId === userSub.pending_checkout_id) ||
+    (userSub.payment_link_id && realPayment.paymentLink && realPayment.paymentLink === userSub.payment_link_id) ||
+    (!userSub.pending_checkout_id && !userSub.payment_link_id && checkoutId && fallbackPlan);
+
+  if (!isCurrentSubPayment && !hasCorrelationAnchor) {
+    console.warn(
+      `[Webhook Asaas] Pagamento ${paymentId} sem dados suficientes para correlação segura (checkoutId: ${checkoutId}, pendingCheckout: ${userSub.pending_checkout_id}, paymentLink: ${realPayment.paymentLink}, subLink: ${userSub.payment_link_id}). Nenhuma assinatura ativada ou alterada.`
+    );
+    await recordBillingPayment(admin, userSub.user_id, realPayment, fallbackPlan || userSub.plan);
+    return;
+  }
+
+  // Determina o plano pretendido no servidor de forma estrita e segura
+  let intendedPlan: BillingPlanId;
+  if (isCurrentSubPayment) {
+    // Pagamento da assinatura atual: renova o plano atual (Starter ou Pro)
+    intendedPlan = userSub.plan;
+  } else if (isPendingUpgradeConfirmation) {
+    // Pagamento correlacionado ao checkout do upgrade para Pro
+    intendedPlan = "pro";
+  } else if (userSub.pending_plan) {
+    intendedPlan = userSub.pending_plan;
+  } else if (fallbackPlan) {
+    intendedPlan = fallbackPlan;
+  } else {
+    intendedPlan = userSub.plan;
+  }
 
   // Validação estrita de valores em centavos inteiros (sem tolerância implícita nem fallback automático)
   const isAmountValid = validatePaymentAmountForPlan(intendedPlan, realPayment.value);
@@ -469,45 +536,74 @@ async function handlePaymentEvent(params: {
     const now = getNow();
     const periodEnd = calculatePeriodEnd(realPayment.dueDate, now);
 
+    // Identifica se estamos renovando a assinatura atual ativa
+    const isRenewingCurrentSub = isCurrentSubPayment && userSub.status === "active";
+
     // ==========================================================================
-    // PRIORIDADE P0: TRANSIÇÃO DE STARTER PARA PRO E CANCELAMENTO ANTERIOR
+    // CANCELAMENTO SEGURO DA ASSINATURA ANTERIOR APÓS CONFIRMAÇÃO DO UPGRADE
+    // Tarefa 4: Não cancele a assinatura Starter atual enquanto o upgrade para Pro
+    // ainda não tiver sido confirmado por um pagamento válido e correlacionado.
     // ==========================================================================
     const oldSubToCancel =
-      intendedPlan === "pro"
-        ? userSub.previous_gateway_subscription_id ||
-          (userSub.gateway_subscription_id &&
-          userSub.gateway_subscription_id !== realPayment.subscription
+      !isRenewingCurrentSub && intendedPlan === "pro"
+        ? (userSub.previous_gateway_subscription_id &&
+           userSub.previous_gateway_subscription_id !== realPayment.subscription
+            ? userSub.previous_gateway_subscription_id
+            : userSub.gateway_subscription_id &&
+              userSub.gateway_subscription_id !== realPayment.subscription
             ? userSub.gateway_subscription_id
             : null)
         : null;
 
     if (oldSubToCancel) {
       // Tenta cancelar assinatura anterior no Asaas.
-      // Se falhar, lança erro para NÃO limpar previous_gateway_subscription_id e reenfileirar no Asaas
-      await cancelSub(oldSubToCancel);
-      console.log(`[Webhook Asaas] Assinatura anterior ${oldSubToCancel} confirmada como cancelada no Asaas.`);
+      // Tarefa 6: Se falhar, lança erro para NÃO limpar previous_gateway_subscription_id e reenfileirar no Asaas
+      try {
+        await cancelSub(oldSubToCancel);
+        console.log(`[Webhook Asaas] Assinatura anterior ${oldSubToCancel} confirmada como cancelada no Asaas.`);
+      } catch (cancelErr) {
+        const msg = cancelErr instanceof Error ? cancelErr.message : String(cancelErr);
+        throw new Error(
+          `Falha ao cancelar assinatura anterior ${oldSubToCancel} no Asaas durante upgrade: ${msg}`
+        );
+      }
     }
 
-    // Atualização da assinatura local
-    const { error: updateSubErr } = await admin
-      .from("subscriptions")
-      .update({
-        plan: intendedPlan,
-        status: "active",
-        company_quota: quota,
-        pending_plan: null,
-        pending_checkout_id: null,
-        gateway_subscription_id: realPayment.subscription || userSub.gateway_subscription_id,
-        previous_gateway_subscription_id: null, // Limpa apenas após cancelamento remoto confirmado
-        current_period_start: now.toISOString(),
-        current_period_end: periodEnd.toISOString(),
-        cancel_at_period_end: false,
-        updated_at: now.toISOString(),
-      })
-      .eq("user_id", userSub.user_id);
+    // Monta payload de persistência da assinatura
+    const updatePayload: Record<string, unknown> = {
+      plan: intendedPlan,
+      status: "active",
+      company_quota: quota,
+      gateway_subscription_id: realPayment.subscription || userSub.gateway_subscription_id,
+      current_period_start: now.toISOString(),
+      current_period_end: periodEnd.toISOString(),
+      cancel_at_period_end: false,
+      updated_at: now.toISOString(),
+    };
 
-    if (updateSubErr) {
-      throw new Error(`Falha ao persistir assinatura no banco: ${updateSubErr.message}`);
+    if (isRenewingCurrentSub) {
+      // Tarefa 4: Renovação da assinatura atual — preserva pendência de upgrade não confirmada
+      updatePayload.pending_plan = userSub.pending_plan || null;
+      updatePayload.pending_checkout_id = userSub.pending_checkout_id || null;
+      updatePayload.payment_link_id = userSub.payment_link_id || null;
+      updatePayload.payment_url = userSub.payment_url || null;
+      updatePayload.previous_gateway_subscription_id = userSub.previous_gateway_subscription_id || null;
+    } else {
+      // Confirmação de novo plano / ativação / upgrade: limpa checkout pendente e previous sub
+      updatePayload.pending_plan = null;
+      updatePayload.pending_checkout_id = null;
+      updatePayload.previous_gateway_subscription_id = null;
+    }
+
+    // Tarefa 7: Atualização crítica com validação estrita de registros afetados
+    const { data: updatedSubRows, error: updateSubErr } = await admin
+      .from("subscriptions")
+      .update(updatePayload)
+      .eq("user_id", userSub.user_id)
+      .select("id");
+
+    if (updateSubErr || !updatedSubRows || updatedSubRows.length === 0) {
+      throw new Error(`Falha ao persistir assinatura no banco: ${updateSubErr?.message || "Nenhum registro atualizado"}`);
     }
   } else if (
     event === "PAYMENT_REFUNDED" ||
@@ -515,16 +611,17 @@ async function handlePaymentEvent(params: {
     realPayment.status === "REFUNDED" ||
     realPayment.status === "CHARGEBACK_REQUESTED"
   ) {
-    const { error: pastDueErr } = await admin
+    const { data: pastDueRows, error: pastDueErr } = await admin
       .from("subscriptions")
       .update({
         status: "past_due",
         updated_at: getNow().toISOString(),
       })
-      .eq("user_id", userSub.user_id);
+      .eq("user_id", userSub.user_id)
+      .select("id");
 
-    if (pastDueErr) {
-      throw new Error(`Falha ao atualizar status para past_due: ${pastDueErr.message}`);
+    if (pastDueErr || !pastDueRows || pastDueRows.length === 0) {
+      throw new Error(`Falha ao atualizar status para past_due: ${pastDueErr?.message || "Nenhum registro atualizado"}`);
     }
   } else if (event === "PAYMENT_OVERDUE" || realPayment.status === "OVERDUE") {
     const currentEnd = userSub.current_period_end
@@ -532,16 +629,17 @@ async function handlePaymentEvent(params: {
       : new Date(0);
 
     if (currentEnd.getTime() <= getNow().getTime()) {
-      const { error: overdueErr } = await admin
+      const { data: overdueRows, error: overdueErr } = await admin
         .from("subscriptions")
         .update({
           status: "past_due",
           updated_at: getNow().toISOString(),
         })
-        .eq("user_id", userSub.user_id);
+        .eq("user_id", userSub.user_id)
+        .select("id");
 
-      if (overdueErr) {
-        throw new Error(`Falha ao atualizar status overdue: ${overdueErr.message}`);
+      if (overdueErr || !overdueRows || overdueRows.length === 0) {
+        throw new Error(`Falha ao atualizar status overdue: ${overdueErr?.message || "Nenhum registro atualizado"}`);
       }
     }
   }
@@ -595,16 +693,17 @@ async function handleSubscriptionEvent(
     event === "SUBSCRIPTION_DELETED" ||
     event === "SUBSCRIPTION_INACTIVATED"
   ) {
-    const { error: subErr } = await admin
+    const { data: subRows, error: subErr } = await admin
       .from("subscriptions")
       .update({
         cancel_at_period_end: true,
         updated_at: new Date().toISOString(),
       })
-      .eq("gateway_subscription_id", subscriptionId);
+      .eq("gateway_subscription_id", subscriptionId)
+      .select("id");
 
-    if (subErr) {
-      throw new Error(`Falha ao marcar cancelamento de assinatura no banco: ${subErr.message}`);
+    if (subErr || !subRows || subRows.length === 0) {
+      throw new Error(`Falha ao marcar cancelamento de assinatura no banco: ${subErr?.message || "Assinatura não encontrada para cancelamento"}`);
     }
   }
 }

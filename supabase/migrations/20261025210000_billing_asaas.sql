@@ -118,6 +118,22 @@ declare
   v_last_attempt timestamptz;
   v_attempts integer;
 begin
+  -- 1. Tentativa de inserção atômica com ON CONFLICT (id) DO NOTHING
+  -- Trata corridas concorrentes na criação sem lançar exceções não capturadas
+  insert into public.billing_webhook_events (
+    id, event, status, payload, attempts, last_attempt_at, created_at
+  ) values (
+    p_event_id, p_event_type, 'processing', p_payload, 1, timezone('utc'::text, now()), timezone('utc'::text, now())
+  )
+  on conflict (id) do nothing;
+
+  -- Se a linha foi inserida nesta execução, o lock foi adquirido atomicamente
+  if found then
+    return 'acquired';
+  end if;
+
+  -- 2. Linha já existia (ou acabou de ser inserida por requisição concorrente):
+  -- Executa SELECT ... FOR UPDATE para serializar o acesso à linha existente
   select status, last_attempt_at, attempts
   into v_status, v_last_attempt, v_attempts
   from public.billing_webhook_events
@@ -125,25 +141,23 @@ begin
   for update;
 
   if not found then
-    insert into public.billing_webhook_events (
-      id, event, status, payload, attempts, last_attempt_at, created_at
-    ) values (
-      p_event_id, p_event_type, 'processing', p_payload, 1, timezone('utc'::text, now()), timezone('utc'::text, now())
-    );
-    return 'acquired';
+    -- Proteção contra exclusão concorrente
+    return 'in_progress';
   end if;
 
+  -- Evento já concluído: idempotência imediata
   if v_status = 'processed' then
     return 'already_processed';
   end if;
 
+  -- Evento em processamento ativo dentro da janela de timeout: recusa concorrência
   if v_status = 'processing' then
     if v_last_attempt is not null and (timezone('utc'::text, now()) - v_last_attempt) < (p_timeout_seconds || ' seconds')::interval then
       return 'in_progress';
     end if;
   end if;
 
-  -- Evento failed ou processing expirado: retoma processamento atômico
+  -- Evento 'failed' ou 'processing' expirado (> timeout): retoma processamento atômico
   update public.billing_webhook_events
   set status = 'processing',
       attempts = coalesce(v_attempts, 0) + 1,

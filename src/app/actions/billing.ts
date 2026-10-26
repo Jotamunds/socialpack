@@ -162,6 +162,8 @@ export async function startPlanCheckoutAction(formData: FormData): Promise<void>
 
   let paymentUrl: string | null = null;
   const checkoutId = crypto.randomUUID();
+  let createdLinkId: string | null = null;
+  let linkPersisted = false;
 
   try {
     // 5. Cria o link de pagamento recorrente no Asaas com valor fixo do servidor e identificador de checkout
@@ -172,6 +174,7 @@ export async function startPlanCheckoutAction(formData: FormData): Promise<void>
       checkoutId,
     });
 
+    createdLinkId = link.id;
     paymentUrl = link.url;
 
     // 6. Atualiza o registro no banco com pending_checkout_id e VERIFICA se o registro foi realmente atualizado
@@ -193,8 +196,18 @@ export async function startPlanCheckoutAction(formData: FormData): Promise<void>
       throw new Error("Falha ao registrar sessão de pagamento no servidor. Tente novamente.");
     }
 
+    linkPersisted = true;
     revalidatePath("/planos");
   } catch (err) {
+    // Tarefa 8: Rollback de integridade: se o link foi criado no Asaas mas o banco falhou, exclui o link órfão
+    if (createdLinkId && !linkPersisted) {
+      try {
+        await deleteAsaasPaymentLink(createdLinkId);
+        console.log(`[Checkout] Link órfão ${createdLinkId} removido no Asaas após falha de persistência.`);
+      } catch (cleanupErr) {
+        console.error("[Checkout] Falha ao remover link órfão no Asaas após erro de persistência:", cleanupErr);
+      }
+    }
     console.error("[startPlanCheckoutAction Error]:", err);
     throw new Error(sanitizePublicErrorMessage(err));
   }
