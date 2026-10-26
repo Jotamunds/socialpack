@@ -127,7 +127,7 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
-begindddddddw
+begin
   -- 1. Cria o perfil cadastral do usuário
   insert into public.profiles (id, full_name, phone, email)
   values (
