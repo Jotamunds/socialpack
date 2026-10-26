@@ -38,6 +38,7 @@ function createMockSupabaseAdmin(initialData = {}) {
 
   let failNextUpdateSubscriptions = false;
   let failNextUpsertPayments = false;
+  let failNextUpdateWebhookEvents = false;
   let failNextRpc = false;
 
   const client = {
@@ -50,6 +51,9 @@ function createMockSupabaseAdmin(initialData = {}) {
     },
     setFailNextUpsertPayments(val) {
       failNextUpsertPayments = val;
+    },
+    setFailNextUpdateWebhookEvents(val) {
+      failNextUpdateWebhookEvents = val;
     },
     async rpc(fnName, params) {
       if (failNextRpc) {
@@ -74,7 +78,7 @@ function createMockSupabaseAdmin(initialData = {}) {
           return { data: "acquired", error: null };
         }
 
-        if (row.status === "processed") {
+        if (row.status === "processed" || row.status === "manual_review") {
           return { data: "already_processed", error: null };
         }
 
@@ -162,6 +166,11 @@ function createMockSupabaseAdmin(initialData = {}) {
                   if (tableName === "subscriptions" && failNextUpdateSubscriptions) {
                     failNextUpdateSubscriptions = false;
                     resolve({ data: null, error: new Error("Falha simulada de persistência no Supabase") });
+                    return;
+                  }
+                  if (tableName === "billing_webhook_events" && failNextUpdateWebhookEvents) {
+                    failNextUpdateWebhookEvents = false;
+                    resolve({ data: null, error: new Error("Falha simulada ao atualizar billing_webhook_events") });
                     return;
                   }
                   for (const [k, row] of table.entries()) {
@@ -628,10 +637,19 @@ async function runRealResilienceTests() {
       { id: "evt_under_01", event: "PAYMENT_CONFIRMED", payment: { id: "pay_under" } },
       { admin: mockDb, getAsaasPayment: mockUnderPayment }
     );
-    assert.equal(resUnder.statusCode, 500, "Pagamento insuficiente deve rejeitar ativação");
+    assert.equal(resUnder.statusCode, 200, "Pagamento insuficiente com revisão persistida deve responder HTTP 200");
+    assert.equal(resUnder.body.manual_review, true, "Resposta deve indicar encaminhamento para manual_review");
     const subUnder = mockDb.tables.subscriptions.get("usr_underpaid");
     assert.equal(subUnder.status, "incomplete", "Status deve permanecer incomplete");
-    assert.equal(subUnder.plan, "starter", "Não pode haver fallback espúrio para Starter");
+    assert.equal(subUnder.plan, "starter", "Não pode haver fallback espúrio para Starter nem promoção");
+    const eventUnder = mockDb.tables.billing_webhook_events.get("evt_under_01");
+    assert.equal(eventUnder.status, "manual_review", "Evento deve estar no estado terminal manual_review");
+    assert.ok(eventUnder.error_message?.includes("insuficiente"), "Motivo da revisão manual deve estar persistido");
+    const payUnder = Array.from(mockDb.tables.billing_payments.values()).find(
+      (p) => p.asaas_payment_id === "pay_under"
+    );
+    assert.ok(payUnder, "Pagamento insuficiente persistido para auditoria");
+    assert.equal(payUnder.value, 50.0);
 
     // 6.3 Falha de escrita no Supabase não mascara como sucesso
     mockDb.setFailNextUpdateSubscriptions(true);
@@ -1793,7 +1811,7 @@ async function runRealResilienceTests() {
     // ------------------------------------------------------------------------
     // 9.9 Pagamento abaixo do valor exigido
     // ------------------------------------------------------------------------
-    console.log("   -> 9.9 Pagamento com valor insuficiente rejeita estritamente e registra auditoria...");
+    console.log("   -> 9.9 Pagamento com valor insuficiente vai para revisão manual e registra auditoria...");
     const mockDb99 = createMockSupabaseAdmin({
       subscriptions: [
         [
@@ -1824,14 +1842,127 @@ async function runRealResilienceTests() {
         }),
       }
     );
-    assert.equal(resUnder99.statusCode, 500, "Valor insuficiente rejeita ativação com HTTP 500");
+    assert.equal(resUnder99.statusCode, 200, "Valor insuficiente deve responder HTTP 200 com revisão manual");
+    assert.equal(resUnder99.body.processed, false, "Pagamento insuficiente não pode ser processado como ativação");
+    assert.equal(resUnder99.body.manual_review, true, "Resposta deve indicar revisão manual");
+    assert.equal(resUnder99.body.status, "manual_review", "Status da resposta deve ser manual_review");
     const subUnder99 = mockDb99.tables.subscriptions.get("usr_e3_under");
     assert.equal(subUnder99.status, "incomplete", "Plano NÃO ativado");
+    const under99Event = mockDb99.tables.billing_webhook_events.get("evt_e3_under_01");
+    assert.equal(under99Event.status, "manual_review", "Evento deve ser persistido como manual_review");
+    assert.ok(under99Event.error_message?.includes("insuficiente"), "Motivo da revisão manual deve ser persistido");
     const paymentRowUnder = Array.from(mockDb99.tables.billing_payments.values()).find(
       (p) => p.asaas_payment_id === "pay_under_30"
     );
     assert.ok(paymentRowUnder, "Pagamento insuficiente registrado em billing_payments para auditoria financeira");
     assert.equal(paymentRowUnder.value, 30.0);
+
+    // 9.9b Reentrega idempotente do evento em manual_review não duplica pagamento nem reprocessa
+    const resUnder99Dup = await processAsaasWebhookEvent(
+      { id: "evt_e3_under_01", event: "PAYMENT_CONFIRMED", payment: { id: "pay_under_30" } },
+      {
+        admin: mockDb99,
+        getAsaasPayment: async () => {
+          throw new Error("Não deve re-consultar Asaas para evento terminal em manual_review");
+        },
+      }
+    );
+    assert.equal(resUnder99Dup.statusCode, 200, "Reentrega de manual_review retorna HTTP 200");
+    assert.equal(resUnder99Dup.body.duplicate, true, "Reentrega de manual_review identificada como duplicata idempotente");
+    const paymentsCount99 = Array.from(mockDb99.tables.billing_payments.values()).filter(
+      (p) => p.asaas_payment_id === "pay_under_30"
+    ).length;
+    assert.equal(paymentsCount99, 1, "Exatamente 1 pagamento persistido mesmo após reentrega do webhook");
+    assert.equal(mockDb99.tables.subscriptions.get("usr_e3_under").status, "incomplete", "Status inalterado na reentrega");
+
+    // 9.9c Falha transitória ao persistir status manual_review preserva HTTP 500
+    const mockDb99Fail = createMockSupabaseAdmin({
+      subscriptions: [
+        [
+          "usr_e3_under_fail",
+          {
+            id: "sub_e3_9_fail",
+            user_id: "usr_e3_under_fail",
+            plan: "starter",
+            status: "incomplete",
+            pending_plan: "pro",
+            pending_checkout_id: "chk_under_99_fail",
+            payment_link_id: "link_under_99_fail",
+          },
+        ],
+      ],
+    });
+    mockDb99Fail.setFailNextUpdateWebhookEvents(true);
+
+    const resFailPersistReview = await processAsaasWebhookEvent(
+      { id: "evt_e3_under_fail", event: "PAYMENT_CONFIRMED", payment: { id: "pay_under_fail" } },
+      {
+        admin: mockDb99Fail,
+        getAsaasPayment: async (id) => ({
+          id,
+          value: 30.0,
+          status: "CONFIRMED",
+          paymentLink: "link_under_99_fail",
+          externalReference: "usr_e3_under_fail:pro:chk_under_99_fail",
+        }),
+      }
+    );
+    assert.equal(resFailPersistReview.statusCode, 500, "Falha ao persistir manual_review no banco DEVE retornar HTTP 500");
+    const eventFailPersist = mockDb99Fail.tables.billing_webhook_events.get("evt_e3_under_fail");
+    assert.equal(eventFailPersist.status, "failed", "Evento marcado como failed para reenvio pelo Asaas");
+
+    // 9.9d Retentativa após recuperação da falha de persistência conclui com manual_review e HTTP 200
+    const resRetryPersistReview = await processAsaasWebhookEvent(
+      { id: "evt_e3_under_fail", event: "PAYMENT_CONFIRMED", payment: { id: "pay_under_fail" } },
+      {
+        admin: mockDb99Fail,
+        getAsaasPayment: async (id) => ({
+          id,
+          value: 30.0,
+          status: "CONFIRMED",
+          paymentLink: "link_under_99_fail",
+          externalReference: "usr_e3_under_fail:pro:chk_under_99_fail",
+        }),
+      }
+    );
+    assert.equal(resRetryPersistReview.statusCode, 200, "Retentativa bem-sucedida retorna HTTP 200");
+    assert.equal(resRetryPersistReview.body.manual_review, true);
+    assert.equal(mockDb99Fail.tables.billing_webhook_events.get("evt_e3_under_fail").status, "manual_review");
+
+    // 9.9e Falha transitória ao persistir o pagamento em billing_payments preserva HTTP 500
+    const mockDb99FailPay = createMockSupabaseAdmin({
+      subscriptions: [
+        [
+          "usr_e3_pay_fail",
+          {
+            id: "sub_e3_9_pay_fail",
+            user_id: "usr_e3_pay_fail",
+            plan: "starter",
+            status: "incomplete",
+            pending_plan: "pro",
+            pending_checkout_id: "chk_pay_fail",
+            payment_link_id: "link_pay_fail",
+          },
+        ],
+      ],
+    });
+    mockDb99FailPay.setFailNextUpsertPayments(true);
+
+    const resFailPayment = await processAsaasWebhookEvent(
+      { id: "evt_e3_pay_fail", event: "PAYMENT_CONFIRMED", payment: { id: "pay_under_db_err" } },
+      {
+        admin: mockDb99FailPay,
+        getAsaasPayment: async (id) => ({
+          id,
+          value: 30.0,
+          status: "CONFIRMED",
+          paymentLink: "link_pay_fail",
+          externalReference: "usr_e3_pay_fail:pro:chk_pay_fail",
+        }),
+      }
+    );
+    assert.equal(resFailPayment.statusCode, 500, "Falha ao gravar billing_payments DEVE retornar HTTP 500");
+    assert.equal(mockDb99FailPay.tables.billing_webhook_events.get("evt_e3_pay_fail").status, "failed");
 
     // ------------------------------------------------------------------------
     // 9.10 Reprocessamento após falha sem duplicar pagamento nem plano
@@ -1841,6 +1972,21 @@ async function runRealResilienceTests() {
       (p) => p.user_id === "usr_e3_db_fail"
     );
     assert.equal(paymentsForUser.length, 1, "Exatamente 1 registro de pagamento após falha e recuperação");
+
+    // Mesmo pagamento Asaas entregue em outro evento (CONFIRMED -> RECEIVED) não duplica billing_payments
+    const resSamePayment97 = await processAsaasWebhookEvent(
+      { id: "evt_e3_same_payment_02", event: "PAYMENT_RECEIVED", payment: { id: "pay_e3_db_1" } },
+      { admin: mockDb97, getAsaasPayment: mockGetPayment97 }
+    );
+    assert.equal(resSamePayment97.statusCode, 200, "Novo evento para o mesmo pagamento deve processar");
+    const paymentsAfterSamePayment = Array.from(mockDb97.tables.billing_payments.values()).filter(
+      (p) => p.asaas_payment_id === "pay_e3_db_1"
+    );
+    assert.equal(
+      paymentsAfterSamePayment.length,
+      1,
+      "O mesmo asaas_payment_id em eventos distintos NÃO pode gerar duas linhas"
+    );
 
     console.log("   ✓ Todos os 10 cenários obrigatórios de idempotência, concorrência e recuperação da Etapa 3 aprovados com sucesso.");
   }
