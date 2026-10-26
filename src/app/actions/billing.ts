@@ -1,5 +1,6 @@
 "use server";
 
+import crypto from "node:crypto";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -9,7 +10,7 @@ import {
   createPaymentLinkForPlan,
   deleteAsaasPaymentLink,
 } from "@/lib/billing/asaas";
-import { isValidPlanId, type BillingPlanId } from "@/lib/billing/plans";
+import { type BillingPlanId } from "@/lib/billing/plans";
 import { sanitizePublicErrorMessage } from "@/lib/public-error";
 
 const PlanFormSchema = z.enum(["starter", "pro"], {
@@ -24,7 +25,14 @@ const PlanFormSchema = z.enum(["starter", "pro"], {
  * 2. Preço, moeda ou periodicidade NÃO são lidos do form nem da URL.
  * 3. O valor em reais (49,90 ou 97,00) é recuperado exclusivamente no servidor.
  * 4. A conta NÃO é ativada por esta action; apenas o webhook de pagamento do Asaas ativa.
- * 5. Garante a existência da assinatura local antes de criar o link e verifica a persistência antes de redirecionar.
+ * 5. Bloqueia checkouts incompatíveis:
+ *    - Usuário com Pro ativo não pode assinar Starter.
+ *    - Usuário com Starter ativo deve usar upgradeToProAction().
+ *    - Usuário com assinatura ativa no mesmo plano é redirecionado ao perfil.
+ *    - Checkout pendente para o mesmo plano é reutilizado.
+ *    - Checkout pendente para outro plano é invalidado no Asaas antes de substituir.
+ * 6. Trata concorrência na criação inicial da assinatura contra o trigger de auth.
+ * 7. Gera identificador único de tentativa de checkout (pending_checkout_id).
  */
 export async function startPlanCheckoutAction(formData: FormData): Promise<void> {
   const supabase = await createClient();
@@ -55,12 +63,13 @@ export async function startPlanCheckoutAction(formData: FormData): Promise<void>
     payment_url: string | null;
     payment_link_id: string | null;
     pending_plan: string | null;
+    pending_checkout_id?: string | null;
   } | null = null;
 
   for (let attempt = 1; attempt <= 5; attempt++) {
     const { data, error } = await admin
       .from("subscriptions")
-      .select("id, plan, status, payment_url, payment_link_id, pending_plan")
+      .select("id, plan, status, payment_url, payment_link_id, pending_plan, pending_checkout_id")
       .eq("user_id", user.id)
       .maybeSingle();
 
@@ -78,6 +87,7 @@ export async function startPlanCheckoutAction(formData: FormData): Promise<void>
   }
 
   // Se após as retentativas o registro ainda não existir, cria explicitamente a linha de assinatura
+  // Trata concorrência com o trigger de auth (conflito 23505) reconsultando a linha criada
   if (!sub) {
     const { data: newSub, error: insertError } = await admin
       .from("subscriptions")
@@ -87,48 +97,89 @@ export async function startPlanCheckoutAction(formData: FormData): Promise<void>
         status: "incomplete",
         company_quota: 1,
       })
-      .select("id, plan, status, payment_url, payment_link_id, pending_plan")
-      .single();
+      .select("id, plan, status, payment_url, payment_link_id, pending_plan, pending_checkout_id")
+      .maybeSingle();
 
-    if (insertError || !newSub) {
-      console.error("[Checkout] Falha ao criar registro inicial de assinatura:", insertError);
-      throw new Error("Não foi possível inicializar a assinatura. Tente novamente em alguns segundos.");
+    if (insertError) {
+      // Conflito de chave única: outro processo (ex: trigger) criou a linha simultaneamente
+      if (insertError.code === "23505" || insertError.message?.toLowerCase().includes("duplicate")) {
+        const { data: conflictSub } = await admin
+          .from("subscriptions")
+          .select("id, plan, status, payment_url, payment_link_id, pending_plan, pending_checkout_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (conflictSub) {
+          sub = conflictSub;
+        }
+      }
+
+      if (!sub) {
+        console.error("[Checkout] Falha ao criar registro inicial de assinatura:", insertError);
+        throw new Error("Não foi possível inicializar a assinatura. Tente novamente em alguns segundos.");
+      }
+    } else if (newSub) {
+      sub = newSub;
+    }
+  }
+
+  if (!sub) {
+    throw new Error("Não foi possível carregar os dados da assinatura.");
+  }
+
+  // 2. Validações estritas de transição baseadas no estado da assinatura:
+  if (sub.status === "active" || sub.status === "trialing") {
+    // a) Já tem assinatura ativa no mesmo plano
+    if (sub.plan === chosenPlan) {
+      redirect("/perfil");
     }
 
-    sub = newSub;
+    // b) Já tem Pro ativo: bloqueia criação de assinatura Starter concorrente
+    if (sub.plan === "pro" && chosenPlan === "starter") {
+      throw new Error("Você já possui o Plano Pro ativo. Não é possível assinar o Plano Starter simultaneamente.");
+    }
+
+    // c) Tem Starter ativo e quer Pro: deve seguir pelo fluxo formal de upgrade
+    if (sub.plan === "starter" && chosenPlan === "pro") {
+      redirect("/configuracoes");
+    }
   }
 
-  // Se já tiver uma assinatura ativa no mesmo plano, redireciona para o perfil
-  if (sub && (sub.status === "active" || sub.status === "trialing") && sub.plan === chosenPlan) {
-    redirect("/perfil");
+  // 3. Reutilização de checkout pendente para o mesmo plano
+  if (sub.pending_plan === chosenPlan && sub.payment_url && sub.payment_link_id) {
+    redirect(sub.payment_url);
   }
 
-  // Se havia um link de pagamento anterior pendente, invalida no Asaas para não gerar cobranças orfãs
+  // 4. Invalidação confirmada de link de pagamento anterior se for de outro plano
   if (sub.payment_link_id) {
     try {
       await deleteAsaasPaymentLink(sub.payment_link_id);
     } catch (e) {
-      console.warn("[Checkout] Não foi possível remover link de pagamento anterior:", e);
+      console.error("[Checkout] Falha ao invalidar link de pagamento anterior no Asaas:", e);
+      throw new Error("Não foi possível cancelar o checkout anterior no Asaas. Tente novamente.");
     }
   }
 
   let paymentUrl: string | null = null;
+  const checkoutId = crypto.randomUUID();
 
   try {
-    // 2. Cria o link de pagamento recorrente no Asaas com valor fixo do servidor
+    // 5. Cria o link de pagamento recorrente no Asaas com valor fixo do servidor e identificador de checkout
     const link = await createPaymentLinkForPlan({
       userId: user.id,
       plan: chosenPlan,
       userEmail: user.email,
+      checkoutId,
     });
 
     paymentUrl = link.url;
 
-    // 3. Atualiza o registro no banco e VERIFICA se o registro foi realmente atualizado
+    // 6. Atualiza o registro no banco com pending_checkout_id e VERIFICA se o registro foi realmente atualizado
     const { data: updatedSub, error: updateError } = await admin
       .from("subscriptions")
       .update({
         pending_plan: chosenPlan,
+        pending_checkout_id: checkoutId,
         payment_link_id: link.id,
         payment_url: link.url,
         updated_at: new Date().toISOString(),
@@ -148,11 +199,12 @@ export async function startPlanCheckoutAction(formData: FormData): Promise<void>
     throw new Error(sanitizePublicErrorMessage(err));
   }
 
-  // 4. Redireciona o usuário para a tela de pagamento seguro do Asaas somente após validação de persistência
+  // 7. Redireciona o usuário para a tela de pagamento seguro do Asaas somente após validação de persistência
   if (paymentUrl) {
     redirect(paymentUrl);
   } else {
     redirect("/planos");
   }
 }
+
 

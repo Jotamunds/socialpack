@@ -57,6 +57,8 @@ export function getPlanServerConfig(plan: BillingPlanId): BillingPlanConfig {
 
 /**
  * Adiciona uma quantidade de dias úteis a uma data UTC, pulando sábados e domingos.
+ * Representa a tolerância de compensação bancária pós-ciclo (fins de semana bancários),
+ * mantendo cálculo previsível e independente de calendários externos de feriados.
  */
 export function addBusinessDays(startDate: Date, businessDays: number): Date {
   const result = new Date(startDate.getTime());
@@ -74,38 +76,60 @@ export function addBusinessDays(startDate: Date, businessDays: number): Date {
 
 /**
  * Calcula a data de término do ciclo de acesso.
- * O ciclo contratado cobre 1 mês a partir da data de vencimento da fatura (dueDate),
- * mais 3 dias úteis de tolerância (grace period) para compensação bancária da próxima fatura.
+ * O ciclo contratado cobre 1 mês civil a partir do vencimento da cobrança (dueDate),
+ * ajustando para o último dia do mês quando o dia de origem não existir no mês de destino
+ * (ex: 31 de janeiro -> 28/29 de fevereiro; 31 de agosto -> 30 de setembro).
+ * Acrescenta 3 dias úteis de tolerância bancária (grace period) após o término do ciclo.
  */
 export function calculatePeriodEnd(
   dueDateStr: string | null | undefined,
   baseDate: Date = new Date()
 ): Date {
-  let cycleEnd: Date;
+  let baseYear: number;
+  let baseMonth: number; // 1-12
+  let baseDay: number;
 
   if (dueDateStr && /^\d{4}-\d{2}-\d{2}/.test(dueDateStr)) {
-    const [year, month, day] = dueDateStr.split("-").map(Number);
-    cycleEnd = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
-    cycleEnd.setUTCMonth(cycleEnd.getUTCMonth() + 1);
+    const [y, m, d] = dueDateStr.split("-").map(Number);
+    baseYear = y;
+    baseMonth = m;
+    baseDay = d;
   } else {
-    cycleEnd = new Date(baseDate.getTime());
-    cycleEnd.setUTCMonth(cycleEnd.getUTCMonth() + 1);
+    baseYear = baseDate.getUTCFullYear();
+    baseMonth = baseDate.getUTCMonth() + 1;
+    baseDay = baseDate.getUTCDate();
   }
+
+  // Avança exatamente 1 mês civil em UTC
+  const targetYear = baseMonth === 12 ? baseYear + 1 : baseYear;
+  const targetMonth = baseMonth === 12 ? 1 : baseMonth + 1; // 1-12
+
+  // Último dia do mês de destino em UTC (dia 0 do mês seguinte)
+  const daysInTargetMonth = new Date(Date.UTC(targetYear, targetMonth, 0)).getUTCDate();
+  const targetDay = Math.min(baseDay, daysInTargetMonth);
+
+  const cycleEnd = new Date(Date.UTC(targetYear, targetMonth - 1, targetDay, 23, 59, 59, 999));
 
   return addBusinessDays(cycleEnd, GRACE_PERIOD_DAYS);
 }
 
 /**
  * Valida se o valor recebido pelo gateway é suficiente para ativar o plano pretendido.
- * Para Pro: o valor deve ser exatamente ou maior que R$ 97,00.
- * Para Starter: o valor deve ser suficiente para R$ 49,90.
+ * A validação é estritamente baseada em centavos inteiros (priceCents).
+ * Para Pro: exige pelo menos 9700 centavos (R$ 97,00). Valores menores (inclusive R$ 96,95) são rejeitados.
+ * Para Starter: exige pelo menos 4990 centavos (R$ 49,90). Valores menores são rejeitados.
+ * Não há tolerância implícita nem fallback automático entre planos.
  */
 export function validatePaymentAmountForPlan(
   plan: BillingPlanId,
   paidAmount: number
 ): boolean {
+  if (typeof paidAmount !== "number" || isNaN(paidAmount) || paidAmount <= 0) {
+    return false;
+  }
   const config = getPlanServerConfig(plan);
-  // Aceita com pequena tolerância de arredondamento de centavos (0.05)
-  return paidAmount >= config.price - 0.05;
+  const paidCents = Math.round(paidAmount * 100);
+  return paidCents >= config.priceCents;
 }
+
 

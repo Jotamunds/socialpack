@@ -1,5 +1,6 @@
 "use server";
 
+import crypto from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -182,7 +183,7 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse & { p
       return { ok: true, message: "Sua conta já está no Plano Pro." };
     }
 
-    // Se houver link de pagamento pendente anterior, remove no Asaas
+    // Se houver link de pagamento pendente anterior, remove no Asaas com verificação estrita
     const currentSub = guard.subscription as {
       id: string;
       gateway_subscription_id?: string | null;
@@ -193,33 +194,42 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse & { p
       try {
         await deleteAsaasPaymentLink(currentSub.payment_link_id);
       } catch (linkErr) {
-        console.warn("[Upgrade] Não foi possível remover link anterior:", linkErr);
+        console.error("[Upgrade] Falha ao remover link anterior no Asaas:", linkErr);
+        return {
+          ok: false,
+          error: "Não foi possível cancelar o link de pagamento anterior no Asaas. Tente novamente.",
+        };
       }
     }
 
-    // Cria o link de pagamento do Plano Pro (R$ 97,00 fixo do servidor)
+    const checkoutId = crypto.randomUUID();
+
+    // Cria o link de pagamento do Plano Pro (R$ 97,00 fixo do servidor) com checkoutId
     const link = await createPaymentLinkForPlan({
       userId: user.id,
       plan: "pro",
       userEmail: user.email,
+      checkoutId,
     });
 
     const admin = createAdminClient();
     // Salva previous_gateway_subscription_id para cancelamento automático após a confirmação do pagamento do Pro
-    const { error: subError } = await admin
+    const { data: updatedSub, error: subError } = await admin
       .from("subscriptions")
       .update({
         pending_plan: "pro",
+        pending_checkout_id: checkoutId,
         payment_link_id: link.id,
         payment_url: link.url,
         previous_gateway_subscription_id: currentSub.gateway_subscription_id || null,
         updated_at: new Date().toISOString(),
       })
       .eq("user_id", user.id)
-      .eq("id", currentSub.id);
+      .eq("id", currentSub.id)
+      .select("id");
 
-    if (subError) {
-      return { ok: false, error: sanitizePublicErrorMessage(subError.message) };
+    if (subError || !updatedSub?.length) {
+      return { ok: false, error: sanitizePublicErrorMessage(subError?.message || "Falha ao registrar tentativa de upgrade no servidor.") };
     }
 
     revalidatePath("/configuracoes");
@@ -279,17 +289,22 @@ export async function cancelSubscriptionAction(): Promise<SettingsActionResponse
     }
 
     const admin = createAdminClient();
-    const { error: subError } = await admin
+    const { data: updatedRows, error: subError } = await admin
       .from("subscriptions")
       .update({
         cancel_at_period_end: true,
         updated_at: new Date().toISOString(),
       })
       .eq("user_id", user.id)
-      .eq("id", guard.subscription.id);
+      .eq("id", guard.subscription.id)
+      .select("id");
 
-    if (subError) {
-      return { ok: false, error: sanitizePublicErrorMessage(subError.message) };
+    if (subError || !updatedRows?.length) {
+      console.error("[Cancelamento Asaas] Falha ao registrar cancel_at_period_end no banco:", subError);
+      return {
+        ok: false,
+        error: "O cancelamento foi solicitado na operadora, mas ocorreu uma falha ao atualizar o registro no sistema. Entre em contato com o suporte para concluir a sincronização.",
+      };
     }
 
     revalidatePath("/configuracoes");

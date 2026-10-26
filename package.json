@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "templates:check": "node scripts/check-niche-templates.mjs"
+    "templates:check": "node scripts/check-niche-templates.mjs",
+    "test:billing": "node scripts/test-billing-resilience.mjs",
+    "test:billing:security": "node scripts/test-billing-asaas.mjs",
+    "test:phase7": "node scripts/test-phase7.mjs"
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",

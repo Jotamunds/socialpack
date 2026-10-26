@@ -1,7 +1,7 @@
 import "server-only";
 import crypto from "node:crypto";
 import { getAsaasConfig } from "@/lib/env";
-import { BILLING_PLANS, type BillingPlanId, getPlanServerConfig } from "./plans";
+import { type BillingPlanId, getPlanServerConfig } from "./plans";
 
 export interface AsaasPaymentLinkResponse {
   id: string;
@@ -121,8 +121,13 @@ export async function createPaymentLinkForPlan(params: {
   userId: string;
   plan: BillingPlanId;
   userEmail?: string;
+  checkoutId?: string;
 }): Promise<AsaasPaymentLinkResponse> {
   const planConfig = getPlanServerConfig(params.plan);
+
+  const externalRef = params.checkoutId
+    ? `${params.userId}:${params.plan}:${params.checkoutId}`
+    : `${params.userId}:${params.plan}`;
 
   const payload = {
     name: planConfig.name,
@@ -131,7 +136,7 @@ export async function createPaymentLinkForPlan(params: {
     billingType: "UNDEFINED",
     chargeType: "RECURRENT",
     subscriptionCycle: "MONTHLY",
-    externalReference: `${params.userId}:${params.plan}`,
+    externalReference: externalRef,
     notificationEnabled: true,
   };
 
@@ -214,9 +219,9 @@ export async function deleteAsaasPaymentLink(paymentLinkId: string): Promise<voi
   );
 
   if (!res.ok) {
-    // Se já foi deletado (404), sucesso idempotente
+    // Trata HTTP 404 como sucesso idempotente se o link já não existe
     if (res.status === 404) return;
-    console.warn(`[Asaas] Não foi possível remover link de pagamento ${paymentLinkId}: ${res.error}`);
+    throw new Error(`Falha ao remover link de pagamento ${paymentLinkId} no Asaas: ${res.error}`);
   }
 }
 
