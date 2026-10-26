@@ -69,6 +69,15 @@ export interface WebhookProcessResult {
   body: Record<string, unknown>;
 }
 
+export type PaymentEventHandlingResult =
+  | {
+      status: "processed";
+    }
+  | {
+      status: "manual_review";
+      reason: string;
+    };
+
 /**
  * Adquire o bloqueio de processamento atômico para o evento de webhook.
  * Retorna:
@@ -175,8 +184,10 @@ export async function processAsaasWebhookEvent(
 
   // 2. Execução da Lógica de Negócio
   try {
+    let handlingResult: PaymentEventHandlingResult = { status: "processed" };
+
     if (payload.payment?.id) {
-      await handlePaymentEvent({
+      const res = await handlePaymentEvent({
         event: payload.event,
         paymentId: payload.payment.id,
         admin,
@@ -184,11 +195,44 @@ export async function processAsaasWebhookEvent(
         cancelSub,
         getNow,
       });
+      if (res) {
+        handlingResult = res;
+      }
     } else if (payload.subscription?.id) {
       await handleSubscriptionEvent(payload.event, payload.subscription.id, admin);
     }
 
-    // 3. Marcação confirmada como 'processed'
+    if (handlingResult.status === "manual_review") {
+      // 3a. Marcação confirmada como 'manual_review'
+      const { data: reviewRows, error: reviewErr } = await admin
+        .from("billing_webhook_events")
+        .update({
+          status: "manual_review",
+          processed_at: getNow().toISOString(),
+          error_message: handlingResult.reason,
+        })
+        .eq("id", payload.id)
+        .select("id");
+
+      if (reviewErr || !reviewRows || reviewRows.length === 0) {
+        throw new Error(
+          `Falha ao persistir status manual_review do evento: ${reviewErr?.message || "Nenhum registro atualizado"}`
+        );
+      }
+
+      return {
+        statusCode: 200,
+        body: {
+          received: true,
+          processed: false,
+          manual_review: true,
+          status: "manual_review",
+          reason: handlingResult.reason,
+        },
+      };
+    }
+
+    // 3b. Marcação confirmada como 'processed'
     const { data: processedRows, error: processedErr } = await admin
       .from("billing_webhook_events")
       .update({
@@ -246,7 +290,7 @@ async function handlePaymentEvent(params: {
   getPayment: (id: string) => Promise<AsaasPaymentResponse>;
   cancelSub: (id: string) => Promise<void>;
   getNow: () => Date;
-}) {
+}): Promise<PaymentEventHandlingResult> {
   const { event, paymentId, admin, getPayment, cancelSub, getNow } = params;
 
   // Re-consulta autenticada e oficial no Asaas
@@ -408,7 +452,7 @@ async function handlePaymentEvent(params: {
     }
 
     // 3. RETORNA sem nunca alterar plano atual, cota, pending_plan ou gateway_subscription_id
-    return;
+    return { status: "processed" };
   }
 
   // ============================================================================
@@ -424,9 +468,8 @@ async function handlePaymentEvent(params: {
       (paymentSubId && paymentSubId !== currentSubId);
 
     if (isStarterPayment) {
-      console.warn(
-        `[Webhook Asaas] Pagamento ${paymentId} do plano Starter recebido para conta Pro (${userSub.status}). Rebaixamento automático rejeitado.`
-      );
+      const reason = `Pagamento ${paymentId} do plano Starter recebido para conta Pro (${userSub.status}). Rebaixamento automático rejeitado. Encaminhado para revisão manual.`;
+      console.warn(`[Webhook Asaas] ${reason}`);
       await recordBillingPayment(admin, userSub.user_id, realPayment, "starter");
       if (paymentSubId && paymentSubId !== currentSubId && paymentSubId !== previousSubId) {
         try {
@@ -436,7 +479,10 @@ async function handlePaymentEvent(params: {
           throw new Error(`Falha ao cancelar assinatura legada ${paymentSubId} no Asaas: ${msg}`);
         }
       }
-      return;
+      return {
+        status: "manual_review",
+        reason,
+      };
     }
   }
 
@@ -448,11 +494,13 @@ async function handlePaymentEvent(params: {
     realPayment.paymentLink &&
     userSub.payment_link_id !== realPayment.paymentLink
   ) {
-    console.warn(
-      `[Webhook Asaas] Pagamento ${paymentId} pertence a link obsoleto (${realPayment.paymentLink} vs ${userSub.payment_link_id}). Nenhuma assinatura ativada ou alterada.`
-    );
+    const reason = `Pagamento ${paymentId} pertence a link obsoleto (${realPayment.paymentLink} vs ${userSub.payment_link_id}). Nenhuma assinatura ativada ou alterada. Encaminhado para revisão manual.`;
+    console.warn(`[Webhook Asaas] ${reason}`);
     await recordBillingPayment(admin, userSub.user_id, realPayment, fallbackPlan || userSub.plan);
-    return;
+    return {
+      status: "manual_review",
+      reason,
+    };
   }
 
   // Tarefas 2, 4 e 5: Proteção universal contra checkouts divergentes ou substituídos
@@ -463,21 +511,25 @@ async function handlePaymentEvent(params: {
     checkoutId &&
     userSub.pending_checkout_id !== checkoutId
   ) {
-    console.warn(
-      `[Webhook Asaas] Pagamento ${paymentId} com checkoutId ${checkoutId} divergente do pendente ${userSub.pending_checkout_id}. Nenhuma assinatura ativada ou alterada.`
-    );
+    const reason = `Pagamento ${paymentId} com checkoutId ${checkoutId} divergente do pendente ${userSub.pending_checkout_id}. Nenhuma assinatura ativada ou alterada. Encaminhado para revisão manual.`;
+    console.warn(`[Webhook Asaas] ${reason}`);
     await recordBillingPayment(admin, userSub.user_id, realPayment, fallbackPlan || userSub.plan);
-    return;
+    return {
+      status: "manual_review",
+      reason,
+    };
   }
 
   // Tarefa 5: Proteção contra divergência entre plano do pagamento e plano pendente da assinatura
   // Um checkout com plano diferente do plano pendente não pode alterar o registro
   if (!isCurrentSubPayment && userSub.pending_plan && fallbackPlan && fallbackPlan !== userSub.pending_plan) {
-    console.warn(
-      `[Webhook Asaas] Pagamento ${paymentId} para plano ${fallbackPlan} diverge do plano pendente ${userSub.pending_plan}. Nenhuma assinatura ativada.`
-    );
+    const reason = `Pagamento ${paymentId} para plano ${fallbackPlan} diverge do plano pendente ${userSub.pending_plan}. Nenhuma assinatura ativada. Encaminhado para revisão manual.`;
+    console.warn(`[Webhook Asaas] ${reason}`);
     await recordBillingPayment(admin, userSub.user_id, realPayment, fallbackPlan);
-    return;
+    return {
+      status: "manual_review",
+      reason,
+    };
   }
 
   // Tarefas 1, 2 e 6: Validação de dados suficientes para correlação segura
@@ -492,11 +544,13 @@ async function handlePaymentEvent(params: {
     (!userSub.pending_checkout_id && !userSub.payment_link_id && checkoutId && fallbackPlan);
 
   if (!isCurrentSubPayment && !hasCorrelationAnchor) {
-    console.warn(
-      `[Webhook Asaas] Pagamento ${paymentId} sem dados suficientes para correlação segura (checkoutId: ${checkoutId}, pendingCheckout: ${userSub.pending_checkout_id}, paymentLink: ${realPayment.paymentLink}, subLink: ${userSub.payment_link_id}). Nenhuma assinatura ativada ou alterada.`
-    );
+    const reason = `Pagamento ${paymentId} sem dados suficientes para correlação segura (checkoutId: ${checkoutId}, pendingCheckout: ${userSub.pending_checkout_id}, paymentLink: ${realPayment.paymentLink}, subLink: ${userSub.payment_link_id}). Nenhuma assinatura ativada ou alterada. Encaminhado para revisão manual.`;
+    console.warn(`[Webhook Asaas] ${reason}`);
     await recordBillingPayment(admin, userSub.user_id, realPayment, fallbackPlan || userSub.plan);
-    return;
+    return {
+      status: "manual_review",
+      reason,
+    };
   }
 
   // Determina o plano pretendido no servidor de forma estrita e segura
@@ -520,9 +574,12 @@ async function handlePaymentEvent(params: {
   if (!isAmountValid) {
     // Registra no histórico para auditoria, mas não ativa nem altera a assinatura
     await recordBillingPayment(admin, userSub.user_id, realPayment, intendedPlan);
-    throw new Error(
-      `Pagamento ${paymentId} de R$ ${realPayment.value} insuficiente para o plano ${intendedPlan}. Nenhuma assinatura ativada.`
-    );
+    const reason = `Pagamento ${paymentId} de R$ ${realPayment.value} insuficiente para o plano ${intendedPlan}. Nenhuma assinatura ativada. Encaminhado para revisão manual.`;
+    console.warn(`[Webhook Asaas] ${reason}`);
+    return {
+      status: "manual_review",
+      reason,
+    };
   }
 
   const isConfirmed =
@@ -646,6 +703,7 @@ async function handlePaymentEvent(params: {
 
   // Registra no histórico financeiro seguro com checagem estrita de erro
   await recordBillingPayment(admin, userSub.user_id, realPayment, intendedPlan);
+  return { status: "processed" };
 }
 
 /**
