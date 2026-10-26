@@ -7,6 +7,7 @@ import { HistoryGrid } from "./HistoryGrid";
 import { DeletePostModal } from "./DeletePostModal";
 import { PostPreviewModal, type PreviewPostItem } from "@/components/geracao/PostPreviewModal";
 import type { CompanyItem } from "@/components/geracao/CompanySelector";
+import { DownloadIcon, SpinnerIcon } from "@/components/icons";
 import { PostsViewToggle, usePostsViewMode } from "@/components/posts";
 import { deletePostOrchestratedAction, type HistoryPostItem } from "@/app/actions/history";
 import { getSignedPostDownloadUrlAction } from "@/app/actions/posts";
@@ -17,6 +18,7 @@ import {
   type HistoryPeriod,
   type HistoryPostsFilter,
 } from "@/lib/history-filters";
+import { historyZipFilenameFromDisposition, historyZipHref } from "@/lib/history-zip";
 
 interface HistoryInstagramClientProps {
   initialPosts: HistoryPostItem[];
@@ -66,6 +68,7 @@ export function HistoryInstagramClient({
   const [previewPost, setPreviewPost] = useState<PreviewPostItem | null>(null);
   const [deleteCandidate, setDeleteCandidate] = useState<HistoryPostItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isZipping, setIsZipping] = useState(false);
   const { viewMode, setViewMode } = usePostsViewMode();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -156,6 +159,39 @@ export function HistoryInstagramClient({
     publish({ empresa: "", nicho: "", periodo: "", busca: "" }, "push");
   }
 
+  const zipHref = historyZipHref(filters);
+
+  async function handleDownloadZip() {
+    if (isZipping || posts.length === 0) return;
+    setIsZipping(true);
+    try {
+      const response = await fetch(zipHref);
+      const contentType = response.headers.get("content-type") || "";
+      if (!response.ok || contentType.includes("application/json")) {
+        const body = (await response.json().catch(() => null)) as { error?: unknown } | null;
+        const message = body?.error;
+        alert(typeof message === "string" && message.length > 0 && message.length <= 180
+          ? message
+          : "Não foi possível baixar o ZIP.");
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = historyZipFilenameFromDisposition(response.headers.get("Content-Disposition"));
+      document.body.appendChild(anchor);
+      anchor.click();
+      window.URL.revokeObjectURL(url);
+      anchor.remove();
+    } catch {
+      alert("Não foi possível baixar o ZIP.");
+    } finally {
+      setIsZipping(false);
+    }
+  }
+
   async function handleDownload(post: { id: string; day: string; signedUrl?: string | null }) {
     try {
       let downloadUrl = post.signedUrl;
@@ -232,7 +268,28 @@ export function HistoryInstagramClient({
           Mostrando <strong>{posts.length}</strong>{" "}
           {posts.length === 1 ? "arte salva" : "artes salvas"}
         </span>
-        <PostsViewToggle value={viewMode} onChange={setViewMode} />
+        <div className="flex items-center gap-2">
+          {posts.length > 0 && (
+            <a
+              href={zipHref}
+              onClick={(event) => {
+                event.preventDefault();
+                void handleDownloadZip();
+              }}
+              aria-disabled={isZipping}
+              title="Baixar as artes deste filtro em um ZIP"
+              className={`h-8 px-3 rounded-md bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.07)] border border-[rgba(255,255,255,0.1)] text-[#f7f8f8] text-[11px] font-medium transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer ${isZipping ? "pointer-events-none opacity-50" : ""}`}
+            >
+              {isZipping ? (
+                <SpinnerIcon className="size-3.5 text-[#5e6ad2]" />
+              ) : (
+                <DownloadIcon className="size-3.5" />
+              )}
+              <span>{isZipping ? "Baixando..." : "Baixar ZIP"}</span>
+            </a>
+          )}
+          <PostsViewToggle value={viewMode} onChange={setViewMode} />
+        </div>
       </div>
 
       <HistoryGrid
