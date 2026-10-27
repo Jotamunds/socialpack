@@ -260,6 +260,11 @@ export async function cancelAsaasSubscription(subscriptionId: string): Promise<v
 /**
  * Remove ou invalida um link de pagamento no Asaas.
  * Utilizado para invalidar links pendentes anteriores quando o cliente gera um novo link.
+ *
+ * Regra do Asaas: links de pagamento que já geraram cobranças (por exemplo, cobrança já paga
+ * de uma assinatura ativa anterior) não podem ser excluídos via DELETE. Nesses casos, o Asaas
+ * retorna 400 informando que "Não é permitido remover links de pagamento com cobranças geradas".
+ * Tratamos isso inativando o link (active: false) para que não receba novas tentativas.
  */
 export async function deleteAsaasPaymentLink(paymentLinkId: string): Promise<void> {
   const res = await asaasFetch<{ id: string; deleted: boolean }>(
@@ -272,6 +277,28 @@ export async function deleteAsaasPaymentLink(paymentLinkId: string): Promise<voi
   if (!res.ok) {
     // Trata HTTP 404 como sucesso idempotente se o link já não existe
     if (res.status === 404) return;
+
+    const errorLower = (res.error || "").toLowerCase();
+    if (
+      errorLower.includes("cobranças geradas") ||
+      errorLower.includes("cobrancas geradas")
+    ) {
+      // O Asaas proíbe deletar links com histórico contábil. Inativamos o link.
+      const inactivateRes = await asaasFetch<{ id: string; active: boolean }>(
+        `/paymentLinks/${paymentLinkId}`,
+        {
+          method: "POST",
+          body: JSON.stringify({ active: false }),
+        }
+      );
+      if (!inactivateRes.ok) {
+        console.warn(
+          `[Asaas] Link ${paymentLinkId} possui cobranças geradas e tentativa de inativação retornou (${inactivateRes.status}): ${inactivateRes.error}`
+        );
+      }
+      return;
+    }
+
     throw new Error(`Falha ao remover link de pagamento ${paymentLinkId} no Asaas: ${res.error}`);
   }
 }

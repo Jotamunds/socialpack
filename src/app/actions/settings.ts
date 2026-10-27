@@ -193,15 +193,15 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse & { p
       payment_link_id?: string | null;
     };
 
+    // Se houver link de pagamento anterior (ex: Starter ou tentativa anterior), tenta remover ou inativar no Asaas
     if (currentSub.payment_link_id) {
       try {
         await deleteAsaasPaymentLink(currentSub.payment_link_id);
       } catch (linkErr) {
-        console.error("[Upgrade] Falha ao remover link anterior no Asaas:", linkErr);
-        return {
-          ok: false,
-          error: "Não foi possível cancelar o link de pagamento anterior no Asaas. Tente novamente.",
-        };
+        console.warn(
+          `[Upgrade] Aviso ao tentar remover/inativar link anterior ${currentSub.payment_link_id} no Asaas (não-bloqueante):`,
+          linkErr
+        );
       }
     }
 

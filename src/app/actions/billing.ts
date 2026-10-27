@@ -150,13 +150,15 @@ export async function startPlanCheckoutAction(formData: FormData): Promise<void>
     redirect(sub.payment_url);
   }
 
-  // 4. Invalidação confirmada de link de pagamento anterior se for de outro plano
+  // 4. Invalidação de link de pagamento anterior se for de outro plano
   if (sub.payment_link_id) {
     try {
       await deleteAsaasPaymentLink(sub.payment_link_id);
     } catch (e) {
-      console.error("[Checkout] Falha ao invalidar link de pagamento anterior no Asaas:", e);
-      throw new Error("Não foi possível cancelar o checkout anterior no Asaas. Tente novamente.");
+      console.warn(
+        `[Checkout] Aviso ao tentar invalidar link de pagamento anterior ${sub.payment_link_id} no Asaas (não-bloqueante):`,
+        e
+      );
     }
   }
 
