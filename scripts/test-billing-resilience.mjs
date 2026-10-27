@@ -1991,6 +1991,593 @@ async function runRealResilienceTests() {
     console.log("   ✓ Todos os 10 cenários obrigatórios de idempotência, concorrência e recuperação da Etapa 3 aprovados com sucesso.");
   }
 
+  // ============================================================================
+  // [BLOCO 10] VALOR EXATO, ESTORNO AUTOMÁTICO DE SOBREPREÇO, WHITELIST DE MEIOS
+  // E CÓDIGOS ESTRUTURADOS DE REVISÃO (ITEM 7 / PLANO .instructions)
+  // ============================================================================
+  {
+    console.log("\n[BLOCO 10] Valor exato, estorno automático, whitelist de meios e review_code (Item 7)...");
+
+    // ------------------------------------------------------------------------
+    // 10.T1 — Pagamento do valor exato do plano: baseline de ativação
+    // ------------------------------------------------------------------------
+    console.log("   -> 10.T1 Pagamento do valor exato do plano ativa a assinatura...");
+    const dbT1 = createMockSupabaseAdmin({
+      subscriptions: [
+        [
+          "usr_t1_user",
+          {
+            id: "sub_t1",
+            user_id: "usr_t1_user",
+            plan: "starter",
+            status: "incomplete",
+            company_quota: 1,
+            pending_plan: "pro",
+            pending_checkout_id: "chk_t1",
+            payment_link_id: "link_t1",
+          },
+        ],
+      ],
+    });
+    const getPayT1 = async (id) => ({
+      id,
+      subscription: null,
+      paymentLink: "link_t1",
+      value: 97.0,
+      billingType: "CREDIT_CARD",
+      status: "CONFIRMED",
+      dueDate: "2026-11-25",
+      externalReference: "usr_t1_user:pro:chk_t1",
+    });
+    const resT1 = await processAsaasWebhookEvent(
+      { id: "evt_t1", event: "PAYMENT_CONFIRMED", payment: { id: "pay_t1" } },
+      { admin: dbT1, getAsaasPayment: getPayT1 }
+    );
+    assert.equal(resT1.statusCode, 200, "Valor exato deve processar com HTTP 200");
+    assert.equal(resT1.body.processed, true, "Valor exato deve ativar a assinatura");
+    const subT1 = dbT1.tables.subscriptions.get("usr_t1_user");
+    assert.equal(subT1.plan, "pro", "Plano promovido para Pro no valor exato");
+    assert.equal(subT1.status, "active", "Assinatura ativada no valor exato");
+    assert.equal(
+      Array.from(dbT1.tables.billing_payments.values()).length,
+      1,
+      "Pagamento exato registrado em billing_payments"
+    );
+
+    // ------------------------------------------------------------------------
+    // 10.T2 — Sobrepreço com estorno OK: manual_review OVERPAID_REFUNDED
+    // ------------------------------------------------------------------------
+    console.log("   -> 10.T2 Sobrepreço (R$ 970 para Pro) com estorno bem-sucedido...");
+    let refundT2Calls = 0;
+    const dbT2 = createMockSupabaseAdmin({
+      subscriptions: [
+        [
+          "usr_t2_user",
+          {
+            id: "sub_t2",
+            user_id: "usr_t2_user",
+            plan: "starter",
+            status: "incomplete",
+            company_quota: 1,
+            pending_plan: "pro",
+            pending_checkout_id: "chk_t2",
+            payment_link_id: "link_t2",
+          },
+        ],
+      ],
+    });
+    const getPayT2 = async (id) => ({
+      id,
+      subscription: null,
+      paymentLink: "link_t2",
+      value: 970.0,
+      billingType: "CREDIT_CARD",
+      status: "CONFIRMED",
+      dueDate: "2026-11-25",
+      externalReference: "usr_t2_user:pro:chk_t2",
+    });
+    const resT2 = await processAsaasWebhookEvent(
+      { id: "evt_t2", event: "PAYMENT_CONFIRMED", payment: { id: "pay_t2" } },
+      {
+        admin: dbT2,
+        getAsaasPayment: getPayT2,
+        refundAsaasPayment: async () => {
+          refundT2Calls++;
+        },
+      }
+    );
+    assert.equal(resT2.statusCode, 200, "Sobrepreço é decisão terminal: HTTP 200, nunca 500");
+    assert.equal(resT2.body.processed, false, "Assinatura não pode ser ativada por sobrepreço");
+    assert.equal(resT2.body.manual_review, true);
+    assert.equal(resT2.body.review_code, "OVERPAID_REFUNDED");
+    assert.equal(refundT2Calls, 1, "Estorno automático chamado exatamente 1 vez");
+    const subT2 = dbT2.tables.subscriptions.get("usr_t2_user");
+    assert.equal(subT2.plan, "starter", "Plano intocado em caso de sobrepreço");
+    assert.equal(subT2.status, "incomplete", "Assinatura intocada em caso de sobrepreço");
+    const payT2 = Array.from(dbT2.tables.billing_payments.values()).find(
+      (p) => p.asaas_payment_id === "pay_t2"
+    );
+    assert.ok(payT2, "Pagamento excedente registrado para auditoria");
+    assert.equal(payT2.value, 970, "Valor registrado fielmente");
+    const evtT2 = dbT2.tables.billing_webhook_events.get("evt_t2");
+    assert.equal(evtT2.status, "manual_review");
+    assert.equal(evtT2.review_code, "OVERPAID_REFUNDED");
+    assert.equal(evtT2.user_id, "usr_t2_user", "user_id vinculado para leitura na tela");
+
+    // ------------------------------------------------------------------------
+    // 10.T3 — Sobrepreço com estorno FALHANDO: OVERPAID_REFUND_FAILED + reentrega idempotente
+    // ------------------------------------------------------------------------
+    console.log("   -> 10.T3 Sobrepreço com falha no estorno e reentrega idempotente...");
+    let refundT3Calls = 0;
+    const dbT3 = createMockSupabaseAdmin({
+      subscriptions: [
+        [
+          "usr_t3_user",
+          {
+            id: "sub_t3",
+            user_id: "usr_t3_user",
+            plan: "starter",
+            status: "incomplete",
+            company_quota: 1,
+            pending_plan: "pro",
+            pending_checkout_id: "chk_t3",
+            payment_link_id: "link_t3",
+          },
+        ],
+      ],
+    });
+    const getPayT3 = async (id) => ({
+      id,
+      subscription: null,
+      paymentLink: "link_t3",
+      value: 970.0,
+      billingType: "CREDIT_CARD",
+      status: "CONFIRMED",
+      dueDate: "2026-11-25",
+      externalReference: "usr_t3_user:pro:chk_t3",
+    });
+    const refundT3 = async () => {
+      refundT3Calls++;
+      throw new Error("Saldo insuficiente na conta Asaas para estorno");
+    };
+    const resT3 = await processAsaasWebhookEvent(
+      { id: "evt_t3", event: "PAYMENT_CONFIRMED", payment: { id: "pay_t3" } },
+      { admin: dbT3, getAsaasPayment: getPayT3, refundAsaasPayment: refundT3 }
+    );
+    assert.equal(resT3.statusCode, 200, "Falha de estorno é decisão de negócio: HTTP 200, nunca 500");
+    assert.equal(resT3.body.review_code, "OVERPAID_REFUND_FAILED");
+    const subT3 = dbT3.tables.subscriptions.get("usr_t3_user");
+    assert.equal(subT3.plan, "starter", "Plano NUNCA ativado quando o estorno falha");
+    assert.equal(subT3.status, "incomplete");
+    assert.equal(dbT3.tables.billing_webhook_events.get("evt_t3").review_code, "OVERPAID_REFUND_FAILED");
+
+    // Reentrega do mesmo evento: idempotência terminal (manual_review = already_processed)
+    const resT3b = await processAsaasWebhookEvent(
+      { id: "evt_t3", event: "PAYMENT_CONFIRMED", payment: { id: "pay_t3" } },
+      { admin: dbT3, getAsaasPayment: getPayT3, refundAsaasPayment: refundT3 }
+    );
+    assert.equal(resT3b.statusCode, 200);
+    assert.equal(resT3b.body.duplicate, true, "Reentrega de evento em manual_review é already_processed");
+    assert.equal(refundT3Calls, 1, "Reentrega NÃO repete a tentativa de estorno");
+    assert.equal(
+      dbT3.tables.billing_webhook_events.get("evt_t3").review_code,
+      "OVERPAID_REFUND_FAILED",
+      "review_code preservado na reentrega"
+    );
+
+    // ------------------------------------------------------------------------
+    // 10.T4 — Renovação paga em atraso: originalValue 97 + juros do Asaas ativa SEM estorno
+    // ------------------------------------------------------------------------
+    console.log("   -> 10.T4 Renovação em atraso com juros/multa do Asaas (value 99.20, originalValue 97)...");
+    let refundT4Calls = 0;
+    const dbT4 = createMockSupabaseAdmin({
+      subscriptions: [
+        [
+          "usr_t4_user",
+          {
+            id: "sub_t4",
+            user_id: "usr_t4_user",
+            plan: "pro",
+            status: "active",
+            company_quota: 3,
+            gateway_subscription_id: "sub_pro_t4",
+          },
+        ],
+      ],
+    });
+    const getPayT4 = async (id) => ({
+      id,
+      subscription: "sub_pro_t4",
+      value: 99.2,
+      originalValue: 97.0,
+      billingType: "CREDIT_CARD",
+      status: "CONFIRMED",
+      dueDate: "2026-11-25",
+    });
+    const resT4 = await processAsaasWebhookEvent(
+      { id: "evt_t4", event: "PAYMENT_CONFIRMED", payment: { id: "pay_t4" } },
+      {
+        admin: dbT4,
+        getAsaasPayment: getPayT4,
+        refundAsaasPayment: async () => {
+          refundT4Calls++;
+        },
+      }
+    );
+    assert.equal(resT4.statusCode, 200);
+    assert.equal(resT4.body.processed, true, "Juros legítimos do Asaas sobre valor original exato NÃO podem rejeitar renovação");
+    assert.equal(refundT4Calls, 0, "NUNCA estornar renovação em atraso com juros do próprio gateway");
+    const subT4 = dbT4.tables.subscriptions.get("usr_t4_user");
+    assert.equal(subT4.plan, "pro");
+    assert.equal(subT4.status, "active");
+    assert.ok(
+      subT4.current_period_end && new Date(subT4.current_period_end) > new Date("2026-11-20"),
+      "Período renovado a partir do dueDate"
+    );
+
+    // ------------------------------------------------------------------------
+    // 10.T5 — Pagamento parcial (boleto em cartão/pix parcial: value 50 de original 97): UNDERPAID
+    // ------------------------------------------------------------------------
+    console.log("   -> 10.T5 Valor parcial (R$ 50 de R$ 97): UNDERPAID sem ativação e sem estorno...");
+    let refundT5Calls = 0;
+    const dbT5 = createMockSupabaseAdmin({
+      subscriptions: [
+        [
+          "usr_t5_user",
+          {
+            id: "sub_t5",
+            user_id: "usr_t5_user",
+            plan: "starter",
+            status: "incomplete",
+            company_quota: 1,
+            pending_plan: "pro",
+            pending_checkout_id: "chk_t5",
+            payment_link_id: "link_t5",
+          },
+        ],
+      ],
+    });
+    const getPayT5 = async (id) => ({
+      id,
+      subscription: null,
+      paymentLink: "link_t5",
+      value: 50.0,
+      originalValue: 97.0,
+      billingType: "CREDIT_CARD",
+      status: "CONFIRMED",
+      dueDate: "2026-11-25",
+      externalReference: "usr_t5_user:pro:chk_t5",
+    });
+    const resT5 = await processAsaasWebhookEvent(
+      { id: "evt_t5", event: "PAYMENT_CONFIRMED", payment: { id: "pay_t5" } },
+      {
+        admin: dbT5,
+        getAsaasPayment: getPayT5,
+        refundAsaasPayment: async () => {
+          refundT5Calls++;
+        },
+      }
+    );
+    assert.equal(resT5.statusCode, 200, "Subpreço é decisão terminal: HTTP 200, nunca 500");
+    assert.equal(resT5.body.review_code, "UNDERPAID");
+    assert.equal(refundT5Calls, 0, "Subpreço NÃO gera estorno automático (decisão de suporte)");
+    const subT5 = dbT5.tables.subscriptions.get("usr_t5_user");
+    assert.equal(subT5.plan, "starter");
+    assert.equal(subT5.status, "incomplete", "Assinatura não ativada por pagamento parcial");
+    assert.equal(dbT5.tables.billing_webhook_events.get("evt_t5").review_code, "UNDERPAID");
+
+    // ------------------------------------------------------------------------
+    // 10.T6 — Meio não suportado: RECEIVED_IN_CASH e BOLETO vão para revisão, sem estorno
+    // ------------------------------------------------------------------------
+    console.log("   -> 10.T6 Meios fora da whitelist (RECEIVED_IN_CASH e BOLETO): UNSUPPORTED_METHOD...");
+    let refundT6Calls = 0;
+    const dbT6 = createMockSupabaseAdmin({
+      subscriptions: [
+        [
+          "usr_t6_user",
+          {
+            id: "sub_t6",
+            user_id: "usr_t6_user",
+            plan: "starter",
+            status: "incomplete",
+            company_quota: 1,
+            pending_plan: "pro",
+            pending_checkout_id: "chk_t6",
+            payment_link_id: "link_t6",
+          },
+        ],
+      ],
+    });
+
+    const resT6a = await processAsaasWebhookEvent(
+      { id: "evt_t6a", event: "PAYMENT_RECEIVED_IN_CASH", payment: { id: "pay_t6a" } },
+      {
+        admin: dbT6,
+        getAsaasPayment: async (id) => ({
+          id,
+          paymentLink: "link_t6",
+          value: 97.0,
+          billingType: "CREDIT_CARD",
+          status: "RECEIVED_IN_CASH",
+          dueDate: "2026-11-25",
+          externalReference: "usr_t6_user:pro:chk_t6",
+        }),
+        refundAsaasPayment: async () => {
+          refundT6Calls++;
+        },
+      }
+    );
+    assert.equal(resT6a.statusCode, 200, "RECEIVED_IN_CASH é revisão manual: HTTP 200, nunca 500");
+    assert.equal(resT6a.body.review_code, "UNSUPPORTED_METHOD");
+
+    const resT6b = await processAsaasWebhookEvent(
+      { id: "evt_t6b", event: "PAYMENT_RECEIVED", payment: { id: "pay_t6b" } },
+      {
+        admin: dbT6,
+        getAsaasPayment: async (id) => ({
+          id,
+          paymentLink: "link_t6",
+          value: 97.0,
+          billingType: "BOLETO",
+          status: "RECEIVED",
+          dueDate: "2026-11-25",
+          externalReference: "usr_t6_user:pro:chk_t6",
+        }),
+        refundAsaasPayment: async () => {
+          refundT6Calls++;
+        },
+      }
+    );
+    assert.equal(resT6b.statusCode, 200);
+    assert.equal(resT6b.body.review_code, "UNSUPPORTED_METHOD", "Boleto está fora da whitelist");
+    assert.equal(refundT6Calls, 0, "Método não suportado NÃO gera estorno automático");
+    const subT6 = dbT6.tables.subscriptions.get("usr_t6_user");
+    assert.equal(subT6.plan, "starter");
+    assert.equal(subT6.status, "incomplete");
+
+    // ------------------------------------------------------------------------
+    // 10.T7 — Refund de assinatura INCOMPLETA: não marca past_due, não limpa pendências
+    // ------------------------------------------------------------------------
+    console.log("   -> 10.T7 PAYMENT_REFUNDED em assinatura incomplete mantém estado...");
+    let refundT7Calls = 0;
+    const dbT7 = createMockSupabaseAdmin({
+      subscriptions: [
+        [
+          "usr_t7_user",
+          {
+            id: "sub_t7",
+            user_id: "usr_t7_user",
+            plan: "starter",
+            status: "incomplete",
+            company_quota: 1,
+            pending_plan: "pro",
+            pending_checkout_id: "chk_t7",
+            payment_link_id: "link_t7",
+          },
+        ],
+      ],
+    });
+    const resT7 = await processAsaasWebhookEvent(
+      { id: "evt_t7", event: "PAYMENT_REFUNDED", payment: { id: "pay_t7" } },
+      {
+        admin: dbT7,
+        getAsaasPayment: async (id) => ({
+          id,
+          paymentLink: "link_t7",
+          value: 97.0,
+          billingType: "CREDIT_CARD",
+          status: "REFUNDED",
+          dueDate: "2026-11-25",
+          externalReference: "usr_t7_user:pro:chk_t7",
+        }),
+        refundAsaasPayment: async () => {
+          refundT7Calls++;
+        },
+      }
+    );
+    assert.equal(resT7.statusCode, 200);
+    assert.equal(resT7.body.processed, true);
+    assert.equal(refundT7Calls, 0, "Evento de refund NUNCA dispara novo estorno");
+    const subT7 = dbT7.tables.subscriptions.get("usr_t7_user");
+    assert.equal(subT7.status, "incomplete", "Refund de conta nunca ativada NÃO pode marcar past_due");
+    assert.equal(subT7.pending_plan, "pro", "pendência de upgrade preservada para permitir nova tentativa");
+    assert.equal(subT7.pending_checkout_id, "chk_t7");
+    assert.equal(subT7.payment_link_id, "link_t7", "Link de pagamento preservado — o cliente pode pagar novamente");
+
+    // ------------------------------------------------------------------------
+    // 10.T8 — Refund de assinatura ATIVA: mantido o comportamento past_due
+    // ------------------------------------------------------------------------
+    console.log("   -> 10.T8 PAYMENT_REFUNDED em assinatura active marca past_due...");
+    let refundT8Calls = 0;
+    const dbT8 = createMockSupabaseAdmin({
+      subscriptions: [
+        [
+          "usr_t8_user",
+          {
+            id: "sub_t8",
+            user_id: "usr_t8_user",
+            plan: "pro",
+            status: "active",
+            company_quota: 3,
+            gateway_subscription_id: "sub_pro_t8",
+          },
+        ],
+      ],
+    });
+    const resT8 = await processAsaasWebhookEvent(
+      { id: "evt_t8", event: "PAYMENT_REFUNDED", payment: { id: "pay_t8" } },
+      {
+        admin: dbT8,
+        getAsaasPayment: async (id) => ({
+          id,
+          subscription: "sub_pro_t8",
+          value: 97.0,
+          billingType: "CREDIT_CARD",
+          status: "REFUNDED",
+          dueDate: "2026-11-25",
+        }),
+        refundAsaasPayment: async () => {
+          refundT8Calls++;
+        },
+      }
+    );
+    assert.equal(resT8.statusCode, 200);
+    assert.equal(resT8.body.processed, true);
+    assert.equal(refundT8Calls, 0);
+    const subT8 = dbT8.tables.subscriptions.get("usr_t8_user");
+    assert.equal(subT8.status, "past_due", "Comportamento mantido: refund em conta ativa marca past_due");
+    assert.equal(subT8.plan, "pro", "Plano não é alterado em refund");
+
+    // ------------------------------------------------------------------------
+    // 10.T9 — Pagamento órfão: UNMATCHED_PAYMENT terminal (sem 500), idempotente
+    // ------------------------------------------------------------------------
+    console.log("   -> 10.T9 Pagamento sem assinatura local: UNMATCHED_PAYMENT, sem 500...");
+    let refundT9Calls = 0;
+    let cancelT9Calls = 0;
+    const dbT9 = createMockSupabaseAdmin({});
+    const resT9 = await processAsaasWebhookEvent(
+      { id: "evt_t9", event: "PAYMENT_CONFIRMED", payment: { id: "pay_t9" } },
+      {
+        admin: dbT9,
+        getAsaasPayment: async (id) => ({
+          id,
+          value: 97.0,
+          billingType: "CREDIT_CARD",
+          status: "CONFIRMED",
+          dueDate: "2026-11-25",
+          externalReference: "usr_t9_user:pro",
+        }),
+        refundAsaasPayment: async () => {
+          refundT9Calls++;
+        },
+        cancelAsaasSubscription: async () => {
+          cancelT9Calls++;
+        },
+      }
+    );
+    assert.equal(resT9.statusCode, 200, "Pagamento órfão é revisão manual: HTTP 200, nunca 500");
+    assert.equal(resT9.body.review_code, "UNMATCHED_PAYMENT");
+    assert.equal(refundT9Calls, 0, "NUNCA estornar cobrança órfã automaticamente");
+    assert.equal(cancelT9Calls, 0, "NUNCA cancelar assinatura de pagamento órfão");
+    assert.equal(dbT9.tables.billing_webhook_events.get("evt_t9").review_code, "UNMATCHED_PAYMENT");
+    assert.equal(
+      dbT9.tables.billing_webhook_events.get("evt_t9").user_id,
+      "usr_t9_user",
+      "user_id do externalReference gravado quando identificável"
+    );
+    assert.equal(
+      dbT9.tables.subscriptions.size,
+      0,
+      "Webhook NÃO cria assinatura local para pagamento órfão"
+    );
+    const orphanPayments = Array.from(dbT9.tables.billing_payments.values()).filter(
+      (p) => p.asaas_payment_id === "pay_t9"
+    );
+    assert.equal(orphanPayments.length, 1, "Pagamento órfão registrado para auditoria");
+
+    // 9b: órfão sem externalReference — evento terminal com user_id nulo, sem criar pagamento
+    const resT9b = await processAsaasWebhookEvent(
+      { id: "evt_t9b", event: "PAYMENT_CONFIRMED", payment: { id: "pay_t9b" } },
+      {
+        admin: dbT9,
+        getAsaasPayment: async (id) => ({
+          id,
+          value: 97.0,
+          billingType: "CREDIT_CARD",
+          status: "CONFIRMED",
+          dueDate: "2026-11-25",
+        }),
+      }
+    );
+    assert.equal(resT9b.statusCode, 200);
+    assert.equal(resT9b.body.review_code, "UNMATCHED_PAYMENT");
+    assert.equal(dbT9.tables.billing_webhook_events.get("evt_t9b").user_id, null);
+
+    // 9c: reentrega do órfão é idempotente e não duplica registros
+    const resT9c = await processAsaasWebhookEvent(
+      { id: "evt_t9", event: "PAYMENT_CONFIRMED", payment: { id: "pay_t9" } },
+      {
+        admin: dbT9,
+        getAsaasPayment: async (id) => ({
+          id,
+          value: 97.0,
+          billingType: "CREDIT_CARD",
+          status: "CONFIRMED",
+          dueDate: "2026-11-25",
+          externalReference: "usr_t9_user:pro",
+        }),
+      }
+    );
+    assert.equal(resT9c.statusCode, 200);
+    assert.equal(resT9c.body.duplicate, true, "Reentrega de órfão é already_processed");
+    const orphanPaymentsAfterRetry = Array.from(dbT9.tables.billing_payments.values()).filter(
+      (p) => p.asaas_payment_id === "pay_t9"
+    );
+    assert.equal(orphanPaymentsAfterRetry.length, 1, "Reentrega NÃO duplica billing_payments");
+
+    // ------------------------------------------------------------------------
+    // 10.T10 — Meios aceitos PIX e DEBIT_CARD passam pela whitelist
+    // ------------------------------------------------------------------------
+    console.log("   -> 10.T10 Meios aceitos (PIX, DEBIT_CARD) ativam normalmente...");
+    const makeAcceptedMethodDb = () =>
+      createMockSupabaseAdmin({
+        subscriptions: [
+          [
+            "usr_t10_user",
+            {
+              id: "sub_t10",
+              user_id: "usr_t10_user",
+              plan: "starter",
+              status: "incomplete",
+              company_quota: 1,
+              pending_plan: "pro",
+              pending_checkout_id: "chk_t10",
+              payment_link_id: "link_t10",
+            },
+          ],
+        ],
+      });
+    const getPayT10 = async (id) => ({
+      id,
+      paymentLink: "link_t10",
+      value: 97.0,
+      billingType: "PIX",
+      status: "CONFIRMED",
+      dueDate: "2026-11-25",
+      externalReference: "usr_t10_user:pro:chk_t10",
+    });
+    const resT10a = await processAsaasWebhookEvent(
+      { id: "evt_t10a", event: "PAYMENT_CONFIRMED", payment: { id: "pay_t10a" } },
+      { admin: makeAcceptedMethodDb(), getAsaasPayment: getPayT10 }
+    );
+    assert.equal(resT10a.statusCode, 200, "PIX está na whitelist e processa");
+    assert.equal(resT10a.body.processed, true, "PIX com valor exato ativa a assinatura");
+
+    const dbT10b = makeAcceptedMethodDb();
+    const resT10b = await processAsaasWebhookEvent(
+      { id: "evt_t10b", event: "PAYMENT_CONFIRMED", payment: { id: "pay_t10b" } },
+      {
+        admin: dbT10b,
+        getAsaasPayment: async (id) => ({
+          id,
+          paymentLink: "link_t10",
+          value: 97.0,
+          billingType: "DEBIT_CARD",
+          status: "CONFIRMED",
+          dueDate: "2026-11-25",
+          externalReference: "usr_t10_user:pro:chk_t10",
+        }),
+      }
+    );
+    assert.equal(resT10b.statusCode, 200, "DEBIT_CARD está na whitelist e ativa");
+    assert.equal(resT10b.body.processed, true, "DEBIT_CARD com valor exato ativa a assinatura");
+    const subT10b = dbT10b.tables.subscriptions.get("usr_t10_user");
+    assert.equal(subT10b.plan, "pro");
+    assert.equal(subT10b.status, "active");
+
+    console.log("   ✓ Todos os cenários do BLOCO 10 (valor exato, estorno, whitelist e review_code) aprovados com sucesso.");
+  }
+
   console.log("\n===============================================================================");
   console.log("=== SUCESSO: TODAS AS INVARIANTES E REQUISITOS DA MATRIZ PASSARAM COM ÊXITO! ===");
   console.log("===============================================================================");

@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { PlanosScreen } from "@/components/planos/PlanosScreen";
 import { startPlanCheckoutAction } from "@/app/actions/billing";
 import { subscriptionGrantsAccess } from "@/lib/supabase/subscription-guard";
+import { PLAN_DISPLAY } from "@/lib/plans-display";
+import type { BillingReviewCode } from "@/lib/billing/review-codes";
 import type { BillingUiStatus } from "@/components/planos/types";
 
 export const dynamic = "force-dynamic";
@@ -18,9 +21,10 @@ export const metadata: Metadata = {
  *
  * Invariantes estritas de segurança:
  * 1. Não lê preço, plano ou status da URL (searchParams são ignorados).
- * 2. status e paymentUrl saem EXCLUSIVAMENTE de dados lidos no banco pelo servidor.
+ * 2. status, review_code e paymentUrl saem EXCLUSIVAMENTE de dados lidos no banco pelo servidor.
  * 3. O formulário envia apenas o ID do plano ("starter" ou "pro").
  * 4. O bloqueio das páginas protegidas ocorre no servidor.
+ * 5. billing_webhook_events é lido apenas via admin client no servidor (sem RLS vazada).
  */
 export default async function PlanosPage() {
   const supabase = await createClient();
@@ -54,8 +58,36 @@ export default async function PlanosPage() {
 
   let uiStatus: BillingUiStatus = "none";
   let paymentUrl: string | null = null;
+  let reviewCode: BillingReviewCode | null = null;
+  let expectedPlanPriceLabel: string | null = null;
 
-  if (sub) {
+  // Consulta o evento mais recente em manual_review para o usuário logado
+  try {
+    const admin = createAdminClient();
+    const { data: latestReviewEvent } = await admin
+      .from("billing_webhook_events")
+      .select("review_code, created_at")
+      .eq("user_id", user.id)
+      .eq("status", "manual_review")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (latestReviewEvent?.review_code) {
+      reviewCode = latestReviewEvent.review_code as BillingReviewCode;
+    }
+  } catch (err) {
+    // Tolerância em ambientes de teste sem service_role configurado
+    console.warn("[PlanosPage] Não foi possível consultar eventos de revisão:", err);
+  }
+
+  if (reviewCode && (!sub || sub.status === "incomplete" || sub.status === "past_due")) {
+    uiStatus = "review";
+    paymentUrl = sub?.payment_url ?? null;
+    const targetPlan = sub?.pending_plan || sub?.plan;
+    const display = targetPlan ? PLAN_DISPLAY.find((p) => p.id === targetPlan) : null;
+    expectedPlanPriceLabel = display ? `${display.priceLabel}${display.periodLabel}` : null;
+  } else if (sub) {
     // Se há um link de pagamento gerado e a conta ainda não foi ativada
     if (sub.payment_url && (sub.status === "incomplete" || sub.status === "past_due")) {
       uiStatus = "pending";
@@ -67,6 +99,8 @@ export default async function PlanosPage() {
     <PlanosScreen
       status={uiStatus}
       paymentUrl={paymentUrl}
+      reviewCode={reviewCode}
+      expectedPlanPriceLabel={expectedPlanPriceLabel}
       chooseAction={startPlanCheckoutAction}
     />
   );

@@ -1,5 +1,7 @@
 import "server-only";
 
+export * from "./review-codes";
+
 export type BillingPlanId = "starter" | "pro";
 
 export interface BillingPlanConfig {
@@ -42,6 +44,10 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanConfig> = {
 
 /** Tolerância pós-vencimento em dias para aguardar compensação bancária (boleto/compensação) */
 export const GRACE_PERIOD_DAYS = 3;
+
+/** Whitelist de meios de pagamento aceitos pelo SocialPack para ativação de assinaturas. */
+export const ACCEPTED_BILLING_TYPES = ["CREDIT_CARD", "PIX", "DEBIT_CARD"] as const;
+export type AcceptedBillingType = (typeof ACCEPTED_BILLING_TYPES)[number];
 
 export function isValidPlanId(value: unknown): value is BillingPlanId {
   return value === "starter" || value === "pro";
@@ -113,7 +119,97 @@ export function calculatePeriodEnd(
   return addBusinessDays(cycleEnd, GRACE_PERIOD_DAYS);
 }
 
+export interface AsaasAmountLike {
+  value: number;
+  originalValue?: number | null;
+}
+
 /**
+ * Retorna o valor original cobrado em centavos para a transação.
+ * Se payment.originalValue for um número finito (> 0), usa Math.round(payment.originalValue * 100);
+ * caso contrário usa Math.round(payment.value * 100).
+ * Se payment.value for NaN, não-finito, <= 0 ou não-numérico, retorna 0.
+ */
+export function getChargedCents(payment: AsaasAmountLike): number {
+  if (
+    !payment ||
+    typeof payment.value !== "number" ||
+    isNaN(payment.value) ||
+    !isFinite(payment.value) ||
+    payment.value <= 0
+  ) {
+    return 0;
+  }
+  if (
+    typeof payment.originalValue === "number" &&
+    isFinite(payment.originalValue) &&
+    !isNaN(payment.originalValue) &&
+    payment.originalValue > 0
+  ) {
+    return Math.round(payment.originalValue * 100);
+  }
+  return Math.round(payment.value * 100);
+}
+
+export type ClassifyResult =
+  | { kind: "exact"; interestCents: number }
+  | { kind: "underpaid" }
+  | { kind: "overpaid" }
+  | { kind: "invalid" };
+
+/**
+ * Classificação de valor EXATO contra o preço do plano, em centavos inteiros.
+ *
+ * - Se isNaN(Math.round(payment.value * 100)) OU Math.round(payment.value * 100) <= 0 -> { kind: "invalid" }.
+ * - originalCents = getChargedCents(payment);
+ * - expectedCents = getPlanServerConfig(plan).priceCents;
+ * - Se originalCents < expectedCents -> { kind: "underpaid" };
+ * - Se originalCents > expectedCents -> { kind: "overpaid" };
+ * - Se originalCents === expectedCents -> { kind: "exact", interestCents: Math.max(0, Math.round(payment.value * 100) - originalCents) }.
+ */
+export function classifyPaymentAmountForPlan(
+  plan: BillingPlanId,
+  payment: AsaasAmountLike
+): ClassifyResult {
+  if (
+    !payment ||
+    typeof payment.value !== "number" ||
+    isNaN(Math.round(payment.value * 100)) ||
+    Math.round(payment.value * 100) <= 0
+  ) {
+    return { kind: "invalid" };
+  }
+
+  const paidCents = Math.round(payment.value * 100);
+  const originalCents = getChargedCents(payment);
+  const expectedCents = getPlanServerConfig(plan).priceCents;
+
+  if (originalCents < expectedCents || paidCents < expectedCents) {
+    return { kind: "underpaid" };
+  }
+
+  if (originalCents > expectedCents) {
+    return { kind: "overpaid" };
+  }
+
+  const hasOriginalValue =
+    typeof payment.originalValue === "number" &&
+    isFinite(payment.originalValue) &&
+    payment.originalValue > 0;
+
+  if (paidCents > expectedCents && !hasOriginalValue) {
+    return { kind: "overpaid" };
+  }
+
+  return {
+    kind: "exact",
+    interestCents: Math.max(0, paidCents - originalCents),
+  };
+}
+
+/**
+ * @deprecated Usar classifyPaymentAmountForPlan. Será removida após migração completa.
+ *
  * Valida se o valor recebido pelo gateway é suficiente para ativar o plano pretendido.
  * A validação é estritamente baseada em centavos inteiros (priceCents).
  * Para Pro: exige pelo menos 9700 centavos (R$ 97,00). Valores menores (inclusive R$ 96,95) são rejeitados.
@@ -131,5 +227,3 @@ export function validatePaymentAmountForPlan(
   const paidCents = Math.round(paidAmount * 100);
   return paidCents >= config.priceCents;
 }
-
-

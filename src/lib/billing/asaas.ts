@@ -112,7 +112,8 @@ async function asaasFetch<T>(
  *
  * Segurança essencial:
  * 1. O valor é lido do servidor (nunca do formulário).
- * 2. `billingType = "UNDEFINED"` permite que o cliente escolha Pix, Boleto ou Cartão.
+ * 2. Tenta restringir o link para `billingType = "CREDIT_CARD"`. Se o Asaas rejeitar
+ *    por constraint de chargeType: RECURRENT, faz fallback gracioso para "UNDEFINED".
  * 3. `chargeType = "RECURRENT"` e `subscriptionCycle = "MONTHLY"` configuram a assinatura.
  * 4. O Asaas colhe os dados cadastrais (CPF/CNPJ, Nome, Telefone) de forma 100% segura
  *    e em conformidade com PCI/LGPD, sem que o SocialPack precise pedir ou armazenar CPF.
@@ -129,21 +130,38 @@ export async function createPaymentLinkForPlan(params: {
     ? `${params.userId}:${params.plan}:${params.checkoutId}`
     : `${params.userId}:${params.plan}`;
 
-  const payload = {
+  const basePayload = {
     name: planConfig.name,
     description: planConfig.description,
     value: planConfig.price,
-    billingType: "UNDEFINED",
     chargeType: "RECURRENT",
     subscriptionCycle: "MONTHLY",
     externalReference: externalRef,
     notificationEnabled: true,
   };
 
-  const res = await asaasFetch<AsaasPaymentLinkResponse>("/paymentLinks", {
+  // 1. Tenta restringir o checkout diretamente ao meio principal (CREDIT_CARD)
+  let res = await asaasFetch<AsaasPaymentLinkResponse>("/paymentLinks", {
     method: "POST",
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...basePayload,
+      billingType: "CREDIT_CARD",
+    }),
   });
+
+  // 2. Se a API do Asaas rejeitar CREDIT_CARD para chargeType: RECURRENT, faz fallback para UNDEFINED
+  if (!res.ok) {
+    console.warn(
+      `[Asaas] Criação de paymentLink com billingType CREDIT_CARD recusada (${res.status}: ${res.error}). Tentando fallback para UNDEFINED...`
+    );
+    res = await asaasFetch<AsaasPaymentLinkResponse>("/paymentLinks", {
+      method: "POST",
+      body: JSON.stringify({
+        ...basePayload,
+        billingType: "UNDEFINED",
+      }),
+    });
+  }
 
   if (!res.ok) {
     throw new Error(`Não foi possível criar o link de pagamento: ${res.error}`);
@@ -225,6 +243,34 @@ export async function deleteAsaasPaymentLink(paymentLinkId: string): Promise<voi
   }
 }
 
+
+/**
+ * Solicita estorno imediato e total de uma cobrança no Asaas.
+ * Idempotente: trata HTTP 409 ou retornos indicando que o pagamento já foi estornado como sucesso.
+ */
+export async function refundAsaasPayment(paymentId: string): Promise<void> {
+  const res = await asaasFetch<{ id: string; status: string }>(
+    `/payments/${paymentId}/refund`,
+    {
+      method: "POST",
+    }
+  );
+
+  if (!res.ok) {
+    const errorMsgLower = (res.error || "").toLowerCase();
+    if (
+      res.status === 409 ||
+      errorMsgLower.includes("já estornado") ||
+      errorMsgLower.includes("ja estornado") ||
+      errorMsgLower.includes("já foi estornado") ||
+      errorMsgLower.includes("estorno já solicitado") ||
+      errorMsgLower.includes("refunded")
+    ) {
+      return;
+    }
+    throw new Error(`Falha ao estornar pagamento ${paymentId} no Asaas: ${res.error}`);
+  }
+}
 
 /**
  * Validação de segurança do token de webhook com timingSafeEqual para mitigar timing attacks.

@@ -221,3 +221,12 @@ export async function startPlanCheckoutAction(formData: FormData): Promise<void>
 }
 
 
+
+
+/**
+ * Server Action para revalidação da rota de planos (/planos).
+ * Permite reconsulta dos dados mais recentes sem reload completo.
+ */
+export async function refreshPlanosAction(): Promise<void> {
+  revalidatePath("/planos");
+}

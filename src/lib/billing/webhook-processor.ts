@@ -3,12 +3,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import {
   getAsaasPayment,
   cancelAsaasSubscription,
+  refundAsaasPayment,
   type AsaasPaymentResponse,
 } from "@/lib/billing/asaas";
+import { BILLING_REVIEW_CODES } from "@/lib/billing/review-codes";
 import {
   BILLING_PLANS,
   calculatePeriodEnd,
-  validatePaymentAmountForPlan,
+  classifyPaymentAmountForPlan,
+  ACCEPTED_BILLING_TYPES,
   type BillingPlanId,
 } from "@/lib/billing/plans";
 
@@ -61,6 +64,7 @@ export interface WebhookProcessorDependencies {
   admin?: SupabaseAdminClient;
   getAsaasPayment?: (paymentId: string) => Promise<AsaasPaymentResponse>;
   cancelAsaasSubscription?: (subscriptionId: string) => Promise<void>;
+  refundAsaasPayment?: (paymentId: string) => Promise<void>;
   now?: () => Date;
 }
 
@@ -72,10 +76,13 @@ export interface WebhookProcessResult {
 export type PaymentEventHandlingResult =
   | {
       status: "processed";
+      userId?: string | null;
     }
   | {
       status: "manual_review";
       reason: string;
+      reviewCode?: string;
+      userId?: string | null;
     };
 
 /**
@@ -141,6 +148,7 @@ export async function processAsaasWebhookEvent(
   const admin = dependencies.admin || createAdminClient();
   const getPayment = dependencies.getAsaasPayment || getAsaasPayment;
   const cancelSub = dependencies.cancelAsaasSubscription || cancelAsaasSubscription;
+  const refundPayment = dependencies.refundAsaasPayment || refundAsaasPayment;
   const getNow = dependencies.now || (() => new Date());
 
   if (!payload.id || !payload.event) {
@@ -193,6 +201,7 @@ export async function processAsaasWebhookEvent(
         admin,
         getPayment,
         cancelSub,
+        refundPayment,
         getNow,
       });
       if (res) {
@@ -204,13 +213,21 @@ export async function processAsaasWebhookEvent(
 
     if (handlingResult.status === "manual_review") {
       // 3a. Marcação confirmada como 'manual_review'
+      const updateData: Record<string, unknown> = {
+        status: "manual_review",
+        processed_at: getNow().toISOString(),
+        error_message: handlingResult.reason,
+      };
+      if (handlingResult.reviewCode) {
+        updateData.review_code = handlingResult.reviewCode;
+      }
+      if (handlingResult.userId !== undefined) {
+        updateData.user_id = handlingResult.userId;
+      }
+
       const { data: reviewRows, error: reviewErr } = await admin
         .from("billing_webhook_events")
-        .update({
-          status: "manual_review",
-          processed_at: getNow().toISOString(),
-          error_message: handlingResult.reason,
-        })
+        .update(updateData)
         .eq("id", payload.id)
         .select("id");
 
@@ -228,6 +245,7 @@ export async function processAsaasWebhookEvent(
           manual_review: true,
           status: "manual_review",
           reason: handlingResult.reason,
+          ...(handlingResult.reviewCode ? { review_code: handlingResult.reviewCode } : {}),
         },
       };
     }
@@ -289,9 +307,10 @@ async function handlePaymentEvent(params: {
   admin: SupabaseAdminClient;
   getPayment: (id: string) => Promise<AsaasPaymentResponse>;
   cancelSub: (id: string) => Promise<void>;
+  refundPayment: (id: string) => Promise<void>;
   getNow: () => Date;
 }): Promise<PaymentEventHandlingResult> {
-  const { event, paymentId, admin, getPayment, cancelSub, getNow } = params;
+  const { event, paymentId, admin, getPayment, cancelSub, refundPayment, getNow } = params;
 
   // Re-consulta autenticada e oficial no Asaas
   const realPayment = await getPayment(paymentId);
@@ -357,11 +376,21 @@ async function handlePaymentEvent(params: {
     userSub = subByUser;
   }
 
-  // Rejeição de segurança se a assinatura não puder ser associada de forma inequívoca
+  // 6.2 Pagamento órfão: sem assinatura local correlacionável
   if (!userSub || !userSub.user_id) {
-    throw new Error(
-      `Nenhuma assinatura local encontrada para o pagamento ${paymentId}. Evento retido para reconciliação manual.`
-    );
+    const reason = `Nenhuma assinatura local encontrada para o pagamento ${paymentId}. Evento encaminhado para revisão manual.`;
+    console.warn(`[Webhook Asaas] ${reason}`);
+
+    if (targetUserId) {
+      await recordBillingPayment(admin, targetUserId, realPayment, fallbackPlan || "starter");
+    }
+
+    return {
+      status: "manual_review",
+      reason,
+      reviewCode: BILLING_REVIEW_CODES.UNMATCHED_PAYMENT,
+      userId: targetUserId || null,
+    };
   }
 
   // Rejeição de segurança: pagamento emitido para um usuário nunca pode alterar a conta de outro
@@ -464,7 +493,7 @@ async function handlePaymentEvent(params: {
   if (userSub.plan === "pro" && !isCurrentSubPayment && !isPendingUpgradeConfirmation) {
     const isStarterPayment =
       fallbackPlan === "starter" ||
-      (!paymentSubId && realPayment.value === 49.9) ||
+      (!paymentSubId && Math.round(realPayment.value * 100) === BILLING_PLANS.starter.priceCents) ||
       (paymentSubId && paymentSubId !== currentSubId);
 
     if (isStarterPayment) {
@@ -482,6 +511,8 @@ async function handlePaymentEvent(params: {
       return {
         status: "manual_review",
         reason,
+        reviewCode: BILLING_REVIEW_CODES.PLAN_MISMATCH,
+        userId: userSub.user_id,
       };
     }
   }
@@ -500,6 +531,8 @@ async function handlePaymentEvent(params: {
     return {
       status: "manual_review",
       reason,
+      reviewCode: BILLING_REVIEW_CODES.STALE_LINK,
+      userId: userSub.user_id,
     };
   }
 
@@ -517,6 +550,8 @@ async function handlePaymentEvent(params: {
     return {
       status: "manual_review",
       reason,
+      reviewCode: BILLING_REVIEW_CODES.DIVERGENT_CHECKOUT,
+      userId: userSub.user_id,
     };
   }
 
@@ -529,6 +564,8 @@ async function handlePaymentEvent(params: {
     return {
       status: "manual_review",
       reason,
+      reviewCode: BILLING_REVIEW_CODES.PLAN_MISMATCH,
+      userId: userSub.user_id,
     };
   }
 
@@ -550,6 +587,8 @@ async function handlePaymentEvent(params: {
     return {
       status: "manual_review",
       reason,
+      reviewCode: BILLING_REVIEW_CODES.NO_CORRELATION,
+      userId: userSub.user_id,
     };
   }
 
@@ -569,17 +608,91 @@ async function handlePaymentEvent(params: {
     intendedPlan = userSub.plan;
   }
 
-  // Validação estrita de valores em centavos inteiros (sem tolerância implícita nem fallback automático)
-  const isAmountValid = validatePaymentAmountForPlan(intendedPlan, realPayment.value);
-  if (!isAmountValid) {
-    // Registra no histórico para auditoria, mas não ativa nem altera a assinatura
+  // ============================================================================
+  // SEÇÃO 3.5 — MEIO DE PAGAMENTO NÃO SUPORTADO
+  // ============================================================================
+  const isReceivedInCash =
+    event === "PAYMENT_RECEIVED_IN_CASH" ||
+    event === "RECEIVED_IN_CASH" ||
+    realPayment.status === "RECEIVED_IN_CASH" ||
+    realPayment.billingType === "RECEIVED_IN_CASH";
+
+  const isUnsupportedBillingType =
+    (Boolean(realPayment.billingType) && !(ACCEPTED_BILLING_TYPES as readonly string[]).includes(realPayment.billingType!)) ||
+    isReceivedInCash;
+
+  if (isUnsupportedBillingType) {
+    const reason = `Pagamento ${paymentId} recebido com meio não suportado para ativação automática (${realPayment.billingType || realPayment.status}). Nenhuma assinatura ativada. Encaminhado para revisão manual.`;
+    console.warn(`[Webhook Asaas] ${reason}`);
     await recordBillingPayment(admin, userSub.user_id, realPayment, intendedPlan);
-    const reason = `Pagamento ${paymentId} de R$ ${realPayment.value} insuficiente para o plano ${intendedPlan}. Nenhuma assinatura ativada. Encaminhado para revisão manual.`;
+    return {
+      status: "manual_review",
+      reason,
+      reviewCode: BILLING_REVIEW_CODES.UNSUPPORTED_METHOD,
+      userId: userSub.user_id,
+    };
+  }
+
+  // ============================================================================
+  // SEÇÃO 3.1 & 3.2 — VALOR EXATO E ESTORNO AUTOMÁTICO DE SOBREPREÇO
+  // ============================================================================
+  const amountClassification = classifyPaymentAmountForPlan(intendedPlan, realPayment);
+
+  if (amountClassification.kind === "underpaid" || amountClassification.kind === "invalid") {
+    await recordBillingPayment(admin, userSub.user_id, realPayment, intendedPlan);
+    const planConfig = BILLING_PLANS[intendedPlan];
+    const reason = `Pagamento ${paymentId} de R$ ${realPayment.value} insuficiente para o plano ${intendedPlan} (R$ ${planConfig.price}). Nenhuma assinatura ativada. Encaminhado para revisão manual.`;
     console.warn(`[Webhook Asaas] ${reason}`);
     return {
       status: "manual_review",
       reason,
+      reviewCode: BILLING_REVIEW_CODES.UNDERPAID,
+      userId: userSub.user_id,
     };
+  }
+
+  if (amountClassification.kind === "overpaid") {
+    await recordBillingPayment(admin, userSub.user_id, realPayment, intendedPlan);
+    const planConfig = BILLING_PLANS[intendedPlan];
+
+    let refundSuccess = false;
+    let refundError: string | null = null;
+
+    // Idempotência: não tenta estornar se o pagamento já estiver estornado no Asaas
+    if (realPayment.status === "REFUNDED" || realPayment.status === "REFUND_IN_PROGRESS") {
+      refundSuccess = true;
+    } else {
+      try {
+        await refundPayment(realPayment.id);
+        refundSuccess = true;
+      } catch (err) {
+        refundError = err instanceof Error ? err.message : String(err);
+        console.error(
+          `[Webhook Asaas] Falha ao solicitar estorno do pagamento excedente ${paymentId}:`,
+          refundError
+        );
+      }
+    }
+
+    if (refundSuccess) {
+      const reason = `Pagamento ${paymentId} de R$ ${realPayment.value} excede o preço do plano ${intendedPlan} (R$ ${planConfig.price}). Estorno automático total solicitado com sucesso ao Asaas.`;
+      console.warn(`[Webhook Asaas] ${reason}`);
+      return {
+        status: "manual_review",
+        reason,
+        reviewCode: BILLING_REVIEW_CODES.OVERPAID_REFUNDED,
+        userId: userSub.user_id,
+      };
+    } else {
+      const reason = `Pagamento ${paymentId} de R$ ${realPayment.value} excede o preço do plano ${intendedPlan} (R$ ${planConfig.price}). Falha no estorno automático: ${refundError}. Encaminhado para estorno manual pelo suporte.`;
+      console.error(`[Webhook Asaas] ${reason}`);
+      return {
+        status: "manual_review",
+        reason,
+        reviewCode: BILLING_REVIEW_CODES.OVERPAID_REFUND_FAILED,
+        userId: userSub.user_id,
+      };
+    }
   }
 
   const isConfirmed =
@@ -668,17 +781,23 @@ async function handlePaymentEvent(params: {
     realPayment.status === "REFUNDED" ||
     realPayment.status === "CHARGEBACK_REQUESTED"
   ) {
-    const { data: pastDueRows, error: pastDueErr } = await admin
-      .from("subscriptions")
-      .update({
-        status: "past_due",
-        updated_at: getNow().toISOString(),
-      })
-      .eq("user_id", userSub.user_id)
-      .select("id");
+    // 3.4: Só marca past_due se o status atual da assinatura for "active" ou "trialing".
+    // Se a assinatura está "incomplete" (checkout estornado), apenas registra o pagamento
+    // e conclui o evento sem alterar o status da assinatura, sem limpar pendências e sem invalidar o link.
+    const mayDegrade = userSub.status === "active" || userSub.status === "trialing";
+    if (mayDegrade) {
+      const { data: pastDueRows, error: pastDueErr } = await admin
+        .from("subscriptions")
+        .update({
+          status: "past_due",
+          updated_at: getNow().toISOString(),
+        })
+        .eq("user_id", userSub.user_id)
+        .select("id");
 
-    if (pastDueErr || !pastDueRows || pastDueRows.length === 0) {
-      throw new Error(`Falha ao atualizar status para past_due: ${pastDueErr?.message || "Nenhum registro atualizado"}`);
+      if (pastDueErr || !pastDueRows || pastDueRows.length === 0) {
+        throw new Error(`Falha ao atualizar status para past_due: ${pastDueErr?.message || "Nenhum registro atualizado"}`);
+      }
     }
   } else if (event === "PAYMENT_OVERDUE" || realPayment.status === "OVERDUE") {
     const currentEnd = userSub.current_period_end

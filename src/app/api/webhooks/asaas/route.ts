@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
  * 1. Validação do cabeçalho asaas-access-token com verifyAsaasWebhookToken.
  * 2. Idempotência atômica gerenciada na tabela billing_webhook_events.
  * 3. Re-consulta oficial dos dados de pagamento via getAsaasPayment.
- * 4. Validação estrita de valores em centavos via validatePaymentAmountForPlan (R$ 49,90 Starter / R$ 97,00 Pro).
+ * 4. Validação estrita de valor exato em centavos via classifyPaymentAmountForPlan (R$ 49,90 Starter / R$ 97,00 Pro).
  * 5. Prevenção de downgrade por pagamentos de assinaturas anteriores (previous_gateway_subscription_id).
  */
 export async function POST(request: Request) {

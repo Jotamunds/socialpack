@@ -2,18 +2,21 @@ import { Logo } from "@/components/Logo";
 import { PLAN_DISPLAY } from "@/lib/plans-display";
 import { AwaitingPayment } from "./AwaitingPayment";
 import { PaymentDeclined, PaymentError } from "./PaymentProblem";
+import { PaymentReview } from "./PaymentReview";
 import { PlanChoiceCard } from "./PlanChoiceCard";
 import type { PlanosScreenProps } from "./types";
 
 /**
  * Apresentação dos planos e dos estados de pagamento.
- * `status`, `message` e `paymentUrl` chegam por props do servidor.
+ * `status`, `message`, `paymentUrl`, `reviewCode` chegam por props do servidor.
  * O bloqueio de páginas pagas não é feito aqui.
  */
 export function PlanosScreen({
   status,
   paymentUrl,
   message,
+  reviewCode,
+  expectedPlanPriceLabel,
   chooseAction,
   plans = PLAN_DISPLAY,
 }: PlanosScreenProps) {
@@ -26,7 +29,15 @@ export function PlanosScreen({
       </header>
 
       <main className="flex-1 px-4 py-10 sm:py-16">
-        {status === "pending" ? (
+        {status === "review" ? (
+          <div className="w-full max-w-md mx-auto space-y-6">
+            <PaymentReview
+              reviewCode={reviewCode}
+              expectedPlanPriceLabel={expectedPlanPriceLabel}
+            />
+            {paymentUrl ? <AwaitingPayment paymentUrl={paymentUrl} /> : null}
+          </div>
+        ) : status === "pending" ? (
           <AwaitingPayment paymentUrl={paymentUrl} />
         ) : status === "failed" ? (
           <PaymentError message={message} />
