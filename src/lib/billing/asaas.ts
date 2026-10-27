@@ -118,6 +118,20 @@ async function asaasFetch<T>(
  * 4. O Asaas colhe os dados cadastrais (CPF/CNPJ, Nome, Telefone) de forma 100% segura
  *    e em conformidade com PCI/LGPD, sem que o SocialPack precise pedir ou armazenar CPF.
  */
+function getAppBaseUrl(): string {
+  const envUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (envUrl && envUrl.startsWith("http")) {
+    return envUrl.replace(/\/+$/, "");
+  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`.replace(/\/+$/, "");
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`.replace(/\/+$/, "");
+  }
+  return "https://socialpack.vercel.app";
+}
+
 export async function createPaymentLinkForPlan(params: {
   userId: string;
   plan: BillingPlanId;
@@ -130,7 +144,9 @@ export async function createPaymentLinkForPlan(params: {
     ? `${params.userId}:${params.plan}:${params.checkoutId}`
     : `${params.userId}:${params.plan}`;
 
-  const basePayload = {
+  const appUrl = getAppBaseUrl();
+
+  const basePayload: Record<string, unknown> = {
     name: planConfig.name,
     description: planConfig.description,
     value: planConfig.price,
@@ -138,6 +154,10 @@ export async function createPaymentLinkForPlan(params: {
     subscriptionCycle: "MONTHLY",
     externalReference: externalRef,
     notificationEnabled: true,
+    callback: {
+      successUrl: `${appUrl}/perfil`,
+      autoRedirect: true,
+    },
   };
 
   // 1. Tenta restringir o checkout diretamente ao meio principal (CREDIT_CARD)
@@ -158,6 +178,19 @@ export async function createPaymentLinkForPlan(params: {
       method: "POST",
       body: JSON.stringify({
         ...basePayload,
+        billingType: "UNDEFINED",
+      }),
+    });
+  }
+
+  // 3. Se ainda assim falhar por rejeição do campo callback, tenta sem callback como segurança
+  if (!res.ok && res.error?.toLowerCase().includes("callback")) {
+    console.warn(`[Asaas] Criação sem callback devido a restrição do gateway: ${res.error}`);
+    const { callback: _, ...payloadWithoutCallback } = basePayload;
+    res = await asaasFetch<AsaasPaymentLinkResponse>("/paymentLinks", {
+      method: "POST",
+      body: JSON.stringify({
+        ...payloadWithoutCallback,
         billingType: "UNDEFINED",
       }),
     });

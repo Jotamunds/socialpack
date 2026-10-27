@@ -26,7 +26,14 @@ export const metadata: Metadata = {
  * 4. O bloqueio das páginas protegidas ocorre no servidor.
  * 5. billing_webhook_events é lido apenas via admin client no servidor (sem RLS vazada).
  */
-export default async function PlanosPage() {
+type PlanosPageProps = {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function PlanosPage(props: PlanosPageProps) {
+  const searchParams = props.searchParams ? await props.searchParams : undefined;
+  const wantChangePlan = searchParams?.mudar === "1" || searchParams?.trocar === "1";
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -89,7 +96,7 @@ export default async function PlanosPage() {
     expectedPlanPriceLabel = display ? `${display.priceLabel}${display.periodLabel}` : null;
   } else if (sub) {
     // Se há um link de pagamento gerado e a conta ainda não foi ativada
-    if (sub.payment_url && (sub.status === "incomplete" || sub.status === "past_due")) {
+    if (sub.payment_url && (sub.status === "incomplete" || sub.status === "past_due") && !wantChangePlan) {
       uiStatus = "pending";
       paymentUrl = sub.payment_url;
     }
