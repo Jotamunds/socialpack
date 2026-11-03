@@ -22,9 +22,36 @@
 
 .mural {
   position: relative;
-  height: 460px;
-  overflow: hidden;
-  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+  height: min(52vh, 460px);
+  overflow: visible;
+}
+
+/* A caixa do fade é mais alta que os cards (padding). O gradiente zera
+   a opacidade nos últimos ~25% da área visível e no espaço que a rotação
+   empurra para baixo, ainda dentro do hero. */
+.fade {
+  height: 100%;
+  box-sizing: content-box;
+  padding-bottom: 18%;
+  margin-bottom: -18%;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 63%,
+    transparent 85%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 63%,
+    transparent 85%,
+    transparent 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
 }
 
 .board {
@@ -170,7 +197,9 @@
 
 @media (min-width: 1024px) {
   .mural {
-    height: min(78vh, 720px);
+    height: min(68vh, 640px);
+    align-self: end;
+    margin-bottom: 4vh;
   }
 
   .board {
