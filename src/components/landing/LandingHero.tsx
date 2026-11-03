@@ -138,8 +138,64 @@ export function LandingHero() {
   return (
     <section className={styles.hero}>
       <div className={styles.glow} aria-hidden="true" />
+      <div className={styles.mural} aria-hidden="true">
+        <div className={styles.board}>
+          {COLUMNS.map((cards, index) => (
+            <Column key={index} cards={cards} />
+          ))}
+        </div>
+        <div className={styles.icons}>
+          <SocialBadge
+            className=""
+            label="Instagram"
+            style={{ top: "8%", left: "4%", background: "linear-gradient(135deg,#f7ce68,#ee2a7b)", boxShadow: "0 0 22px rgba(238,42,123,0.55)", animationDelay: "0s" }}
+          >
+            <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={1.8}>
+              <rect x="4" y="4" width="16" height="16" rx="5" />
+              <circle cx="12" cy="12" r="3.2" />
+              <circle cx="17" cy="7" r="0.8" fill="currentColor" stroke="none" />
+            </svg>
+          </SocialBadge>
+          <SocialBadge
+            className=""
+            label="YouTube"
+            style={{ top: "18%", right: "6%", background: "#e40014", boxShadow: "0 0 22px rgba(228,0,20,0.5)", animationDelay: "0.8s" }}
+          >
+            <svg viewBox="0 0 24 24" className="size-5" fill="currentColor">
+              <path d="M9.2 8.4v7.2L16 12 9.2 8.4z" />
+            </svg>
+          </SocialBadge>
+          <SocialBadge
+            className=""
+            label="TikTok"
+            style={{ bottom: "22%", right: "2%", background: "#111", boxShadow: "0 0 18px rgba(113,112,255,0.45)", animationDelay: "1.4s" }}
+          >
+            <svg viewBox="0 0 24 24" className="size-5" fill="currentColor">
+              <path d="M14 4v9.2a3.2 3.2 0 1 1-2.2-3V7.6A5.2 5.2 0 0 0 17 9V6.2A4.2 4.2 0 0 1 14 4z" />
+            </svg>
+          </SocialBadge>
+          <SocialBadge
+            className=""
+            label="Mensagem"
+            style={{ bottom: "18%", left: "8%", background: "#5e6ad2", boxShadow: "0 0 20px rgba(94,106,210,0.55)", animationDelay: "0.4s" }}
+          >
+            <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={1.8}>
+              <path d="M6 16.5 4 20l4.2-1.4A8 8 0 1 0 6 16.5z" />
+            </svg>
+          </SocialBadge>
+          <SocialBadge
+            className={styles.badgeWide}
+            label="Vídeo"
+            style={{ top: "46%", left: "6%", background: "#7170ff", boxShadow: "0 0 18px rgba(113,112,255,0.5)", animationDelay: "1.1s" }}
+          >
+            <svg viewBox="0 0 24 24" className="size-5" fill="currentColor">
+              <path d="M8 7v10l9-5-9-5z" />
+            </svg>
+          </SocialBadge>
+        </div>
+      </div>
 
-      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col px-4 pb-10">
+      <div className={`${styles.copy} relative z-10 mx-auto flex w-full max-w-6xl flex-col px-4 pb-10 lg:min-h-[100svh]`}>
         <header className="flex h-16 items-center justify-between gap-4">
           <Logo variant="with-label" href="/" className="h-8 w-auto" />
           <nav aria-label="Seções da página" className="flex items-center gap-3 sm:gap-6">
@@ -155,7 +211,7 @@ export function LandingHero() {
           </nav>
         </header>
 
-        <div className="grid flex-1 items-center gap-10 lg:grid-cols-2 lg:gap-6">
+        <div className="flex flex-1 items-center">
           <div className="max-w-xl pt-6 text-center lg:pt-0 lg:text-left">
             <h1 className="text-4xl sm:text-5xl lg:text-[3.4rem] font-semibold tracking-[-0.035em] leading-[1.05] text-[#f7f8f8]">
               A maneira mais rápida de criar artes para o seu negócio
@@ -188,65 +244,6 @@ export function LandingHero() {
               </svg>
               Role para ver os planos
             </a>
-          </div>
-
-          <div className={styles.mural} aria-hidden="true">
-            <div className={styles.fade}>
-            <div className={styles.board}>
-              {COLUMNS.map((cards, index) => (
-                <Column key={index} cards={cards} />
-              ))}
-            </div>
-            <div className={styles.icons}>
-              <SocialBadge
-                className=""
-                label="Instagram"
-                style={{ top: "8%", left: "4%", background: "linear-gradient(135deg,#f7ce68,#ee2a7b)", boxShadow: "0 0 22px rgba(238,42,123,0.55)", animationDelay: "0s" }}
-              >
-                <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={1.8}>
-                  <rect x="4" y="4" width="16" height="16" rx="5" />
-                  <circle cx="12" cy="12" r="3.2" />
-                  <circle cx="17" cy="7" r="0.8" fill="currentColor" stroke="none" />
-                </svg>
-              </SocialBadge>
-              <SocialBadge
-                className=""
-                label="YouTube"
-                style={{ top: "18%", right: "6%", background: "#e40014", boxShadow: "0 0 22px rgba(228,0,20,0.5)", animationDelay: "0.8s" }}
-              >
-                <svg viewBox="0 0 24 24" className="size-5" fill="currentColor">
-                  <path d="M9.2 8.4v7.2L16 12 9.2 8.4z" />
-                </svg>
-              </SocialBadge>
-              <SocialBadge
-                className=""
-                label="TikTok"
-                style={{ bottom: "22%", right: "2%", background: "#111", boxShadow: "0 0 18px rgba(113,112,255,0.45)", animationDelay: "1.4s" }}
-              >
-                <svg viewBox="0 0 24 24" className="size-5" fill="currentColor">
-                  <path d="M14 4v9.2a3.2 3.2 0 1 1-2.2-3V7.6A5.2 5.2 0 0 0 17 9V6.2A4.2 4.2 0 0 1 14 4z" />
-                </svg>
-              </SocialBadge>
-              <SocialBadge
-                className=""
-                label="Mensagem"
-                style={{ bottom: "14%", left: "10%", background: "#5e6ad2", boxShadow: "0 0 20px rgba(94,106,210,0.55)", animationDelay: "0.4s" }}
-              >
-                <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={1.8}>
-                  <path d="M6 16.5 4 20l4.2-1.4A8 8 0 1 0 6 16.5z" />
-                </svg>
-              </SocialBadge>
-              <SocialBadge
-                className={styles.badgeWide}
-                label="Vídeo"
-                style={{ top: "46%", left: "-2%", background: "#7170ff", boxShadow: "0 0 18px rgba(113,112,255,0.5)", animationDelay: "1.1s" }}
-              >
-                <svg viewBox="0 0 24 24" className="size-5" fill="currentColor">
-                  <path d="M8 7v10l9-5-9-5z" />
-                </svg>
-              </SocialBadge>
-            </div>
-            </div>
           </div>
         </div>
       </div>
