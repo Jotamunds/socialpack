@@ -9,12 +9,13 @@ import { AppMobileNav } from "@/components/app/AppMobileNav";
 import { getHistoryPostsAction } from "@/app/actions/history";
 import { HistoryInstagramClient } from "@/components/historico/HistoryInstagramClient";
 import { historyNicheOptions, parseHistoryFilters } from "@/lib/history-filters";
+import { t } from "@/i18n";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Histórico Instagram | SocialPack",
-  description: "Gerencie, visualize e baixe suas artes geradas para o Instagram.",
+  title: t("history.instagramTitle"),
+  description: t("history.instagramDescription"),
 };
 
 export default async function HistoricoInstagramPage({
@@ -79,26 +80,26 @@ export default async function HistoricoInstagramPage({
                 href="/perfil"
                 className="text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors"
               >
-                Empresas
+                {t("app.navCompanies")}
               </Link>
               <Link
                 href="/geracao/instagram/posts"
                 className="text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors inline-flex items-center gap-1.5"
               >
                 <SparklesIcon className="size-3.5 text-[#5e6ad2]" />
-                <span>Geração</span>
+                <span>{t("app.navGenerate")}</span>
               </Link>
               <Link
                 href="/geracao/historico"
                 className="text-[13px] font-medium text-[#f7f8f8] border-b-2 border-[#5e6ad2] pb-0.5"
               >
-                Histórico
+                {t("app.navHistory")}
               </Link>
               <Link
                 href="/configuracoes"
                 className="text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors"
               >
-                Configurações
+                {t("app.navSettings")}
               </Link>
             </nav>
           </div>
@@ -112,7 +113,7 @@ export default async function HistoricoInstagramPage({
             <form action={signOutAction}>
               <button
                 type="submit"
-                title="Sair da Conta"
+                title={t("app.logOut")}
                 className="size-11 sm:size-8 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] text-[#8a8f98] hover:text-[#f7f8f8] transition-colors flex items-center justify-center cursor-pointer"
               >
                 <LogOutIcon className="size-3.5" />
@@ -128,13 +129,13 @@ export default async function HistoricoInstagramPage({
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-xs text-[#8a8f98]">
                   <Link href="/geracao/historico" className="hover:text-[#f7f8f8] transition-colors">
-                    Histórico
+                    {t("app.navHistory")}
                   </Link>
                   <span>/</span>
                   <span className="text-[#d0d6e0]">Instagram</span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#f7f8f8]">
-                  Histórico de Criações — Instagram
+                  {t("history.instagramHeading")}
                 </h1>
               </div>
 
@@ -143,7 +144,7 @@ export default async function HistoricoInstagramPage({
                 className="h-9 px-4 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-xs font-semibold transition-all shadow-[0_1px_3px_rgba(0,0,0,0.4)] active:scale-[0.98] inline-flex items-center justify-center gap-2 cursor-pointer self-start sm:self-auto"
               >
                 <SparklesIcon className="size-3.5" />
-                <span>Nova Geração</span>
+                <span>{t("history.newGeneration")}</span>
               </Link>
             </div>
 
@@ -158,10 +159,10 @@ export default async function HistoricoInstagramPage({
       {/* Footer Minimalista */}
       <footer className="border-t border-[rgba(255,255,255,0.06)] bg-[#08090a] py-6">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#62666d]">
-          <p>© {new Date().getFullYear()} SocialPack. Todos os direitos reservados.</p>
+          <p>© {new Date().getFullYear()} SocialPack. {t("app.rights")}</p>
           <div className="flex items-center gap-2">
             <span className="inline-block size-1.5 rounded-full bg-[#10b981]" />
-            <span>Exclusão Coordenada de Arquivos Ativa</span>
+            <span>{t("history.deletionOn")}</span>
           </div>
         </div>
       </footer>

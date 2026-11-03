@@ -1,6 +1,7 @@
 "use client";
 
 import type { CompanyItem } from "@/components/geracao/CompanySelector";
+import { t } from "@/i18n";
 import type { HistoryNicheOption, HistoryPeriod } from "@/lib/history-filters";
 
 interface HistoryFiltersProps {
@@ -45,7 +46,7 @@ export function HistoryFilters({
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
         <div className="sm:col-span-4 space-y-1.5">
           <label htmlFor="company-filter" className="text-[11px] font-medium text-[#8a8f98] block">
-            Filtrar por Empresa
+            {t("history.filterCompany")}
           </label>
           <div className="relative">
             <select
@@ -56,7 +57,7 @@ export function HistoryFilters({
               className="w-full min-w-0 h-11 sm:h-9 appearance-none rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] text-[#f7f8f8] text-xs px-3 pr-8 transition-colors cursor-pointer"
             >
               <option value="" className="bg-[#0f1011] text-[#f7f8f8]">
-                Todas as empresas ({companies.length})
+                {t("history.allCompanies")} ({companies.length})
               </option>
               {companies.map((company) => (
                 <option key={company.id} value={company.id} className="bg-[#0f1011] text-[#f7f8f8]">
@@ -74,7 +75,7 @@ export function HistoryFilters({
 
         <div className="sm:col-span-5 space-y-1.5">
           <label htmlFor="search-input" className="text-[11px] font-medium text-[#8a8f98] block">
-            Buscar por tema ou texto
+            {t("history.searchLabel")}
           </label>
           <div className="relative">
             <input
@@ -83,7 +84,7 @@ export function HistoryFilters({
               type="text"
               value={busca}
               onChange={(event) => onBuscaChange(event.target.value)}
-              placeholder="Ex: Pizza artesanal, promoção, dica..."
+              placeholder={t("history.searchPlaceholder")}
               maxLength={80}
               className="w-full min-w-0 h-11 sm:h-9 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] text-[#f7f8f8] text-xs px-3 pl-8 placeholder-[#62666d] transition-colors"
             />
@@ -98,7 +99,7 @@ export function HistoryFilters({
 
         <div className="sm:col-span-3 space-y-1.5">
           <label htmlFor="period-filter" className="text-[11px] font-medium text-[#8a8f98] block">
-            Período
+            {t("history.period")}
           </label>
           <div className="relative">
             <select
@@ -109,13 +110,13 @@ export function HistoryFilters({
               className="w-full min-w-0 h-11 sm:h-9 appearance-none rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] text-[#f7f8f8] text-xs px-3 pr-8 transition-colors cursor-pointer"
             >
               <option value="" className="bg-[#0f1011] text-[#f7f8f8]">
-                Todo o histórico
+                {t("history.allTime")}
               </option>
               <option value="7d" className="bg-[#0f1011] text-[#f7f8f8]">
-                Últimos 7 dias
+                {t("history.last7")}
               </option>
               <option value="30d" className="bg-[#0f1011] text-[#f7f8f8]">
-                Últimos 30 dias
+                {t("history.last30")}
               </option>
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#8a8f98]">
@@ -128,7 +129,7 @@ export function HistoryFilters({
 
         <div className="sm:col-span-4 space-y-1.5">
           <label htmlFor="niche-filter" className="text-[11px] font-medium text-[#8a8f98] block">
-            Nicho
+            {t("history.niche")}
           </label>
           <div className="relative">
             <select
@@ -139,7 +140,7 @@ export function HistoryFilters({
               className="w-full min-w-0 h-11 sm:h-9 appearance-none rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] text-[#f7f8f8] text-xs px-3 pr-8 transition-colors cursor-pointer"
             >
               <option value="" className="bg-[#0f1011] text-[#f7f8f8]">
-                Todos os nichos
+                {t("history.allNiches")}
               </option>
               {niches.map((option) => (
                 <option key={option.id} value={option.id} className="bg-[#0f1011] text-[#f7f8f8]">
@@ -162,7 +163,7 @@ export function HistoryFilters({
             disabled={!canClear}
             className="h-9 px-3 rounded-md bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.08)] text-xs text-[#d0d6e0] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[rgba(255,255,255,0.04)]"
           >
-            Limpar Filtros
+            {t("history.clear")}
           </button>
         </div>
       </div>
