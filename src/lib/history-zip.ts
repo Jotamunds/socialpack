@@ -25,7 +25,6 @@ const ENTRY_STEM_MAX = 48;
 
 export const HISTORY_ZIP_MESSAGES = {
   unauthorized: "Faça login para baixar o histórico.",
-  subscription: "É necessária uma assinatura ativa para baixar o histórico.",
   empty: "Nenhuma arte encontrada com esses filtros.",
   tooMany: `Há mais de ${HISTORY_ZIP_MAX_POSTS} artes nesse filtro. Refine empresa, nicho, período ou busca e tente de novo.`,
   tooLarge: `As artes desse filtro passam de ${HISTORY_ZIP_MAX_BYTES / (1024 * 1024)} MB. Refine os filtros e tente de novo.`,

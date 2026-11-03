@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/supabase/require-page-access";
 import { Logo } from "@/components/Logo";
 import { PerfilClient } from "@/components/perfil/PerfilClient";
-import { SubscriptionInactiveState } from "@/components/SubscriptionInactiveState";
 import { LogOutIcon, SparklesIcon } from "@/components/icons";
 import { signOutAction } from "@/app/actions/companies";
 
@@ -15,33 +14,18 @@ export const metadata = {
 };
 
 export default async function PerfilPage() {
-  const access = await requirePageAccess("/perfil");
+  await requirePageAccess("/perfil");
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [companiesResult, subscriptionResult] = access.ok
-    ? await Promise.all([
-        supabase.from("companies").select("*").order("created_at", { ascending: false }),
-        supabase.from("subscriptions").select("*").eq("user_id", access.userId).maybeSingle(),
-      ])
-    : [{ data: [] }, { data: null }];
+  const { data: companiesData } = await supabase
+    .from("companies")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-  const companies = companiesResult.data || [];
-  const rawSub = subscriptionResult.data;
-  const plan = rawSub?.plan || "starter";
-  const quota =
-    rawSub?.company_quota ??
-    (rawSub as { max_companies?: number } | null)?.max_companies ??
-    (plan === "pro" ? 3 : 1);
-
-  const subscription = {
-    plan,
-    status: rawSub?.status || "incomplete",
-    company_quota: quota,
-    max_companies: quota,
-  };
+  const companies = companiesData || [];
 
   return (
     <div className="min-h-screen bg-[#08090a] text-[#f7f8f8] flex flex-col selection:bg-[#5e6ad2]/30 selection:text-white">
@@ -82,9 +66,6 @@ export default async function PerfilPage() {
               <span className="text-[12px] font-medium text-[#f7f8f8] max-w-[180px] truncate">
                 {user?.email}
               </span>
-              <span className="text-[10px] text-[#8a8f98] uppercase tracking-wider">
-                Plano {plan}
-              </span>
             </div>
             <form action={signOutAction}>
               <button
@@ -100,11 +81,7 @@ export default async function PerfilPage() {
       </header>
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 sm:py-10">
-        {!access.ok ? (
-          <SubscriptionInactiveState message={access.error} />
-        ) : (
-          <PerfilClient companies={companies} subscription={subscription} />
-        )}
+        <PerfilClient companies={companies} />
       </main>
 
       {/* Footer Minimalista */}

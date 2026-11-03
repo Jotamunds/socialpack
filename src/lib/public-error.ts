@@ -7,7 +7,7 @@ export function sanitizePublicErrorMessage(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err);
 
   if (msg.includes("P0003") || msg.toLowerCase().includes("limite de empresas")) {
-    return "Limite de empresas atingido para o seu plano.";
+    return "Limite de empresas atingido.";
   }
   if (msg.includes("P0002") || msg.toLowerCase().includes("assinatura")) {
     return "Assinatura inativa ou expirada.";

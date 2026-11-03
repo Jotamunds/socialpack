@@ -16,21 +16,20 @@ async function runPhase3Tests() {
   }
   const pageContent = fs.readFileSync(pagePath, "utf-8");
 
-  const requiredLandingLinks = [
-    "/cadastro?plano=starter",
-    "/cadastro?plano=pro",
-    "/login",
-    "#planos",
-    "49,90",
-    "97,00",
-  ];
+  const requiredLandingLinks = ["/cadastro", "/login", "1 clique"];
 
   for (const kw of requiredLandingLinks) {
     if (!pageContent.includes(kw)) {
       throw new Error(`Landing page ausente do elemento obrigatório: ${kw}`);
     }
   }
-  console.log("   ✓ Landing Page possui Hero, Mosaico, Seção #planos e links para Starter e Pro.");
+  const removedPricing = ["#planos", "49,90", "97,00", "Assinar Starter", "Assinar Plano Pro"];
+  for (const kw of removedPricing) {
+    if (pageContent.includes(kw)) {
+      throw new Error(`Landing page ainda contém preço ou plano: ${kw}`);
+    }
+  }
+  console.log("   ✓ Landing Page possui Hero, mosaico e cadastro, sem preços nem planos.");
 
   // 2. Validar Tela de Cadastro (src/app/cadastro/page.tsx)
   console.log("2. Validando Tela de Cadastro (/cadastro)...");

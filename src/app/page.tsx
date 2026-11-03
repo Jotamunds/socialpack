@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
-import { ArrowRightIcon, CheckIcon, SparklesIcon } from "@/components/icons";
+import { ArrowRightIcon, SparklesIcon } from "@/components/icons";
 import { getDemoShowcase, type DemoShowcaseItem } from "@/lib/demo-showcase";
 
 export default async function HomePage() {
@@ -13,12 +13,6 @@ export default async function HomePage() {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Logo variant="with-label" className="h-8 w-auto" href="/" />
           <nav className="flex items-center gap-6">
-            <a
-              href="#planos"
-              className="hidden sm:inline-block text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors"
-            >
-              Planos
-            </a>
             <Link
               href="/login"
               className="text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors"
@@ -26,7 +20,7 @@ export default async function HomePage() {
               Entrar
             </Link>
             <Link
-              href="/cadastro?plano=starter"
+              href="/cadastro"
               className="h-9 px-4 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-[13px] font-medium transition-all shadow-[0_1px_2px_rgba(0,0,0,0.4)] active:scale-[0.98] inline-flex items-center justify-center gap-1.5"
             >
               <span>Começar</span>
@@ -65,13 +59,13 @@ export default async function HomePage() {
                 </p>
 
                 <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
-                  <a
-                    href="#planos"
+                  <Link
+                    href="/cadastro"
                     className="w-full sm:w-auto h-11 px-6 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-[14px] font-medium transition-all shadow-[0_1px_3px_rgba(0,0,0,0.5)] active:scale-[0.98] inline-flex items-center justify-center gap-2"
                   >
-                    <span>Conhecer os Planos</span>
+                    <span>Criar conta</span>
                     <ArrowRightIcon className="size-4" />
-                  </a>
+                  </Link>
                   <Link
                     href="/login"
                     className="w-full sm:w-auto h-11 px-5 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-[#d0d6e0] hover:text-[#f7f8f8] text-[14px] font-medium transition-colors inline-flex items-center justify-center"
@@ -241,140 +235,6 @@ export default async function HomePage() {
         </section>
 
         {exemplos.length > 0 ? <ExemplosSection items={exemplos} /> : null}
-
-        {/* Seção de Preços e Planos (#planos) */}
-        <section id="planos" className="py-24 border-t border-[rgba(255,255,255,0.06)] bg-[#0a0b0d]">
-          <div className="max-w-5xl mx-auto px-4">
-            <div className="text-center max-w-xl mx-auto space-y-3 mb-16">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#7170ff]">
-                Investimento Previsível
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#f7f8f8]">
-                Escolha o plano ideal para você
-              </h2>
-              <p className="text-sm text-[#8a8f98]">
-                Sem contratos longos, pegadinhas ou cobranças ocultas. Cancele
-                quando quiser.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-              {/* Card Plano Starter */}
-              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] p-7 flex flex-col justify-between hover:border-[rgba(255,255,255,0.14)] transition-colors">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-[#f7f8f8]">Plano Starter</h3>
-                      <p className="text-xs text-[#8a8f98]">Ideal para 1 negócio próprio</p>
-                    </div>
-                    <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-[rgba(255,255,255,0.05)] text-[#d0d6e0] border border-[rgba(255,255,255,0.08)]">
-                      Essencial
-                    </span>
-                  </div>
-
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl sm:text-4xl font-bold text-[#f7f8f8]">R$ 49,90</span>
-                    <span className="text-xs text-[#8a8f98]">/mês</span>
-                  </div>
-
-                  <ul className="space-y-3 pt-4 border-t border-[rgba(255,255,255,0.06)] text-xs text-[#d0d6e0]">
-                    <li className="flex items-center gap-2.5">
-                      <CheckIcon className="size-4 text-[#10b981]" />
-                      <span><strong>1 Empresa</strong> cadastrada</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <CheckIcon className="size-4 text-[#10b981]" />
-                      <span>7 posts semanais em 1080×1080px</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <CheckIcon className="size-4 text-[#10b981]" />
-                      <span>Templates exclusivos do seu nicho</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <CheckIcon className="size-4 text-[#10b981]" />
-                      <span>Legendas com hashtags estratégicas</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <CheckIcon className="size-4 text-[#10b981]" />
-                      <span>Exportação rápida em PNG</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="pt-8">
-                  <Link
-                    href="/cadastro?plano=starter"
-                    className="w-full h-10 rounded-md bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.1)] text-[#f7f8f8] text-[13px] font-medium transition-colors inline-flex items-center justify-center"
-                  >
-                    Assinar Starter
-                  </Link>
-                </div>
-              </div>
-
-              {/* Card Plano Pro (Destaque) */}
-              <div className="relative rounded-xl border-2 border-[#5e6ad2] bg-[#0d0e12] p-7 flex flex-col justify-between shadow-[0_10px_30px_rgba(94,106,210,0.15)]">
-                {/* Badge Mais Escolhido */}
-                <div className="absolute -top-3 right-6">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/30 shadow-sm">
-                    <span className="size-1.5 rounded-full bg-[#10b981]" />
-                    Mais Escolhido
-                  </span>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-[#f7f8f8]">Plano Pro</h3>
-                      <p className="text-xs text-[#8a8f98]">Para agências, freelancers ou filiais</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl sm:text-4xl font-bold text-[#f7f8f8]">R$ 97,00</span>
-                    <span className="text-xs text-[#8a8f98]">/mês</span>
-                  </div>
-
-                  <ul className="space-y-3 pt-4 border-t border-[rgba(255,255,255,0.08)] text-xs text-[#d0d6e0]">
-                    <li className="flex items-center gap-2.5">
-                      <CheckIcon className="size-4 text-[#10b981]" />
-                      <span><strong>Até 3 Empresas</strong> cadastradas simultâneas</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <CheckIcon className="size-4 text-[#10b981]" />
-                      <span>7 posts semanais para cada empresa</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <CheckIcon className="size-4 text-[#10b981]" />
-                      <span>Acesso a todos os 36+ nichos do catálogo</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <CheckIcon className="size-4 text-[#10b981]" />
-                      <span>Alternância rápida de perfis ativos</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <CheckIcon className="size-4 text-[#10b981]" />
-                      <span>Download de pacotes completos em ZIP</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <CheckIcon className="size-4 text-[#10b981]" />
-                      <span>Suporte prioritário direto via WhatsApp</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="pt-8">
-                  <Link
-                    href="/cadastro?plano=pro"
-                    className="w-full h-10 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-[13px] font-medium transition-all shadow-[0_1px_3px_rgba(0,0,0,0.5)] active:scale-[0.98] inline-flex items-center justify-center gap-2"
-                  >
-                    <span>Assinar Plano Pro</span>
-                    <ArrowRightIcon className="size-3.5" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
 
       {/* Footer Minimalista */}
@@ -385,9 +245,6 @@ export default async function HomePage() {
             <span>© {new Date().getFullYear()} SocialPack. Todos os direitos reservados.</span>
           </div>
           <div className="flex items-center gap-6">
-            <a href="#planos" className="hover:text-[#f7f8f8] transition-colors">
-              Planos
-            </a>
             <Link href="/login" className="hover:text-[#f7f8f8] transition-colors">
               Login
             </Link>

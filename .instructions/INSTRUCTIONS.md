@@ -30,13 +30,13 @@ Toda linha de código gerada pelo agente DEVE obedecer a estes 7 mandamentos de 
    * Toda política de `UPDATE` deve conter explicitamente `USING ((select auth.uid()) = ...) WITH CHECK ((select auth.uid()) = ...)` para impedir usurpação de registros.
    * O cliente (`authenticated`) **NÃO POSSUI GRANT DE INSERT OU DELETE** na tabela `public.posts`. Criação e exclusão são orquestradas unicamente pelo backend.
 
-3. **Conformidade de Pagamentos & Dados Sensíveis (PCI-DSS):**
+3. **Dados sensíveis:**
    * **NUNCA** armazene números de cartão de crédito, datas de validade ou CVV no PostgreSQL/Supabase.
-   * Armazene apenas identificadores opacos do gateway (`gateway_customer_id`, `gateway_subscription_id`) e metadados inofensivos (`plan`, `status`, `current_period_end`).
+   * A versão de uso direto não cobra e não consulta gateway. Colunas antigas de cobrança, se existirem, não liberam nem bloqueiam acesso.
 
 4. **Controle Atômico de Cotas (Anti-Race Condition):**
-   * A cota de empresas (Starter = 1; Pro = 3) é aplicada via gatilho no PostgreSQL (`enforce_company_quota`) com `FOR UPDATE` sobre a assinatura. Duas requisições paralelas jamais poderão furar o limite.
-   * A validade temporal da assinatura (`current_period_end > now()`) e status (`active` ou `trialing`) é requisito obrigatório antes de permitir qualquer cadastro de empresa ou geração de arte.
+   * O teto é de 3 empresas por usuário, aplicado pelo gatilho `enforce_company_quota` com advisory lock. Duas requisições paralelas não furam o limite.
+   * Plano, status e `current_period_end` não são requisito para cadastrar empresa, gerar arte ou baixar o histórico. A sessão (`auth.getUser()`) e o `user.id` continuam obrigatórios.
 
 5. **Prevenção de Arquivos Órfãos no Supabase Storage:**
    * O bucket `generated-arts` é estritamente **privado** (`public = false`).
@@ -141,7 +141,7 @@ FASE 7: Painel de Configurações (`/configuracoes` — 3 Abas, Assinatura & The
 #### FASE 3: Autenticação & Fluxo de Entrada
 * **Alvo:** Landing Page oficial e páginas de login/cadastro conectadas ao Supabase Auth.
 * **Tarefas:**
-  1. Implementar Landing Page (`app/page.tsx`) com hero dark fullscreen, rotação de artes e cards comparativos dos planos Starter (R$ 49,90) e Pro (R$ 97,00).
+  1. Implementar Landing Page (`app/page.tsx`) com hero dark fullscreen e rotação de artes. Sem seção de preços nem planos.
   2. Implementar `app/cadastro/page.tsx` e `app/login/page.tsx` com formulários acessíveis.
   3. No cadastro, repassar `full_name` e `phone` no `raw_user_meta_data` do Supabase para acionar o trigger `handle_new_user()`.
 * **Critério de Aceite:** Novo cadastro cria o usuário no Auth, aciona o trigger em `public.profiles` e autentica via cookie `HttpOnly`.
@@ -151,8 +151,8 @@ FASE 7: Painel de Configurações (`/configuracoes` — 3 Abas, Assinatura & The
 * **Tarefas:**
   1. Construir `app/perfil/page.tsx` com o grid de cartões de empresas e slot tracejado para nova empresa.
   2. Criar modal de criação com seletores encadeados de Segmento ➔ Nicho, UF (2 letras) e Cidade.
-  3. Integrar com `createCompanyAction` mapeando o erro `P0003` para disparar o modal de Upsell do Plano Pro quando o Starter tentar a 2ª empresa.
-* **Critério de Aceite:** Usuário Starter cadastra 1 empresa com sucesso e é bloqueado ao tentar a 2ª com mensagem amigável de upgrade.
+  3. Integrar com `createCompanyAction` mapeando o erro `P0003` quando o usuário tentar a 4ª empresa.
+* **Critério de Aceite:** Usuário autenticado cadastra até 3 empresas. A 4ª é recusada sem oferta de plano.
 
 #### FASE 5: Motor de Geração Determinística (`/geracao/instagram/posts`)
 * **Alvo:** Renderização das 7 artes semanais com Satori e download instantâneo.
@@ -172,12 +172,11 @@ FASE 7: Painel de Configurações (`/configuracoes` — 3 Abas, Assinatura & The
 * **Critério de Aceite:** Ao excluir um post, o registro desaparece da lista e o arquivo PNG é comprovadamente deletado do bucket `generated-arts`.
 
 #### FASE 7: Painel de Configurações (`/configuracoes`)
-* **Alvo:** Gestão de assinatura, dados cadastrais e tema.
+* **Alvo:** Dados cadastrais e tema.
 * **Tarefas:**
-  1. Construir `app/configuracoes/page.tsx` estruturada em 3 abas acessíveis:
-     * **Aba 1 (Plano & Custos):** Exibição do plano ativo, barra de progresso da cota de empresas (ex.: 2 de 3) e botões de upgrade/cancelamento.
-     * **Aba 2 (Configurações da Conta):** Edição de nome/WhatsApp e exibição protegida do e-mail.
-     * **Aba 3 (Aparência):** Alternância entre Tema Escuro (`#08090a`) e Tema Claro através de classes e variáveis CSS.
+  1. Construir `app/configuracoes/page.tsx` em 2 abas acessíveis:
+     * **Aba 1 (Configurações da Conta):** Edição de nome/WhatsApp e exibição protegida do e-mail.
+     * **Aba 2 (Aparência):** Alternância entre Tema Escuro (`#08090a`) e Tema Claro através de classes e variáveis CSS.
 * **Critério de Aceite:** Abas alternam sem recarregar a tela; troca de tema reativa e dados salvos no Supabase.
 
 ---

@@ -234,13 +234,15 @@ async function runPhase5Tests() {
     throw new Error("Route Handler deve conter rollback compensatório removendo arquivo órfão no Storage em caso de erro.");
   }
 
-  // Validação de assinatura
-  if (!routeContent.includes("requireValidSubscription")) {
-    throw new Error("Route Handler deve validar assinatura ativa via requireValidSubscription.");
+  if (!routeContent.includes("auth.getUser()")) {
+    throw new Error("Route Handler deve exigir sessão com auth.getUser().");
+  }
+  if (routeContent.includes("requireValidSubscription") || routeContent.includes("assertValidSubscription")) {
+    throw new Error("Route Handler não deve bloquear geração por assinatura.");
   }
 
   console.log("   ✓ Máquina de estados (pending -> processing -> completed / failed) rigorosamente implementada.");
-  console.log("   ✓ Rollback compensatório de storage e verificação de assinatura confirmados.");
+  console.log("   ✓ Rollback compensatório de storage e sessão obrigatória confirmados.");
 
   // ---------------------------------------------------------------------------
   // 7. Validar Server Actions de Posts (src/app/actions/posts.ts)

@@ -15,7 +15,6 @@ async function runPhase4Tests() {
   const actionsPath = path.resolve(basePath, "src", "app", "actions", "companies.ts");
   const companyCardPath = path.resolve(basePath, "src", "components", "perfil", "CompanyCard.tsx");
   const companyModalPath = path.resolve(basePath, "src", "components", "perfil", "CompanyModal.tsx");
-  const upsellModalPath = path.resolve(basePath, "src", "components", "perfil", "UpsellModal.tsx");
   const perfilClientPath = path.resolve(basePath, "src", "components", "perfil", "PerfilClient.tsx");
 
   // ---------------------------------------------------------------------------
@@ -27,7 +26,6 @@ async function runPhase4Tests() {
     { name: "Server Actions de Empresas", path: actionsPath },
     { name: "Componente CompanyCard", path: companyCardPath },
     { name: "Componente CompanyModal", path: companyModalPath },
-    { name: "Componente UpsellModal", path: upsellModalPath },
     { name: "Componente PerfilClient", path: perfilClientPath },
   ];
 
@@ -146,12 +144,17 @@ async function runPhase4Tests() {
   console.log("3. Validando Server Actions de empresas (src/app/actions/companies.ts)...");
   const actionsContent = fs.readFileSync(actionsPath, "utf-8");
 
-  // Invariante de Segurança: NUNCA usar service_role em companies
-  if (actionsContent.includes("createAdminClient") || actionsContent.includes("SUPABASE_SERVICE_ROLE_KEY")) {
-    throw new Error("VIOLAÇÃO DE SEGURANÇA: companies.ts não deve usar cliente administrativo service_role!");
+  if (!actionsContent.includes("auth.getUser()")) {
+    throw new Error("companies.ts deve validar a sessão com auth.getUser().");
+  }
+  if (!actionsContent.includes(".eq(\"user_id\", user.id)")) {
+    throw new Error("companies.ts deve restringir empresas ao user.id da sessão.");
   }
   if (!actionsContent.includes("createClient")) {
     throw new Error("companies.ts deve usar createClient do @/lib/supabase/server");
+  }
+  if (actionsContent.includes("assertValidSubscription") || actionsContent.includes("SUBSCRIPTION_REQUIRED")) {
+    throw new Error("companies.ts não deve bloquear cadastro por assinatura.");
   }
 
   // Mapeamento de P0003 -> QUOTA_EXCEEDED
@@ -159,18 +162,13 @@ async function runPhase4Tests() {
     throw new Error("companies.ts deve capturar código P0003 e retornar QUOTA_EXCEEDED.");
   }
 
-  // Mapeamento de P0002 -> SUBSCRIPTION_REQUIRED
-  if (!actionsContent.includes("P0002") || !actionsContent.includes("SUBSCRIPTION_REQUIRED")) {
-    throw new Error("companies.ts deve capturar código P0002 e retornar SUBSCRIPTION_REQUIRED.");
-  }
-
   // Operações essenciais
   if (!actionsContent.includes("createCompanyAction") || !actionsContent.includes("deleteCompanyAction")) {
     throw new Error("companies.ts deve exportar createCompanyAction e deleteCompanyAction.");
   }
 
-  console.log("   ✓ RLS 100% garantido: usa cliente de sessão autenticada.");
-  console.log("   ✓ Mapeamento do trigger enforce_company_quota (P0003 ➔ QUOTA_EXCEEDED e P0002 ➔ SUBSCRIPTION_REQUIRED) verificado.");
+  console.log("   ✓ Sessão obrigatória e empresas presas ao user.id.");
+  console.log("   ✓ Mapeamento do trigger enforce_company_quota (P0003 ➔ QUOTA_EXCEEDED) verificado.");
 
   // ---------------------------------------------------------------------------
   // 4. Validar Página /perfil (src/app/perfil/page.tsx)
@@ -178,33 +176,28 @@ async function runPhase4Tests() {
   console.log("4. Validando Server Component de perfil (src/app/perfil/page.tsx)...");
   const perfilPageContent = fs.readFileSync(perfilPagePath, "utf-8");
 
-  // Consultas em paralelo
-  if (!perfilPageContent.includes("Promise.all")) {
-    throw new Error("src/app/perfil/page.tsx deve executar consultas a companies e subscriptions em paralelo com Promise.all.");
-  }
   if (!perfilPageContent.includes(".from(\"companies\")")) {
     throw new Error("src/app/perfil/page.tsx deve consultar a tabela companies.");
   }
-  if (!perfilPageContent.includes(".from(\"subscriptions\")")) {
-    throw new Error("src/app/perfil/page.tsx deve consultar a tabela subscriptions.");
+  if (perfilPageContent.includes(".from(\"subscriptions\")")) {
+    throw new Error("src/app/perfil/page.tsx não deve consultar assinatura para liberar a página.");
   }
 
-  // Autenticação e proteção
+  if (!perfilPageContent.includes("requirePageAccess(\"/perfil\")")) {
+    throw new Error("src/app/perfil/page.tsx deve exigir sessão via requirePageAccess.");
+  }
   if (!perfilPageContent.includes("supabase.auth.getUser()")) {
     throw new Error("src/app/perfil/page.tsx deve validar autenticação com supabase.auth.getUser().");
-  }
-  if (!perfilPageContent.includes("redirect(\"/login?redirectTo=/perfil\")")) {
-    throw new Error("src/app/perfil/page.tsx deve redirecionar usuários não autenticados para /login.");
   }
 
   // Renderização de PerfilClient
   if (!perfilPageContent.includes("<PerfilClient")) {
     throw new Error("src/app/perfil/page.tsx deve renderizar o componente PerfilClient.");
   }
-  console.log("   ✓ Server Component /perfil consulta companies e subscriptions em paralelo com checagem de sessão.");
+  console.log("   ✓ Server Component /perfil consulta companies com sessão obrigatória.");
 
   // ---------------------------------------------------------------------------
-  // 5. Validar Componentes de UI (CompanyCard, CompanyModal, UpsellModal, PerfilClient)
+  // 5. Validar Componentes de UI (CompanyCard, CompanyModal, PerfilClient)
   // ---------------------------------------------------------------------------
   console.log("5. Validando componentes da interface de perfil...");
 
@@ -237,20 +230,7 @@ async function runPhase4Tests() {
   }
   console.log("   ✓ CompanyModal contém seletores encadeados, pickers de cores, presets e interceptação de cota.");
 
-  // 5.3 UpsellModal
-  const upsellContent = fs.readFileSync(upsellModalPath, "utf-8");
-  if (!upsellContent.includes("Plano Pro")) {
-    throw new Error("UpsellModal deve divulgar o Plano Pro.");
-  }
-  if (!upsellContent.includes("97,00")) {
-    throw new Error("UpsellModal deve informar o preço do Plano Pro (R$ 97,00/mês).");
-  }
-  if (!upsellContent.includes("3 empresas")) {
-    throw new Error("UpsellModal deve destacar a cota de 3 empresas.");
-  }
-  console.log("   ✓ UpsellModal estruturado com foco em conversão para Plano Pro (R$ 97,00/mês, 3 empresas).");
-
-  // 5.4 PerfilClient
+  // 5.3 PerfilClient
   const clientContent = fs.readFileSync(perfilClientPath, "utf-8");
   if (!clientContent.includes("Cadastrar nova empresa")) {
     throw new Error("PerfilClient deve renderizar card tracejado 'Cadastrar nova empresa'.");
@@ -258,10 +238,13 @@ async function runPhase4Tests() {
   if (!clientContent.includes("CompanyCard")) {
     throw new Error("PerfilClient deve renderizar CompanyCard para cada empresa.");
   }
-  if (!clientContent.includes("CompanyModal") || !clientContent.includes("UpsellModal")) {
-    throw new Error("PerfilClient deve gerenciar CompanyModal e UpsellModal.");
+  if (!clientContent.includes("CompanyModal")) {
+    throw new Error("PerfilClient deve gerenciar CompanyModal.");
   }
-  console.log("   ✓ PerfilClient orquestra grid responsivo, indicador de progresso de cotas e modais.");
+  if (clientContent.includes("UpsellModal") || clientContent.includes("Plano Pro")) {
+    throw new Error("PerfilClient não deve oferecer upgrade de plano.");
+  }
+  console.log("   ✓ PerfilClient orquestra grid, limite de empresas e modal de cadastro.");
 
   console.log("\n=== FASE 4: TODOS OS TESTES PASSARAM COM SUCESSO (PASS)! ===");
 }

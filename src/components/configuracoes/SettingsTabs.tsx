@@ -1,8 +1,8 @@
 "use client";
 
-import { CreditCardIcon, UserIcon, PaletteIcon } from "@/components/icons";
+import { UserIcon, PaletteIcon } from "@/components/icons";
 
-export type SettingsTabKey = "plano" | "conta" | "aparencia";
+export type SettingsTabKey = "conta" | "aparencia";
 
 interface SettingsTabsProps {
   activeTab: SettingsTabKey;
@@ -10,7 +10,6 @@ interface SettingsTabsProps {
 }
 
 const TABS: { id: SettingsTabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { id: "plano", label: "Plano & Assinatura", icon: CreditCardIcon },
   { id: "conta", label: "Dados da Conta", icon: UserIcon },
   { id: "aparencia", label: "Aparência & Tema", icon: PaletteIcon },
 ];
@@ -41,7 +40,6 @@ export function SettingsTabs({ activeTab, onTabChange }: SettingsTabsProps) {
               />
               <span>{tab.label}</span>
 
-              {/* Indicador de borda ativa inferior em #5e6ad2 */}
               {isActive ? (
                 <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#5e6ad2] rounded-full" />
               ) : (

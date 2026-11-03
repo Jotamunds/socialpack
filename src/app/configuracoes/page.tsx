@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Configurações | SocialPack",
-  description: "Gerencie seu plano, assinatura, dados cadastrais e preferências de tema no SocialPack.",
+  description: "Gerencie seus dados cadastrais e preferências de tema no SocialPack.",
 };
 
 export default async function ConfiguracoesPage() {
@@ -32,41 +32,11 @@ export default async function ConfiguracoesPage() {
     redirect("/login?redirectTo=/configuracoes");
   }
 
-  // 2. Consultas em paralelo: perfil, assinatura e contagem exata de empresas cadastradas
-  const [profileResult, subscriptionResult, companiesCountResult] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("full_name, phone, email, theme_preference")
-      .eq("id", user.id)
-      .maybeSingle(),
-    supabase
-      .from("subscriptions")
-      .select("plan, status, company_quota, current_period_end, cancel_at_period_end")
-      .eq("user_id", user.id)
-      .maybeSingle(),
-    supabase
-      .from("companies")
-      .select("id", { count: "exact", head: true }),
-  ]);
-
-  const rawProfile = profileResult.data;
-  const rawSub = subscriptionResult.data;
-  const companyCount = companiesCountResult.count ?? 0;
-
-  // Normalização de dados
-  const plan = rawSub?.plan || "starter";
-  const quota =
-    rawSub?.company_quota ??
-    (rawSub as { max_companies?: number } | null)?.max_companies ??
-    (plan === "pro" ? 3 : 1);
-
-  const subscription = {
-    plan,
-    status: rawSub?.status || "incomplete",
-    company_quota: quota,
-    current_period_end: rawSub?.current_period_end || null,
-    cancel_at_period_end: Boolean(rawSub?.cancel_at_period_end),
-  };
+  const { data: rawProfile } = await supabase
+    .from("profiles")
+    .select("full_name, phone, email, theme_preference")
+    .eq("id", user.id)
+    .maybeSingle();
 
   const profile = {
     fullName: rawProfile?.full_name || "",
@@ -123,9 +93,6 @@ export default async function ConfiguracoesPage() {
               <span className="text-[12px] font-medium text-[#f7f8f8] max-w-[180px] truncate">
                 {user.email}
               </span>
-              <span className="text-[10px] text-[#8a8f98] uppercase tracking-wider">
-                Plano {plan}
-              </span>
             </div>
 
             <form action={signOutAction}>
@@ -149,7 +116,7 @@ export default async function ConfiguracoesPage() {
             Configurações
           </h1>
           <p className="text-xs sm:text-sm text-[#8a8f98]">
-            Gerencie suas preferências de conta, plano de assinatura e aparência da plataforma.
+            Gerencie seus dados de conta e a aparência da plataforma.
           </p>
         </div>
 
@@ -164,8 +131,6 @@ export default async function ConfiguracoesPage() {
         >
           <ConfiguracoesClient
             profile={profile}
-            subscription={subscription}
-            companyCount={companyCount}
             initialTheme={themePreference}
           />
         </Suspense>

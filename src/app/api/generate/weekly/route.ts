@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireValidSubscription } from "@/lib/supabase/subscription-guard";
 import { generateWeek } from "@/lib/generator";
 import { renderPostToPngBuffer, sanitizePublicErrorMessage } from "@/lib/rendering/satori-renderer";
 import { assertOwnedStoragePath } from "@/lib/storage-path";
@@ -70,18 +69,6 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { ok: false, error: "Acesso não autorizado. Faça login para continuar." },
         { status: 401 }
-      );
-    }
-
-    const subCheck = await requireValidSubscription(user.id);
-    if (!subCheck.isValid || !subCheck.subscription) {
-      return NextResponse.json(
-        {
-          ok: false,
-          code: "SUBSCRIPTION_REQUIRED",
-          error: subCheck.error || "É necessária uma assinatura ativa para gerar artes.",
-        },
-        { status: 403 }
       );
     }
 

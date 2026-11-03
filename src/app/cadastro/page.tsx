@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { SignUpInputSchema } from "@/lib/schemas";
 import { Logo } from "@/components/Logo";
@@ -10,10 +10,7 @@ import { SpinnerIcon } from "@/components/icons";
 
 function RegisterForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const initialPlan = searchParams.get("plano") === "pro" ? "pro" : "starter";
 
-  const [plan, setPlan] = useState<"starter" | "pro">(initialPlan);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -33,7 +30,6 @@ function RegisterForm() {
       phone,
       email,
       password,
-      plan,
     });
 
     if (!validation.success) {
@@ -53,7 +49,6 @@ function RegisterForm() {
           data: {
             full_name: validation.data.fullName,
             phone: validation.data.phone,
-            selected_plan: validation.data.plan,
           },
         },
       });
@@ -70,11 +65,10 @@ function RegisterForm() {
 
       if (data.user) {
         if (data.session) {
-          // Conta criada: redireciona para a tela de escolha e pagamento do plano
-          router.push("/planos");
+          router.push("/geracao/instagram/posts");
         } else {
           setSuccessMessage(
-            "Conta criada! Confirme o e-mail e faça login para ativar o plano escolhido."
+            "Conta criada! Confirme o e-mail e faça login para entrar."
           );
           setTimeout(() => {
             router.push("/login");
@@ -106,41 +100,6 @@ function RegisterForm() {
 
       {/* Cartão do Formulário */}
       <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] p-6 sm:p-7 shadow-xl">
-        {/* Seletor Rápido de Plano com Resumo */}
-        <div className="mb-6 p-3 rounded-lg bg-[#0f1011] border border-[rgba(255,255,255,0.08)] space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[#8a8f98]">Plano Selecionado:</span>
-            <span className="font-semibold text-[#f7f8f8]">
-              {plan === "pro" ? "Pro (R$ 97,00/mês)" : "Starter (R$ 49,90/mês)"}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-1.5 pt-1">
-            <button
-              type="button"
-              onClick={() => setPlan("starter")}
-              className={`h-7 rounded text-[11px] font-medium transition-colors ${
-                plan === "starter"
-                  ? "bg-[#5e6ad2] text-white"
-                  : "bg-[rgba(255,255,255,0.03)] text-[#8a8f98] hover:text-[#f7f8f8]"
-              }`}
-            >
-              Starter (1 Empresa)
-            </button>
-            <button
-              type="button"
-              onClick={() => setPlan("pro")}
-              className={`h-7 rounded text-[11px] font-medium transition-colors ${
-                plan === "pro"
-                  ? "bg-[#5e6ad2] text-white"
-                  : "bg-[rgba(255,255,255,0.03)] text-[#8a8f98] hover:text-[#f7f8f8]"
-              }`}
-            >
-              Pro (Até 3 Empresas)
-            </button>
-          </div>
-        </div>
-
         {/* Mensagens de Feedback */}
         {errorMessage && (
           <div className="mb-4 p-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs leading-relaxed">

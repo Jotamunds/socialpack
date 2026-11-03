@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { SettingsTabs, type SettingsTabKey } from "./SettingsTabs";
-import { SubscriptionPlanCard } from "./SubscriptionPlanCard";
 import { AccountForm } from "./AccountForm";
 import { AppearanceSelector } from "./AppearanceSelector";
 
@@ -13,25 +12,15 @@ interface ConfiguracoesClientProps {
     phone: string;
     email: string;
   };
-  subscription: {
-    plan: string;
-    status: string;
-    company_quota: number;
-    current_period_end?: string | null;
-    cancel_at_period_end?: boolean;
-  };
-  companyCount: number;
   initialTab?: SettingsTabKey;
   initialTheme?: "dark" | "light";
 }
 
-const VALID_TABS: SettingsTabKey[] = ["plano", "conta", "aparencia"];
+const VALID_TABS: SettingsTabKey[] = ["conta", "aparencia"];
 
 export function ConfiguracoesClient({
   profile,
-  subscription,
-  companyCount,
-  initialTab = "plano",
+  initialTab = "conta",
   initialTheme = "dark",
 }: ConfiguracoesClientProps) {
   const searchParams = useSearchParams();
@@ -42,7 +31,6 @@ export function ConfiguracoesClient({
     return initialTab;
   });
 
-  // Sincroniza quando o usuário clica em Voltar/Avançar no navegador
   useEffect(() => {
     const handlePopState = () => {
       const currentParams = new URLSearchParams(window.location.search);
@@ -58,7 +46,6 @@ export function ConfiguracoesClient({
 
   const handleTabChange = (tab: SettingsTabKey) => {
     setActiveTab(tab);
-    // Atualiza a URL com shallow replace sem recarregamento de página
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
       url.searchParams.set("tab", tab);
@@ -68,20 +55,9 @@ export function ConfiguracoesClient({
 
   return (
     <div className="space-y-8">
-      {/* Abas de Navegação Horizontal */}
       <SettingsTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
-      {/* Conteúdo Dinâmico com Transição Suave */}
       <div className="transition-opacity duration-200">
-        {activeTab === "plano" && (
-          <div className="animate-in fade-in duration-150">
-            <SubscriptionPlanCard
-              subscription={subscription}
-              companyCount={companyCount}
-            />
-          </div>
-        )}
-
         {activeTab === "conta" && (
           <div className="animate-in fade-in duration-150">
             <AccountForm initialProfile={profile} />
