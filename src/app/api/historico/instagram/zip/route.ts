@@ -19,6 +19,7 @@ import {
   isMissingStoredObject,
 } from "@/lib/history-zip";
 import { streamStoredZip } from "@/lib/history-zip-stream";
+import { consumeUserRateLimit, RATE_LIMIT_SCOPE, rateLimitDeniedResponse } from "@/lib/rate-limit-server";
 
 export const dynamic = "force-dynamic";
 /** Literal exigido pelo Next. Manter igual a HISTORY_ZIP_MAX_DURATION_SECONDS. */
@@ -42,8 +43,9 @@ function jsonError(message: string, status: number) {
 
 /**
  * ZIP das artes concluídas do histórico, com os mesmos filtros da página.
- * A sessão vem de auth.getUser(); a consulta e o storage usam o cliente do
- * usuário (RLS). O service role não baixa arquivo nenhum.
+ * A sessão vem de auth.getUser(). O limite usa esse user.id, antes do download.
+ * A consulta e o storage usam o cliente do usuário (RLS). O service role não
+ * baixa arquivo nenhum.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -55,6 +57,11 @@ export async function GET(request: NextRequest) {
 
     if (authError || !user) {
       return jsonError(HISTORY_ZIP_MESSAGES.unauthorized, 401);
+    }
+
+    const rateLimit = await consumeUserRateLimit(user.id, RATE_LIMIT_SCOPE.historyZip);
+    if (!rateLimit.allowed) {
+      return rateLimitDeniedResponse(rateLimit);
     }
 
     const filters = parseHistoryFilters(request.nextUrl.searchParams);

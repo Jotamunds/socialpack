@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateWeek } from "@/lib/generator";
+import { consumeUserRateLimit, RATE_LIMIT_SCOPE, rateLimitDeniedResponse } from "@/lib/rate-limit-server";
 import { renderPostToPngBuffer, sanitizePublicErrorMessage } from "@/lib/rendering/satori-renderer";
 import { assertOwnedStoragePath } from "@/lib/storage-path";
 import {
@@ -70,6 +71,11 @@ export async function POST(request: Request) {
         { ok: false, error: "Acesso não autorizado. Faça login para continuar." },
         { status: 401 }
       );
+    }
+
+    const rateLimit = await consumeUserRateLimit(user.id, RATE_LIMIT_SCOPE.weeklyGenerate);
+    if (!rateLimit.allowed) {
+      return rateLimitDeniedResponse(rateLimit);
     }
 
     const rawBody = await request.json().catch(() => null);
