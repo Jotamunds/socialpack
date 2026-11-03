@@ -1,0 +1,205 @@
+.hero {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 55% 45% at 78% 42%, rgba(94, 106, 210, 0.28), transparent 68%),
+    radial-gradient(ellipse 40% 35% at 18% 80%, rgba(113, 112, 255, 0.16), transparent 70%),
+    linear-gradient(180deg, #10162a 0%, #0b1020 42%, #08090a 100%);
+}
+
+.glow {
+  position: absolute;
+  right: -8%;
+  top: 18%;
+  width: min(640px, 70vw);
+  height: min(520px, 60vw);
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(113, 112, 255, 0.35), rgba(94, 106, 210, 0.05) 55%, transparent 72%);
+  filter: blur(18px);
+  pointer-events: none;
+}
+
+.mural {
+  position: relative;
+  height: 460px;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  height: 100%;
+  transform: rotate(2.5deg);
+  transform-origin: center center;
+}
+
+.lane {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.laneWide {
+  display: none;
+}
+
+.track {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation-name: rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.down {
+  animation-name: fall;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card {
+  border-radius: 18px;
+  min-height: 168px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transform: rotate(-1.5deg);
+}
+
+.card:nth-child(even) {
+  transform: rotate(1.5deg);
+}
+
+.pizza {
+  background: linear-gradient(160deg, #4a241c 0%, #1c100e 70%);
+}
+
+.cafe {
+  background: linear-gradient(165deg, #3a2a1c 0%, #14110e 72%);
+}
+
+.beauty {
+  background: linear-gradient(165deg, #3d2a34 0%, #161116 74%);
+}
+
+.wire {
+  background: linear-gradient(180deg, #1c1f27 0%, #12141a 100%);
+}
+
+.kicker {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(247, 248, 248, 0.72);
+}
+
+.headline {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: #f7f8f8;
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.line {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.blob {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  align-self: flex-end;
+}
+
+.icons {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.badge {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: float 5.5s ease-in-out infinite;
+}
+
+.badgeWide {
+  display: none;
+}
+
+@keyframes rise {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, -50%, 0); }
+}
+
+@keyframes fall {
+  from { transform: translate3d(0, -50%, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@media (min-width: 1024px) {
+  .mural {
+    height: min(78vh, 720px);
+  }
+
+  .board {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    transform: rotate(7deg) scale(1.04);
+  }
+
+  .laneWide {
+    display: block;
+  }
+
+  .badgeWide {
+    display: grid;
+  }
+
+  .card {
+    min-height: 190px;
+    transform: rotate(-3deg);
+  }
+
+  .card:nth-child(even) {
+    transform: rotate(3.5deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .badge {
+    animation: none;
+  }
+}
