@@ -18,6 +18,7 @@ import {
   type HistoryPeriod,
   type HistoryPostsFilter,
 } from "@/lib/history-filters";
+import { t } from "@/i18n";
 import { historyZipFilenameFromDisposition, historyZipHref } from "@/lib/history-zip";
 
 interface HistoryInstagramClientProps {
@@ -172,7 +173,7 @@ export function HistoryInstagramClient({
         const message = body?.error;
         alert(typeof message === "string" && message.length > 0 && message.length <= 180
           ? message
-          : "Não foi possível baixar o ZIP.");
+          : t("history.zipFailed"));
         return;
       }
 
@@ -186,7 +187,7 @@ export function HistoryInstagramClient({
       window.URL.revokeObjectURL(url);
       anchor.remove();
     } catch {
-      alert("Não foi possível baixar o ZIP.");
+      alert(t("history.zipFailed"));
     } finally {
       setIsZipping(false);
     }
@@ -204,7 +205,7 @@ export function HistoryInstagramClient({
       }
 
       if (!downloadUrl) {
-        alert("Não foi possível gerar a URL de download para esta arte.");
+        alert(t("history.signedUrlFailed"));
         return;
       }
 
@@ -219,7 +220,7 @@ export function HistoryInstagramClient({
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch {
-      alert("Erro ao realizar o download da imagem.");
+      alert(t("history.downloadFailed"));
     }
   }
 
@@ -233,7 +234,7 @@ export function HistoryInstagramClient({
         setPosts((prev) => prev.filter((post) => post.id !== deleteCandidate.id));
         setDeleteCandidate(null);
       } else {
-        alert(result.message || "Falha ao excluir o post.");
+        alert(result.message || t("history.deleteFailed"));
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erro inesperado ao excluir.";
@@ -265,8 +266,8 @@ export function HistoryInstagramClient({
 
       <div className="flex items-center justify-between gap-3 text-xs text-[#8a8f98] px-1">
         <span>
-          Mostrando <strong>{posts.length}</strong>{" "}
-          {posts.length === 1 ? "arte salva" : "artes salvas"}
+          {t("history.showingLead")} <strong>{posts.length}</strong>{" "}
+          {posts.length === 1 ? t("history.showingOne") : t("history.showingMany")}
         </span>
         <div className="flex items-center gap-2">
           {posts.length > 0 && (
@@ -277,7 +278,7 @@ export function HistoryInstagramClient({
                 void handleDownloadZip();
               }}
               aria-disabled={isZipping}
-              title="Baixar as artes deste filtro em um ZIP"
+              title={t("history.zipTitle")}
               className={`h-8 px-3 rounded-md bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.07)] border border-[rgba(255,255,255,0.1)] text-[#f7f8f8] text-[11px] font-medium transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer ${isZipping ? "pointer-events-none opacity-50" : ""}`}
             >
               {isZipping ? (
@@ -285,7 +286,7 @@ export function HistoryInstagramClient({
               ) : (
                 <DownloadIcon className="size-3.5" />
               )}
-              <span>{isZipping ? "Baixando..." : "Baixar ZIP"}</span>
+              <span>{isZipping ? t("history.downloading") : t("history.downloadZip")}</span>
             </a>
           )}
           <PostsViewToggle value={viewMode} onChange={setViewMode} />

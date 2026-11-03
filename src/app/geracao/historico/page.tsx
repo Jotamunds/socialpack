@@ -5,12 +5,13 @@ import { requirePageAccess } from "@/lib/supabase/require-page-access";
 import { Logo } from "@/components/Logo";
 import { ArrowRightIcon, LogOutIcon, SparklesIcon } from "@/components/icons";
 import { signOutAction } from "@/app/actions/companies";
+import { t } from "@/i18n";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Histórico de Criações | SocialPack",
-  description: "Selecione o canal para gerenciar suas postagens salvas e artes geradas.",
+  title: t("history.metaTitle"),
+  description: t("history.metaDescription"),
 };
 
 export default async function HistoricoSelectPage() {
@@ -38,26 +39,26 @@ export default async function HistoricoSelectPage() {
                 href="/perfil"
                 className="text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors"
               >
-                Empresas
+                {t("app.navCompanies")}
               </Link>
               <Link
                 href="/geracao/instagram/posts"
                 className="text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors inline-flex items-center gap-1.5"
               >
                 <SparklesIcon className="size-3.5 text-[#5e6ad2]" />
-                <span>Geração</span>
+                <span>{t("app.navGenerate")}</span>
               </Link>
               <Link
                 href="/geracao/historico"
                 className="text-[13px] font-medium text-[#f7f8f8] border-b-2 border-[#5e6ad2] pb-0.5"
               >
-                Histórico
+                {t("app.navHistory")}
               </Link>
               <Link
                 href="/configuracoes"
                 className="text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors"
               >
-                Configurações
+                {t("app.navSettings")}
               </Link>
             </nav>
           </div>
@@ -71,7 +72,7 @@ export default async function HistoricoSelectPage() {
             <form action={signOutAction}>
               <button
                 type="submit"
-                title="Sair da Conta"
+                title={t("app.logOut")}
                 className="size-8 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] text-[#8a8f98] hover:text-[#f7f8f8] transition-colors flex items-center justify-center cursor-pointer"
               >
                 <LogOutIcon className="size-3.5" />
@@ -85,10 +86,10 @@ export default async function HistoricoSelectPage() {
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-10 space-y-8">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#f7f8f8]">
-            Histórico de Criações
+            {t("history.title")}
           </h1>
           <p className="text-xs sm:text-sm text-[#8a8f98]">
-            Selecione o formato e aplicativo para visualizar o acervo de artes geradas e gerenciar arquivos
+            {t("history.subtitle")}
           </p>
         </div>
 
@@ -111,22 +112,22 @@ export default async function HistoricoSelectPage() {
 
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/30">
                   <span className="size-1.5 rounded-full bg-[#10b981]" />
-                  Disponível
+                  {t("history.available")}
                 </span>
               </div>
 
               <div className="space-y-1.5">
                 <h3 className="text-base font-semibold text-[#f7f8f8] group-hover:text-[#7170ff] transition-colors">
-                  Instagram Feed & Stories
+                  {t("history.instagramCardTitle")}
                 </h3>
                 <p className="text-xs text-[#8a8f98] leading-relaxed">
-                  Acesse todo o acervo de artes 1080×1080px geradas, baixe os arquivos em alta resolução e copie as legendas com hashtags.
+                  {t("history.instagramCardBody")}
                 </p>
               </div>
             </div>
 
             <div className="pt-4 border-t border-[rgba(255,255,255,0.06)] flex items-center justify-between text-xs font-medium text-[#7170ff] group-hover:text-[#828fff]">
-              <span>Ver Histórico</span>
+              <span>{t("history.viewHistory")}</span>
               <ArrowRightIcon className="size-3.5 transition-transform group-hover:translate-x-1" />
             </div>
           </Link>
@@ -142,7 +143,7 @@ export default async function HistoricoSelectPage() {
                 </div>
 
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(255,255,255,0.04)] text-[#8a8f98] border border-[rgba(255,255,255,0.08)]">
-                  Em breve
+                  {t("history.comingSoon")}
                 </span>
               </div>
 
@@ -151,13 +152,13 @@ export default async function HistoricoSelectPage() {
                   YouTube Shorts & Thumbnails
                 </h3>
                 <p className="text-xs text-[#62666d] leading-relaxed">
-                  Modelos verticais 9:16 e capas otimizadas para alta taxa de cliques no YouTube.
+                  {t("history.youtubeBody")}
                 </p>
               </div>
             </div>
 
             <div className="pt-4 border-t border-[rgba(255,255,255,0.04)] text-xs text-[#62666d]">
-              Indisponível no momento
+              {t("history.unavailable")}
             </div>
           </div>
 
@@ -173,22 +174,22 @@ export default async function HistoricoSelectPage() {
                 </div>
 
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(255,255,255,0.04)] text-[#8a8f98] border border-[rgba(255,255,255,0.08)]">
-                  Em breve
+                  {t("history.comingSoon")}
                 </span>
               </div>
 
               <div className="space-y-1.5">
                 <h3 className="text-base font-semibold text-[#8a8f98]">
-                  TikTok Ads & Vídeos
+                  {t("history.tiktokTitle")}
                 </h3>
                 <p className="text-xs text-[#62666d] leading-relaxed">
-                  Criativos verticais com ganchos visuais para tráfego pago e orgânico.
+                  {t("history.tiktokBody")}
                 </p>
               </div>
             </div>
 
             <div className="pt-4 border-t border-[rgba(255,255,255,0.04)] text-xs text-[#62666d]">
-              Indisponível no momento
+              {t("history.unavailable")}
             </div>
           </div>
         </div>
@@ -197,10 +198,10 @@ export default async function HistoricoSelectPage() {
       {/* Footer Minimalista */}
       <footer className="border-t border-[rgba(255,255,255,0.06)] bg-[#08090a] py-6">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#62666d]">
-          <p>© {new Date().getFullYear()} SocialPack. Todos os direitos reservados.</p>
+          <p>© {new Date().getFullYear()} SocialPack. {t("app.rights")}</p>
           <div className="flex items-center gap-2">
             <span className="inline-block size-1.5 rounded-full bg-[#10b981]" />
-            <span>Bucket Privado Seguro</span>
+            <span>{t("history.privateStorage")}</span>
           </div>
         </div>
       </footer>

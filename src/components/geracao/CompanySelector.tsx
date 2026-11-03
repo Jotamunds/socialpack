@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { t } from "@/i18n";
 import { findNiche } from "@/lib/catalog";
 import { BuildingIcon } from "@/components/icons";
 
@@ -42,10 +43,10 @@ export function CompanySelector({
           </div>
           <div>
             <p className="text-xs font-semibold text-[#f7f8f8]">
-              Nenhuma empresa cadastrada
+              {t("generate.noCompanyTitle")}
             </p>
             <p className="text-[11px] text-[#8a8f98]">
-              Cadastre sua empresa primeiro para definir paleta de cores e nicho de atuação
+              {t("generate.noCompanyBody")}
             </p>
           </div>
         </div>
@@ -53,7 +54,7 @@ export function CompanySelector({
           href="/perfil"
           className="h-8 px-3 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-xs font-medium transition-colors shrink-0 inline-flex items-center justify-center"
         >
-          Cadastrar Empresa
+          {t("generate.addCompany")}
         </Link>
       </div>
     );
@@ -65,7 +66,7 @@ export function CompanySelector({
   return (
     <div className="space-y-1.5">
       <label htmlFor="company-select" className="text-[11px] font-medium text-[#8a8f98] block">
-        Empresa Selecionada
+        {t("generate.companyLabel")}
       </label>
       <div className="relative">
         <select
@@ -77,7 +78,7 @@ export function CompanySelector({
         >
           {companies.map((c) => (
             <option key={c.id} value={c.id} className="bg-[#0f1011] text-[#f7f8f8]">
-              {c.name} ({c.city}, {c.state}) — {c.instagram ? `@${c.instagram.replace(/^@+/, "")}` : "Sem @"}
+              {c.name} ({c.city}, {c.state}) — {c.instagram ? `@${c.instagram.replace(/^@+/, "")}` : t("generate.noHandle")}
             </option>
           ))}
         </select>

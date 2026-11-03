@@ -1,6 +1,7 @@
 "use client";
 
 import { SpinnerIcon } from "@/components/icons";
+import { t } from "@/i18n";
 
 interface DeletePostModalProps {
   isOpen: boolean;
@@ -28,12 +29,11 @@ export function DeletePostModal({
           </div>
 
           <h3 className="text-lg font-semibold tracking-tight text-[#f7f8f8]">
-            Excluir postagem permanentemente?
+            {t("history.deleteTitle")}
           </h3>
 
           <p className="text-xs text-[#8a8f98] leading-relaxed">
-            Esta ação é irreversível. O arquivo de imagem será definitivamente removido do
-            bucket privado e o registro correspondente será excluído do banco de dados.
+            {t("history.deleteBody")}
           </p>
 
           {postTitle && (
@@ -51,7 +51,7 @@ export function DeletePostModal({
             disabled={isDeleting}
             className="h-9 px-4 rounded-md bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.08)] text-xs font-medium text-[#d0d6e0] transition-colors cursor-pointer disabled:opacity-50"
           >
-            Cancelar
+            {t("history.cancel")}
           </button>
 
           <button
@@ -63,10 +63,10 @@ export function DeletePostModal({
             {isDeleting ? (
               <>
                 <SpinnerIcon className="size-3.5 animate-spin" />
-                <span>Excluindo...</span>
+                <span>{t("history.deleting")}</span>
               </>
             ) : (
-              <span>Confirmar Exclusão</span>
+              <span>{t("history.confirmDelete")}</span>
             )}
           </button>
         </div>

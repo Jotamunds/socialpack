@@ -9,6 +9,7 @@ import { CompanySelector, type CompanyItem } from "./CompanySelector";
 import { WeeklyGrid } from "./WeeklyGrid";
 import { PostPreviewModal, type PreviewPostItem } from "./PostPreviewModal";
 import { getSignedPostDownloadUrlAction } from "@/app/actions/posts";
+import { t } from "@/i18n";
 
 interface GeracaoClientProps {
   companies: CompanyItem[];
@@ -53,7 +54,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
       const data = await response.json();
 
       if (!response.ok || !data.ok) {
-        setErrorMessage(data.error || "Falha ao gerar pacote semanal.");
+        setErrorMessage(data.error || t("generate.generateFailed"));
         return;
       }
 
@@ -79,7 +80,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
       }
 
       if (!downloadUrl) {
-        alert("Não foi possível obter o link de download desta arte.");
+        alert(t("generate.signedUrlFailed"));
         return;
       }
 
@@ -94,7 +95,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch {
-      alert("Erro ao realizar o download da imagem.");
+      alert(t("generate.downloadFailed"));
     }
   }
 
@@ -104,9 +105,9 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
     setIsZipping(true);
     try {
       const zip = new JSZip();
-      let captionsDocument = `SOCIALPACK — LEGENDA DOS POSTS DA SEMANA (${startDate})\n`;
-      captionsDocument += `Empresa: ${selectedCompany?.name || "Empresa"}\n`;
-      captionsDocument += `Gerado automaticamente via SocialPack AI\n`;
+      let captionsDocument = `SOCIALPACK — WEEKLY CAPTIONS (${startDate})\n`;
+      captionsDocument += `Company: ${selectedCompany?.name || t("generate.companyLabel")}\n`;
+      captionsDocument += `Generated with SocialPack\n`;
       captionsDocument += `${"=".repeat(60)}\n\n`;
 
       // 1. Processar cada imagem e adicionar ao ZIP
@@ -133,9 +134,9 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
         }
 
         // Acumular textos no arquivo de legendas
-        captionsDocument += `DIA ${i + 1}: ${post.day.toUpperCase()} — ${post.theme}\n`;
+        captionsDocument += `DAY ${i + 1}: ${post.day.toUpperCase()} — ${post.theme}\n`;
         captionsDocument += `HEADLINE: ${post.headline}\n`;
-        captionsDocument += `LEGENDA:\n${post.caption}\n\n`;
+        captionsDocument += `CAPTION:\n${post.caption}\n\n`;
         if (post.hashtags && post.hashtags.length > 0) {
           captionsDocument += `HASHTAGS:\n${post.hashtags.join(" ")}\n\n`;
         }
@@ -143,7 +144,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
       }
 
       // 2. Incluir arquivo com as 7 legendas
-      zip.file("legendas-da-semana.txt", captionsDocument);
+      zip.file("week-captions.txt", captionsDocument);
 
       // 3. Gerar arquivo ZIP e disparar download
       const content = await zip.generateAsync({ type: "blob" });
@@ -156,7 +157,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch {
-      alert("Falha ao compactar o pacote em ZIP.");
+      alert(t("generate.zipFailed"));
     } finally {
       setIsZipping(false);
     }
@@ -168,10 +169,10 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-[rgba(255,255,255,0.06)]">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#f7f8f8]">
-            Geração Semanal — Instagram Feed
+            {t("generate.title")}
           </h1>
           <p className="text-xs sm:text-sm text-[#8a8f98]">
-            Motor determinístico: 7 artes 1080×1080px e legendas persuasivas geradas em 1 clique
+            {t("generate.subtitle")}
           </p>
         </div>
 
@@ -191,7 +192,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
               ) : (
                 <DownloadIcon className="size-3.5" />
               )}
-              <span>{isZipping ? "Compactando ZIP..." : "Baixar Todas (ZIP)"}</span>
+              <span>{isZipping ? t("generate.zipping") : t("generate.downloadZip")}</span>
             </button>
           )}
         </div>
@@ -213,7 +214,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
           {/* Seletor de Segunda-Feira */}
           <div className="md:col-span-3 space-y-1.5">
             <label htmlFor="start-date" className="text-[11px] font-medium text-[#8a8f98] block">
-              Início da Semana (Segunda-feira)
+              {t("generate.weekStart")}
             </label>
             <input
               id="start-date"
@@ -236,12 +237,12 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
               {isGenerating ? (
                 <>
                   <SpinnerIcon className="size-4 animate-spin" />
-                  <span>Gerando 7 Artes...</span>
+                  <span>{t("generate.generating")}</span>
                 </>
               ) : (
                 <>
                   <SparklesIcon className="size-4" />
-                  <span>Gerar Semana (7 Posts)</span>
+                  <span>{t("generate.generate")}</span>
                 </>
               )}
             </button>

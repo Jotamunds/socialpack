@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CheckIcon, CopyIcon, DownloadIcon } from "@/components/icons";
+import { t } from "@/i18n";
 
 export interface PreviewPostItem {
   id: string;
@@ -37,7 +38,7 @@ export function PostPreviewModal({ post, onClose, onDownload }: PostPreviewModal
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      alert("Falha ao copiar legenda.");
+      alert(t("preview.copyFailed"));
     }
   }
 
@@ -48,7 +49,7 @@ export function PostPreviewModal({ post, onClose, onDownload }: PostPreviewModal
         <button
           type="button"
           onClick={onClose}
-          aria-label="Fechar"
+          aria-label={t("preview.close")}
           className="absolute top-4 right-4 z-10 size-8 rounded-full bg-black/60 hover:bg-black/90 text-[#8a8f98] hover:text-white flex items-center justify-center transition-colors cursor-pointer border border-white/10"
         >
           ✕
@@ -65,7 +66,7 @@ export function PostPreviewModal({ post, onClose, onDownload }: PostPreviewModal
             />
           ) : (
             <div className="w-full aspect-square rounded-lg bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-xs text-[#8a8f98]">
-              Arte em processamento
+              {t("preview.processing")}
             </div>
           )}
         </div>
@@ -79,7 +80,7 @@ export function PostPreviewModal({ post, onClose, onDownload }: PostPreviewModal
                 {post.day}
               </span>
               <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-[rgba(255,255,255,0.05)] text-[#d0d6e0] border border-[rgba(255,255,255,0.08)]">
-                Tema: {post.theme}
+                {t("preview.theme")}: {post.theme}
               </span>
             </div>
 
@@ -97,7 +98,7 @@ export function PostPreviewModal({ post, onClose, onDownload }: PostPreviewModal
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-[#8a8f98]">
-                  Legenda Pronta para o Instagram
+                  {t("preview.captionLabel")}
                 </span>
                 <button
                   type="button"
@@ -107,12 +108,12 @@ export function PostPreviewModal({ post, onClose, onDownload }: PostPreviewModal
                   {copied ? (
                     <>
                       <CheckIcon className="size-3 text-[#10b981]" />
-                      <span className="text-[#10b981]">Copiado!</span>
+                      <span className="text-[#10b981]">{t("preview.copied")}</span>
                     </>
                   ) : (
                     <>
                       <CopyIcon className="size-3" />
-                      <span>Copiar</span>
+                      <span>{t("preview.copy")}</span>
                     </>
                   )}
                 </button>
@@ -146,7 +147,7 @@ export function PostPreviewModal({ post, onClose, onDownload }: PostPreviewModal
               className="flex-1 h-9 rounded-md bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] text-xs font-medium text-[#f7f8f8] flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
             >
               {copied ? <CheckIcon className="size-3.5 text-[#10b981]" /> : <CopyIcon className="size-3.5" />}
-              <span>{copied ? "Legenda Copiada!" : "Copiar Legenda"}</span>
+              <span>{copied ? t("preview.captionCopied") : t("preview.copyCaption")}</span>
             </button>
 
             <button
@@ -155,7 +156,7 @@ export function PostPreviewModal({ post, onClose, onDownload }: PostPreviewModal
               className="flex-1 h-9 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-xs"
             >
               <DownloadIcon className="size-3.5" />
-              <span>Baixar PNG</span>
+              <span>{t("preview.downloadPng")}</span>
             </button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import type { HistoryPostItem } from "@/app/actions/history";
+import { t } from "@/i18n";
 import { PostCollection, type DisplayPost, type PostsViewMode } from "@/components/posts";
 
 interface HistoryGridProps {
@@ -48,12 +49,10 @@ export function HistoryGrid({
         </div>
         <div className="space-y-1">
           <h3 className="text-sm font-semibold text-[#f7f8f8]">
-            Nenhuma criação encontrada
+            {t("history.emptyTitle")}
           </h3>
           <p className="text-xs text-[#8a8f98]">
-            {filtersActive
-              ? "Não encontramos posts correspondentes aos filtros aplicados."
-              : "Você ainda não tem artes salvas no Instagram."}
+            {filtersActive ? t("history.emptyFiltered") : t("history.emptyNone")}
           </p>
         </div>
         {filtersActive && onClearFilters && (
@@ -62,7 +61,7 @@ export function HistoryGrid({
             onClick={onClearFilters}
             className="h-8 px-3 rounded-md bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.08)] text-xs text-[#d0d6e0] transition-colors cursor-pointer"
           >
-            Limpar Filtros
+            {t("history.clear")}
           </button>
         )}
       </div>
