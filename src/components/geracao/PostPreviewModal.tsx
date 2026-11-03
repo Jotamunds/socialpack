@@ -43,7 +43,7 @@ export function PostPreviewModal({ post, onClose, onDownload }: PostPreviewModal
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl max-h-[90vh] rounded-xl border border-[rgba(255,255,255,0.12)] bg-[#0f1011] shadow-2xl flex flex-col md:flex-row overflow-hidden my-6">
+      <div className="relative w-full max-w-4xl max-h-[90dvh] rounded-xl border border-[rgba(255,255,255,0.12)] bg-[#0f1011] shadow-2xl flex flex-col md:flex-row overflow-hidden my-6">
         {/* Botão Fechar */}
         <button
           type="button"

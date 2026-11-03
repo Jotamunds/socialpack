@@ -103,7 +103,7 @@ function LoginForm() {
               placeholder="seu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-9 px-3 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors"
+              className="w-full h-11 sm:h-9 px-3 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors"
             />
           </div>
 
@@ -121,14 +121,14 @@ function LoginForm() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-9 px-3 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors"
+              className="w-full h-11 sm:h-9 px-3 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors"
             />
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-10 mt-2 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] disabled:opacity-60 text-white text-[13px] font-medium transition-all shadow-[0_1px_2px_rgba(0,0,0,0.4)] active:scale-[0.98] inline-flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full h-11 sm:h-10 mt-2 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] disabled:opacity-60 text-white text-[13px] font-medium transition-all shadow-[0_1px_2px_rgba(0,0,0,0.4)] active:scale-[0.98] inline-flex items-center justify-center gap-2 cursor-pointer"
           >
             {isLoading ? (
               <>
@@ -158,7 +158,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen bg-[#08090a] text-[#f7f8f8] flex flex-col items-center justify-center p-4 selection:bg-[#5e6ad2]/30 selection:text-white">
+    <main className="min-h-svh overflow-x-clip bg-[#08090a] text-[#f7f8f8] flex flex-col items-center justify-start sm:justify-center py-8 px-4 selection:bg-[#5e6ad2]/30 selection:text-white">
       <Suspense
         fallback={
           <div className="flex items-center justify-center p-8 text-[#8a8f98] text-xs">
