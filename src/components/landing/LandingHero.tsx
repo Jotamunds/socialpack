@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { ArrowRightIcon } from "@/components/icons";
+import { t } from "@/i18n";
 import styles from "./landing-hero.module.css";
 
 const focusRing =
@@ -40,9 +41,9 @@ function PostCard({ kind }: { kind: CardKind }) {
   if (kind === "pizza") {
     return (
       <article className={`${styles.card} ${styles.pizza}`}>
-        <span className={styles.kicker}>Pizzaria</span>
+        <span className={styles.kicker}>{t("hero.cardPizzeria")}</span>
         <div>
-          <p className={styles.headline}>Pizza da casa</p>
+          <p className={styles.headline}>{t("hero.cardPizza")}</p>
           <div className={styles.lines}>
             <span className={styles.line} style={{ width: "78%" }} />
             <span className={styles.line} style={{ width: "52%" }} />
@@ -56,9 +57,9 @@ function PostCard({ kind }: { kind: CardKind }) {
   if (kind === "cafe") {
     return (
       <article className={`${styles.card} ${styles.cafe}`}>
-        <span className={styles.kicker}>Café</span>
+        <span className={styles.kicker}>{t("hero.cardCafe")}</span>
         <div>
-          <p className={styles.headline}>Café da manhã</p>
+          <p className={styles.headline}>{t("hero.cardCoffee")}</p>
           <div className={styles.lines}>
             <span className={styles.line} style={{ width: "70%" }} />
             <span className={styles.line} style={{ width: "46%" }} />
@@ -72,9 +73,9 @@ function PostCard({ kind }: { kind: CardKind }) {
   if (kind === "beauty") {
     return (
       <article className={`${styles.card} ${styles.beauty}`}>
-        <span className={styles.kicker}>Beleza</span>
+        <span className={styles.kicker}>{t("hero.cardBeauty")}</span>
         <div>
-          <p className={styles.headline}>Beleza natural</p>
+          <p className={styles.headline}>{t("hero.cardLook")}</p>
           <div className={styles.lines}>
             <span className={styles.line} style={{ width: "74%" }} />
             <span className={styles.line} style={{ width: "40%" }} />
@@ -87,7 +88,7 @@ function PostCard({ kind }: { kind: CardKind }) {
 
   return (
     <article className={`${styles.card} ${styles.wire}`}>
-      <span className={styles.kicker}>Rascunho</span>
+      <span className={styles.kicker}>{t("hero.cardDraft")}</span>
       <div className="h-16 rounded-lg border border-dashed border-white/20 bg-white/5" />
       <div className={styles.lines}>
         <span className={styles.line} style={{ width: "88%" }} />
@@ -147,7 +148,7 @@ export function LandingHero() {
         <div className={styles.icons}>
           <SocialBadge
             className=""
-            label="Instagram"
+            label={t("hero.badgeInstagram")}
             style={{ top: "8%", left: "4%", background: "linear-gradient(135deg,#f7ce68,#ee2a7b)", boxShadow: "0 0 22px rgba(238,42,123,0.55)", animationDelay: "0s" }}
           >
             <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={1.8}>
@@ -158,7 +159,7 @@ export function LandingHero() {
           </SocialBadge>
           <SocialBadge
             className=""
-            label="YouTube"
+            label={t("hero.badgeYouTube")}
             style={{ top: "18%", right: "6%", background: "#e40014", boxShadow: "0 0 22px rgba(228,0,20,0.5)", animationDelay: "0.8s" }}
           >
             <svg viewBox="0 0 24 24" className="size-5" fill="currentColor">
@@ -167,7 +168,7 @@ export function LandingHero() {
           </SocialBadge>
           <SocialBadge
             className=""
-            label="TikTok"
+            label={t("hero.badgeTikTok")}
             style={{ bottom: "22%", right: "2%", background: "#111", boxShadow: "0 0 18px rgba(113,112,255,0.45)", animationDelay: "1.4s" }}
           >
             <svg viewBox="0 0 24 24" className="size-5" fill="currentColor">
@@ -176,7 +177,7 @@ export function LandingHero() {
           </SocialBadge>
           <SocialBadge
             className=""
-            label="Mensagem"
+            label={t("hero.badgeMessage")}
             style={{ bottom: "18%", left: "8%", background: "#5e6ad2", boxShadow: "0 0 20px rgba(94,106,210,0.55)", animationDelay: "0.4s" }}
           >
             <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={1.8}>
@@ -185,7 +186,7 @@ export function LandingHero() {
           </SocialBadge>
           <SocialBadge
             className={styles.badgeWide}
-            label="Vídeo"
+            label={t("hero.badgeVideo")}
             style={{ top: "46%", left: "6%", background: "#7170ff", boxShadow: "0 0 18px rgba(113,112,255,0.5)", animationDelay: "1.1s" }}
           >
             <svg viewBox="0 0 24 24" className="size-5" fill="currentColor">
@@ -198,14 +199,14 @@ export function LandingHero() {
       <div className={`${styles.copy} relative z-10 mx-auto flex w-full max-w-6xl flex-col px-4 pb-10 lg:min-h-[100svh]`}>
         <header className="flex min-h-16 flex-wrap items-center justify-between gap-x-3 gap-y-1 py-1.5 sm:h-16 sm:flex-nowrap sm:py-0">
           <div className={`${styles.brand} shrink-0`}>
-            <Logo variant="with-label" href="/" className="h-10 w-auto shrink-0" />
+            <Logo variant="with-label" href="/" className="h-10 w-auto shrink-0" alt={t("brand.logoFull")} />
           </div>
-          <nav aria-label="Seções da página" className="ml-auto flex shrink-0 items-center gap-2 sm:gap-6">
+          <nav aria-label={t("hero.navLabel")} className="ml-auto flex shrink-0 items-center gap-2 sm:gap-6">
             <a href="#funcionalidades" className={`inline-flex min-h-11 items-center text-[12px] sm:text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors ${focusRing}`}>
-              Funcionalidades
+              {t("hero.features")}
             </a>
             <Link href="/login" className={`inline-flex min-h-11 items-center text-[12px] sm:text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors ${focusRing}`}>
-              Entrar
+              {t("hero.logIn")}
             </Link>
           </nav>
         </header>
@@ -213,10 +214,10 @@ export function LandingHero() {
         <div className="flex flex-1 items-center">
           <div className="max-w-xl pt-8 text-center lg:pt-0 lg:text-left">
             <h1 className="text-4xl sm:text-5xl lg:text-[3.4rem] font-semibold tracking-[-0.035em] leading-[1.12] text-[#f7f8f8]">
-              Artes e legendas da semana para o seu negócio
+              {t("hero.title")}
             </h1>
             <p className="mt-7 text-base sm:text-lg text-[#d0d6e0] leading-relaxed">
-              Cadastre seu nicho e suas cores. Receba 7 artes 1080&nbsp;×&nbsp;1080 e as legendas.
+              {t("hero.subtitle")}
             </p>
             <div className="mt-11 flex justify-center lg:justify-start">
               <Link
@@ -229,7 +230,7 @@ export function LandingHero() {
                   boxShadow: "0 0 28px rgba(94,106,210,0.35)",
                 }}
               >
-                Comece a criar
+                {t("hero.cta")}
                 <ArrowRightIcon className="size-4" />
               </Link>
             </div>
@@ -241,7 +242,7 @@ export function LandingHero() {
                 <path d="M12 5v14" />
                 <path d="m6 13 6 6 6-6" />
               </svg>
-              Role para ver como funciona
+              {t("hero.scrollHint")}
             </a>
           </div>
         </div>

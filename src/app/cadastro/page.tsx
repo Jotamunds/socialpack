@@ -7,6 +7,15 @@ import { createClient } from "@/lib/supabase/client";
 import { SignUpInputSchema } from "@/lib/schemas";
 import { Logo } from "@/components/Logo";
 import { SpinnerIcon } from "@/components/icons";
+import { t, type MessageKey } from "@/i18n";
+
+function signUpError(path: PropertyKey | undefined): MessageKey {
+  if (path === "fullName") return "signup.nameInvalid";
+  if (path === "phone") return "signup.phoneInvalid";
+  if (path === "email") return "signup.emailInvalid";
+  if (path === "password") return "signup.passwordInvalid";
+  return "signup.checkFields";
+}
 
 function RegisterForm() {
   const router = useRouter();
@@ -34,7 +43,7 @@ function RegisterForm() {
 
     if (!validation.success) {
       const firstIssue = validation.error.issues[0];
-      setErrorMessage(firstIssue?.message || "Por favor, revise os dados preenchidos.");
+      setErrorMessage(t(signUpError(firstIssue?.path[0])));
       return;
     }
 
@@ -54,11 +63,9 @@ function RegisterForm() {
       });
 
       if (error) {
-        if (error.message.includes("already registered") || error.message.includes("unique")) {
-          setErrorMessage("Este e-mail já está cadastrado. Tente fazer login.");
-        } else {
-          setErrorMessage(error.message);
-        }
+        const alreadyUsed =
+          error.message.includes("already registered") || error.message.includes("unique");
+        setErrorMessage(alreadyUsed ? t("signup.emailTaken") : t("signup.unexpected"));
         setIsLoading(false);
         return;
       }
@@ -67,17 +74,14 @@ function RegisterForm() {
         if (data.session) {
           router.push("/geracao/instagram/posts");
         } else {
-          setSuccessMessage(
-            "Conta criada! Confirme o e-mail e faça login para entrar."
-          );
+          setSuccessMessage(t("signup.confirmEmail"));
           setTimeout(() => {
             router.push("/login");
           }, 1500);
         }
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro inesperado ao criar conta.";
-      setErrorMessage(msg);
+    } catch {
+      setErrorMessage(t("signup.unexpected"));
     } finally {
       setIsLoading(false);
     }
@@ -88,13 +92,13 @@ function RegisterForm() {
       {/* Header Central com Logo */}
       <div className="text-center space-y-2">
         <div className="flex justify-center mb-6">
-          <Logo className="h-12 w-12" href="/" variant="icon" />
+          <Logo className="h-12 w-12" href="/" variant="icon" alt={t("brand.logoIcon")} />
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-[#f7f8f8]">
-          Crie sua conta
+          {t("signup.title")}
         </h1>
         <p className="text-xs text-[#8a8f98]">
-          Configure seus dados para começar a gerar suas artes semanais
+          {t("signup.subtitle")}
         </p>
       </div>
 
@@ -117,14 +121,14 @@ function RegisterForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label htmlFor="fullName" className="block text-[12px] font-medium text-[#d0d6e0]">
-              Nome Completo
+              {t("signup.fullName")}
             </label>
             <input
               id="fullName"
               name="fullName"
               type="text"
               required
-              placeholder="Ex: Ana Clara Santos"
+              placeholder={t("signup.fullNamePlaceholder")}
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               className="w-full h-9 px-3 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors"
@@ -133,14 +137,14 @@ function RegisterForm() {
 
           <div className="space-y-1.5">
             <label htmlFor="phone" className="block text-[12px] font-medium text-[#d0d6e0]">
-              WhatsApp / Celular
+              {t("signup.phone")}
             </label>
             <input
               id="phone"
               name="phone"
               type="tel"
               required
-              placeholder="(11) 99999-9999"
+              placeholder={t("signup.phonePlaceholder")}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="w-full h-9 px-3 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors"
@@ -149,14 +153,14 @@ function RegisterForm() {
 
           <div className="space-y-1.5">
             <label htmlFor="email" className="block text-[12px] font-medium text-[#d0d6e0]">
-              E-mail Comercial
+              {t("signup.email")}
             </label>
             <input
               id="email"
               name="email"
               type="email"
               required
-              placeholder="contato@empresa.com"
+              placeholder={t("signup.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full h-9 px-3 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors"
@@ -165,7 +169,7 @@ function RegisterForm() {
 
           <div className="space-y-1.5">
             <label htmlFor="password" className="block text-[12px] font-medium text-[#d0d6e0]">
-              Senha
+              {t("signup.password")}
             </label>
             <input
               id="password"
@@ -173,7 +177,7 @@ function RegisterForm() {
               type="password"
               required
               minLength={6}
-              placeholder="Mínimo 6 caracteres"
+              placeholder={t("signup.passwordPlaceholder")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full h-9 px-3 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors"
@@ -188,10 +192,10 @@ function RegisterForm() {
             {isLoading ? (
               <>
                 <SpinnerIcon className="size-4" />
-                <span>Criando conta...</span>
+                <span>{t("signup.submitting")}</span>
               </>
             ) : (
-              <span>Finalizar Cadastro</span>
+              <span>{t("signup.submit")}</span>
             )}
           </button>
         </form>
@@ -199,12 +203,12 @@ function RegisterForm() {
 
       {/* Link para Login */}
       <div className="text-center text-xs text-[#8a8f98]">
-        Já possui uma conta?{" "}
+        {t("signup.hasAccount")}{" "}
         <Link
           href="/login"
           className="text-[#7170ff] hover:text-[#828fff] font-medium transition-colors"
         >
-          Faça login
+          {t("signup.logIn")}
         </Link>
       </div>
     </div>
@@ -218,7 +222,7 @@ export default function RegisterPage() {
         fallback={
           <div className="flex items-center justify-center p-8 text-[#8a8f98] text-xs">
             <SpinnerIcon className="size-5 mr-2 animate-spin text-[#5e6ad2]" />
-            Carregando formulário...
+            {t("signup.loading")}
           </div>
         }
       >

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { LandingHero } from "@/components/landing/LandingHero";
 import { getDemoShowcase, type DemoShowcaseItem } from "@/lib/demo-showcase";
+import { t } from "@/i18n";
 
 export default async function HomePage() {
   const exemplos = await getDemoShowcase();
@@ -16,14 +17,13 @@ export default async function HomePage() {
           <div className="max-w-6xl mx-auto px-4">
             <div className="text-center max-w-2xl mx-auto space-y-3 mb-16">
               <span className="text-xs font-bold uppercase tracking-wider text-[#7170ff]">
-                Fluxo Simples & Eficiente
+                {t("howItWorks.eyebrow")}
               </span>
               <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#f7f8f8]">
-                Como o SocialPack gera seus posts
+                {t("howItWorks.title")}
               </h2>
               <p className="text-sm text-[#8a8f98]">
-                Três etapas sem enrolação para ter um calendário visual pronto para
-                o mês inteiro.
+                {t("howItWorks.subtitle")}
               </p>
             </div>
 
@@ -33,11 +33,10 @@ export default async function HomePage() {
                   1
                 </div>
                 <h3 className="text-base font-semibold text-[#f7f8f8]">
-                  Identidade do seu Negócio
+                  {t("howItWorks.step1Title")}
                 </h3>
                 <p className="text-xs text-[#8a8f98] leading-relaxed">
-                  Defina o nome da empresa, o nicho de mercado (entre mais de 36
-                  opções), a cidade de atuação e as cores principais da marca.
+                  {t("howItWorks.step1Body")}
                 </p>
               </div>
 
@@ -46,11 +45,10 @@ export default async function HomePage() {
                   2
                 </div>
                 <h3 className="text-base font-semibold text-[#f7f8f8]">
-                  Geração Determinística
+                  {t("howItWorks.step2Title")}
                 </h3>
                 <p className="text-xs text-[#8a8f98] leading-relaxed">
-                  Nosso motor combina templates curados por designers, fotos de
-                  alta definição e textos persuasivos adaptados para o seu segmento.
+                  {t("howItWorks.step2Body")}
                 </p>
               </div>
 
@@ -59,11 +57,10 @@ export default async function HomePage() {
                   3
                 </div>
                 <h3 className="text-base font-semibold text-[#f7f8f8]">
-                  Download Instantâneo
+                  {t("howItWorks.step3Title")}
                 </h3>
                 <p className="text-xs text-[#8a8f98] leading-relaxed">
-                  Baixe as 7 artes diretamente em PNG 1080×1080 ou baixe o pacote
-                  completo em arquivo ZIP com todas as legendas prontas para copiar.
+                  {t("howItWorks.step3Body")}
                 </p>
               </div>
             </div>
@@ -77,15 +74,15 @@ export default async function HomePage() {
       <footer className="border-t border-[rgba(255,255,255,0.06)] bg-[#08090a] py-8">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#8a8f98]">
           <div className="flex items-center gap-3">
-            <Logo variant="with-label" className="h-7 w-auto opacity-70 hover:opacity-100 transition-opacity" href="/" />
-            <span>© {new Date().getFullYear()} SocialPack. Todos os direitos reservados.</span>
+            <Logo variant="with-label" className="h-7 w-auto opacity-70 hover:opacity-100 transition-opacity" href="/" alt={t("brand.logoFull")} />
+            <span>© {new Intl.DateTimeFormat("en-US", { year: "numeric" }).format(new Date())} SocialPack. {t("footer.rights")}</span>
           </div>
           <div className="flex items-center gap-6">
             <Link href="/login" className="hover:text-[#f7f8f8] transition-colors">
-              Login
+              {t("footer.logIn")}
             </Link>
             <Link href="/cadastro" className="hover:text-[#f7f8f8] transition-colors">
-              Criar Conta
+              {t("footer.createAccount")}
             </Link>
           </div>
         </div>
@@ -100,13 +97,13 @@ function ExemplosSection({ items }: { items: DemoShowcaseItem[] }) {
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
           <span className="text-xs font-bold uppercase tracking-wider text-[#7170ff]">
-            Artes reais
+            {t("examples.eyebrow")}
           </span>
           <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#f7f8f8]">
-            O que a conta de demonstração já gerou
+            {t("examples.title")}
           </h2>
           <p className="text-sm text-[#8a8f98]">
-            Até quatro posts concluídos, em 1080×1080.
+            {t("examples.subtitle")}
           </p>
         </div>
 
@@ -139,7 +136,7 @@ function ExemplosSection({ items }: { items: DemoShowcaseItem[] }) {
             href="/login"
             className="h-10 px-5 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-[13px] font-medium transition-colors shadow-[0_1px_3px_rgba(0,0,0,0.5)] active:scale-[0.98] inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#828fff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08090a]"
           >
-            Entrar na demo
+            {t("examples.cta")}
           </Link>
         </div>
       </div>
