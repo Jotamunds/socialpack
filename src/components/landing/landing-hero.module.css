@@ -43,7 +43,13 @@
   right: 0;
   bottom: 0;
   height: 35%;
-  background: linear-gradient(to bottom, transparent, #08090a);
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(8, 9, 10, 0.18) 36%,
+    rgba(8, 9, 10, 0.7) 70%,
+    #08090a 100%
+  );
   pointer-events: none;
   z-index: 2;
 }
@@ -196,6 +202,47 @@
 @media (min-width: 1024px) {
   .hero {
     display: block;
+  }
+
+  /* O menu fica sobre os cards. O degradê cobre a largura toda do hero. */
+  .hero::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 112px;
+    background: linear-gradient(
+      to bottom,
+      rgba(8, 9, 10, 0.7) 0%,
+      rgba(8, 9, 10, 0.34) 58%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
+
+  /* O mural começa em 58%. O fade nessa caixa deixa uma borda reta nos cards girados. */
+  .mural::after {
+    content: none;
+  }
+
+  .hero::after {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 35%;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(8, 9, 10, 0.18) 36%,
+      rgba(8, 9, 10, 0.7) 70%,
+      #08090a 100%
+    );
+    pointer-events: none;
   }
 
   .mural {
