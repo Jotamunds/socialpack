@@ -1,6 +1,7 @@
 "use client";
 
 import { UserIcon, PaletteIcon } from "@/components/icons";
+import { t } from "@/i18n";
 
 export type SettingsTabKey = "conta" | "aparencia";
 
@@ -9,15 +10,15 @@ interface SettingsTabsProps {
   onTabChange: (tab: SettingsTabKey) => void;
 }
 
-const TABS: { id: SettingsTabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { id: "conta", label: "Dados da Conta", icon: UserIcon },
-  { id: "aparencia", label: "Aparência & Tema", icon: PaletteIcon },
+const TABS: { id: SettingsTabKey; label: "settings.accountTab" | "settings.appearanceTab"; icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: "conta", label: "settings.accountTab", icon: UserIcon },
+  { id: "aparencia", label: "settings.appearanceTab", icon: PaletteIcon },
 ];
 
 export function SettingsTabs({ activeTab, onTabChange }: SettingsTabsProps) {
   return (
     <div className="w-full border-b border-[rgba(255,255,255,0.08)]">
-      <nav className="flex space-x-2 sm:space-x-4" aria-label="Abas de Configurações">
+      <nav className="flex space-x-2 sm:space-x-4" aria-label={t("settings.tabsLabel")}>
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
@@ -38,7 +39,7 @@ export function SettingsTabs({ activeTab, onTabChange }: SettingsTabsProps) {
                   isActive ? "text-[#5e6ad2]" : "text-[#8a8f98] group-hover:text-[#d0d6e0]"
                 }`}
               />
-              <span>{tab.label}</span>
+              <span>{t(tab.label)}</span>
 
               {isActive ? (
                 <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#5e6ad2] rounded-full" />

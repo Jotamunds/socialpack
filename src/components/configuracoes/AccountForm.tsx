@@ -3,6 +3,7 @@
 import { useState, useTransition, useId } from "react";
 import { LockIcon, SaveIcon, SpinnerIcon, CheckCircleIcon, UserIcon } from "@/components/icons";
 import { changePasswordAction, updateProfileAction } from "@/app/actions/settings";
+import { t } from "@/i18n";
 
 interface AccountFormProps {
   initialProfile: {
@@ -13,11 +14,10 @@ interface AccountFormProps {
 }
 
 function formatPhone(val: string): string {
-  const digits = val.replace(/\D/g, "").slice(0, 11);
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+  const digits = val.replace(/\D/g, "").slice(0, 10);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 
 export function AccountForm({ initialProfile }: AccountFormProps) {
@@ -54,7 +54,7 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
     setSavedSuccess(false);
 
     if (fullName.trim().length < 2) {
-      setErrorMessage("O nome completo deve conter no mínimo 2 caracteres.");
+      setErrorMessage(t("settings.nameTooShort"));
       return;
     }
 
@@ -68,7 +68,7 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
         setSavedSuccess(true);
         setTimeout(() => setSavedSuccess(false), 4000);
       } else {
-        setErrorMessage(res.error || "Falha ao salvar alterações.");
+        setErrorMessage(res.error || t("settings.saveFailed"));
       }
     });
   };
@@ -77,10 +77,10 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
     <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] p-6 sm:p-7 space-y-6">
       <div className="space-y-1 pb-4 border-b border-[rgba(255,255,255,0.06)]">
         <h2 className="text-xl font-semibold tracking-tight text-[#f7f8f8]">
-          Dados Pessoais & Conta
+          {t("settings.personalTitle")}
         </h2>
         <p className="text-xs text-[#8a8f98]">
-          Gerencie seu nome de exibição e número de WhatsApp para recebimento de comunicações.
+          {t("settings.personalBody")}
         </p>
       </div>
 
@@ -89,11 +89,11 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label htmlFor={emailInputId} className="text-xs font-medium text-[#d0d6e0] flex items-center gap-1.5">
-              <span>E-mail</span>
+              <span>{t("settings.email")}</span>
               <LockIcon className="size-3 text-[#8a8f98]" />
             </label>
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-[rgba(255,255,255,0.04)] text-[#8a8f98] border border-[rgba(255,255,255,0.06)]">
-              Autenticado via Supabase Auth
+              {t("settings.authenticated")}
             </span>
           </div>
 
@@ -108,7 +108,7 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
             />
           </div>
           <p className="text-[11px] text-[#62666d]">
-            Email de login principal. Para alteração de endereço de acesso, solicite suporte à segurança.
+            {t("settings.emailHint")}
           </p>
         </div>
 
@@ -116,14 +116,14 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
         <div className="space-y-1.5">
           <label htmlFor={nameInputId} className="text-xs font-medium text-[#d0d6e0] flex items-center gap-1.5">
             <UserIcon className="size-3.5 text-[#8a8f98]" />
-            <span>Nome Completo</span>
+            <span>{t("settings.fullName")}</span>
           </label>
           <input
             id={nameInputId}
             type="text"
             value={fullName}
             onChange={handleNameChange}
-            placeholder="Seu nome completo"
+            placeholder={t("settings.fullNamePlaceholder")}
             required
             minLength={2}
             maxLength={120}
@@ -134,18 +134,18 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
         {/* Campo WhatsApp / Telefone */}
         <div className="space-y-1.5">
           <label htmlFor={phoneInputId} className="text-xs font-medium text-[#d0d6e0]">
-            WhatsApp / Telefone de Contato
+            {t("settings.phone")}
           </label>
           <input
             id={phoneInputId}
             type="tel"
             value={phone}
             onChange={handlePhoneChange}
-            placeholder="(11) 99999-9999"
+            placeholder={t("settings.phonePlaceholder")}
             className="w-full h-9 px-3 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors"
           />
           <p className="text-[11px] text-[#62666d]">
-            Utilizado para alertas de geração e comunicados operacionais da plataforma.
+            {t("settings.phoneHint")}
           </p>
         </div>
 
@@ -160,7 +160,7 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
             {savedSuccess && (
               <span className="inline-flex items-center gap-1.5 text-xs text-[#10b981] font-medium animate-in fade-in duration-150">
                 <CheckCircleIcon className="size-4" />
-                <span>Dados atualizados com sucesso</span>
+                <span>{t("settings.saved")}</span>
               </span>
             )}
           </div>
@@ -173,12 +173,12 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
             {isPending ? (
               <>
                 <SpinnerIcon className="size-3.5" />
-                <span>Salvando...</span>
+                <span>{t("settings.saving")}</span>
               </>
             ) : (
               <>
                 <SaveIcon className="size-3.5" />
-                <span>Salvar Alterações</span>
+                <span>{t("settings.save")}</span>
               </>
             )}
           </button>
@@ -187,9 +187,9 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
 
       <div className="pt-6 border-t border-[rgba(255,255,255,0.06)] space-y-4">
         <div className="space-y-1">
-          <h3 className="text-sm font-semibold text-[#f7f8f8]">Alterar senha</h3>
+          <h3 className="text-sm font-semibold text-[#f7f8f8]">{t("settings.passwordTitle")}</h3>
           <p className="text-xs text-[#8a8f98]">
-            A nova senha é atualizada diretamente no Supabase Auth da sessão atual.
+            {t("settings.passwordBody")}
           </p>
         </div>
         <form
@@ -203,9 +203,9 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
               if (res.ok) {
                 setPassword("");
                 setConfirmPassword("");
-                setPasswordMessage(res.message || "Senha atualizada.");
+                setPasswordMessage(res.message || t("settings.passwordUpdated"));
               } else {
-                setPasswordError(res.error || "Falha ao alterar senha.");
+                setPasswordError(res.error || t("settings.passwordFailed"));
               }
             });
           }}
@@ -213,7 +213,7 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label htmlFor={passwordInputId} className="text-xs font-medium text-[#d0d6e0]">
-                Nova senha
+                {t("settings.newPassword")}
               </label>
               <input
                 id={passwordInputId}
@@ -227,7 +227,7 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
             </div>
             <div className="space-y-1.5">
               <label htmlFor={confirmPasswordInputId} className="text-xs font-medium text-[#d0d6e0]">
-                Confirmar senha
+                {t("settings.confirmPassword")}
               </label>
               <input
                 id={confirmPasswordInputId}
@@ -256,10 +256,10 @@ export function AccountForm({ initialProfile }: AccountFormProps) {
             {isPasswordPending ? (
               <>
                 <SpinnerIcon className="size-3.5" />
-                Atualizando...
+                {t("settings.updating")}
               </>
             ) : (
-              "Atualizar senha"
+              t("settings.updatePassword")
             )}
           </button>
         </form>

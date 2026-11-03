@@ -6,6 +6,7 @@ import { CompanyCard, type CompanyItem } from "./CompanyCard";
 import { CompanyModal } from "./CompanyModal";
 import { deleteCompanyAction } from "@/app/actions/companies";
 import { COMPANY_LIMIT } from "@/lib/company-limit";
+import { t } from "@/i18n";
 
 interface PerfilClientProps {
   companies: CompanyItem[];
@@ -20,7 +21,7 @@ export function PerfilClient({ companies }: PerfilClientProps) {
   const usedCount = companies.length;
   const isQuotaFull = usedCount >= COMPANY_LIMIT;
   const percentage = Math.min(100, Math.round((usedCount / COMPANY_LIMIT) * 100));
-  const quotaLabel = `Limite de ${COMPANY_LIMIT} empresas atingido.`;
+  const quotaLabel = `${t("profile.quotaReached")} (${COMPANY_LIMIT})`;
 
   function handleAddCompanyClick() {
     if (isQuotaFull) {
@@ -32,7 +33,7 @@ export function PerfilClient({ companies }: PerfilClientProps) {
   }
 
   async function handleDeleteCompany(id: string) {
-    if (!confirm("Tem certeza que deseja excluir esta empresa? Esta ação não pode ser desfeita.")) {
+    if (!confirm(t("profile.confirmDelete"))) {
       return;
     }
 
@@ -43,10 +44,10 @@ export function PerfilClient({ companies }: PerfilClientProps) {
         setQuotaMessage(null);
         router.refresh();
       } else {
-        alert(res.message || "Falha ao excluir empresa.");
+        alert(res.message || t("profile.deleteFailed"));
       }
     } catch {
-      alert("Erro ao excluir empresa.");
+      alert(t("profile.deleteError"));
     } finally {
       setDeletingId(null);
     }
@@ -57,19 +58,19 @@ export function PerfilClient({ companies }: PerfilClientProps) {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-[rgba(255,255,255,0.06)]">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#f7f8f8]">
-            Perfis de Empresas
+            {t("profile.title")}
           </h1>
           <p className="text-xs sm:text-sm text-[#8a8f98]">
-            Gerencie as identidades visuais e nichos configurados para gerar posts semanais
+            {t("profile.subtitle")}
           </p>
         </div>
 
         <div className="flex items-center gap-3 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] px-3.5 py-2 rounded-lg">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-[11px] gap-3">
-              <span className="text-[#8a8f98]">Empresas:</span>
+              <span className="text-[#8a8f98]">{t("profile.countLabel")}:</span>
               <span className="font-semibold text-[#f7f8f8]">
-                {usedCount} de {COMPANY_LIMIT}
+                {usedCount} {t("profile.of")} {COMPANY_LIMIT}
               </span>
             </div>
             <div className="w-32 h-1.5 rounded-full bg-[rgba(255,255,255,0.06)] overflow-hidden">
@@ -110,10 +111,10 @@ export function PerfilClient({ companies }: PerfilClientProps) {
           </div>
           <div>
             <span className="text-[13px] font-medium text-[#f7f8f8] group-hover:text-[#7170ff] transition-colors block">
-              Cadastrar nova empresa
+              {t("profile.add")}
             </span>
             <span className="text-[11px] text-[#8a8f98] mt-0.5 block">
-              {isQuotaFull ? quotaLabel : "Defina cores, nicho e cidade"}
+              {isQuotaFull ? quotaLabel : t("profile.addHint")}
             </span>
           </div>
         </button>
