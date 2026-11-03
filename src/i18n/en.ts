@@ -24,9 +24,9 @@ export const en = {
     navLabel: "Page sections",
     features: "Features",
     logIn: "Log in",
-    title: "The fastest way to create graphics for your business",
+    title: "Weekly posts and captions for your business",
     subtitle:
-      "Add your niche and brand colors. Get 7 square posts and captions for the week.",
+      "Tell us your niche and your colors. Get 7 1080\u00A0×\u00A01080 posts and captions.",
     cta: "Start creating",
     scrollHint: "Scroll to see how it works",
     cardPizzeria: "Pizzeria",
