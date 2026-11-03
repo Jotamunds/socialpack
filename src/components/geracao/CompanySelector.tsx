@@ -74,7 +74,7 @@ export function CompanySelector({
           value={selectedId}
           onChange={(e) => onSelect(e.target.value)}
           disabled={disabled}
-          className="w-full h-10 appearance-none rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] focus:ring-1 focus:ring-[#5e6ad2] text-[#f7f8f8] text-xs px-3.5 pr-8 transition-colors disabled:opacity-50 cursor-pointer"
+          className="w-full min-w-0 min-h-11 sm:h-10 appearance-none rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] focus:ring-1 focus:ring-[#5e6ad2] text-[#f7f8f8] text-xs px-3.5 pr-8 transition-colors disabled:opacity-50 cursor-pointer"
         >
           {companies.map((c) => (
             <option key={c.id} value={c.id} className="bg-[#0f1011] text-[#f7f8f8]">
