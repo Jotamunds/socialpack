@@ -144,7 +144,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
       }
 
       // 2. Incluir arquivo com as 7 legendas
-      zip.file("week-captions.txt", captionsDocument);
+      zip.file("legendas-da-semana.txt", captionsDocument);
 
       // 3. Gerar arquivo ZIP e disparar download
       const content = await zip.generateAsync({ type: "blob" });
