@@ -18,7 +18,7 @@ const TABS: { id: SettingsTabKey; label: string; icon: React.ComponentType<{ cla
 export function SettingsTabs({ activeTab, onTabChange }: SettingsTabsProps) {
   return (
     <div className="w-full border-b border-[rgba(255,255,255,0.08)]">
-      <nav className="flex gap-1 sm:gap-4 overflow-x-auto [scrollbar-width:none]" aria-label="Abas de Configurações">
+      <nav className="flex space-x-2 sm:space-x-4" aria-label="Abas de Configurações">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
@@ -28,7 +28,7 @@ export function SettingsTabs({ activeTab, onTabChange }: SettingsTabsProps) {
               key={tab.id}
               type="button"
               onClick={() => onTabChange(tab.id)}
-              className={`group relative shrink-0 whitespace-nowrap min-h-11 flex items-center gap-2 py-3 px-3 sm:px-4 text-[13px] font-medium transition-all duration-150 cursor-pointer ${
+              className={`group relative flex items-center gap-2 py-3 px-3 sm:px-4 text-[13px] font-medium transition-all duration-150 cursor-pointer ${
                 isActive
                   ? "text-[#f7f8f8]"
                   : "text-[#8a8f98] hover:text-[#d0d6e0]"

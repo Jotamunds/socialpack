@@ -6,7 +6,6 @@ import { PerfilClient } from "@/components/perfil/PerfilClient";
 import { SubscriptionInactiveState } from "@/components/SubscriptionInactiveState";
 import { LogOutIcon, SparklesIcon } from "@/components/icons";
 import { signOutAction } from "@/app/actions/companies";
-import { AppMobileNav } from "@/components/app/AppMobileNav";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +44,7 @@ export default async function PerfilPage() {
   };
 
   return (
-    <div className="min-h-svh overflow-x-clip bg-[#08090a] text-[#f7f8f8] flex flex-col selection:bg-[#5e6ad2]/30 selection:text-white">
+    <div className="min-h-screen bg-[#08090a] text-[#f7f8f8] flex flex-col selection:bg-[#5e6ad2]/30 selection:text-white">
       <header className="sticky top-0 z-40 w-full border-b border-[rgba(255,255,255,0.06)] bg-[#08090a]/85 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
@@ -91,14 +90,13 @@ export default async function PerfilPage() {
               <button
                 type="submit"
                 title="Sair da Conta"
-                className="size-11 sm:size-8 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] text-[#8a8f98] hover:text-[#f7f8f8] transition-colors flex items-center justify-center cursor-pointer"
+                className="size-8 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] text-[#8a8f98] hover:text-[#f7f8f8] transition-colors flex items-center justify-center cursor-pointer"
               >
                 <LogOutIcon className="size-3.5" />
               </button>
             </form>
           </div>
         </div>
-        <AppMobileNav active="empresas" />
       </header>
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 sm:py-10">
