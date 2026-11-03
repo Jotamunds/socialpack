@@ -20,7 +20,7 @@ export function PostsViewToggle({ value, onChange }: PostsViewToggleProps) {
         onClick={() => onChange("gallery")}
         aria-pressed={value === "gallery"}
         title="Galeria"
-        className={`h-8 px-2.5 rounded-[5px] text-[11px] font-medium inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
+        className={`min-h-11 sm:h-8 px-2.5 rounded-[5px] text-[11px] font-medium inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
           value === "gallery"
             ? "bg-[rgba(255,255,255,0.08)] text-[#f7f8f8]"
             : "text-[#8a8f98] hover:text-[#d0d6e0]"
@@ -34,7 +34,7 @@ export function PostsViewToggle({ value, onChange }: PostsViewToggleProps) {
         onClick={() => onChange("list")}
         aria-pressed={value === "list"}
         title="Lista"
-        className={`h-8 px-2.5 rounded-[5px] text-[11px] font-medium inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
+        className={`min-h-11 sm:h-8 px-2.5 rounded-[5px] text-[11px] font-medium inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
           value === "list"
             ? "bg-[rgba(255,255,255,0.08)] text-[#f7f8f8]"
             : "text-[#8a8f98] hover:text-[#d0d6e0]"

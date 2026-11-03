@@ -175,7 +175,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start md:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
           {(posts.length > 0 || isGenerating) && (
             <PostsViewToggle value={viewMode} onChange={setViewMode} />
           )}
@@ -184,7 +184,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
               type="button"
               onClick={handleDownloadAllZip}
               disabled={isZipping}
-              className="h-9 px-4 rounded-md bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.07)] border border-[rgba(255,255,255,0.1)] text-[#f7f8f8] text-xs font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="min-h-11 sm:h-9 px-4 rounded-md bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.07)] border border-[rgba(255,255,255,0.1)] text-[#f7f8f8] text-xs font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isZipping ? (
                 <SpinnerIcon className="size-3.5 animate-spin text-[#5e6ad2]" />
@@ -221,7 +221,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               disabled={isGenerating}
-              className="w-full h-10 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] focus:ring-1 focus:ring-[#5e6ad2] text-[#f7f8f8] text-xs px-3 transition-colors disabled:opacity-50"
+              className="w-full min-w-0 min-h-11 sm:h-10 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] focus:ring-1 focus:ring-[#5e6ad2] text-[#f7f8f8] text-xs px-3 transition-colors disabled:opacity-50"
             />
           </div>
 
@@ -231,7 +231,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
               type="button"
               onClick={handleGenerateWeek}
               disabled={!canGenerate}
-              className="w-full h-10 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-xs font-semibold transition-all shadow-[0_1px_3px_rgba(0,0,0,0.4)] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full min-h-11 sm:h-10 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-xs font-semibold transition-all shadow-[0_1px_3px_rgba(0,0,0,0.4)] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isGenerating ? (
                 <>

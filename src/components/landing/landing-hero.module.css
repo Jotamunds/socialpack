@@ -228,6 +228,12 @@
   50% { transform: translateY(-8px); }
 }
 
+@media (max-height: 780px) and (max-width: 1023px) {
+  .mural {
+    height: min(46vh, 340px);
+  }
+}
+
 @media (min-width: 1024px) {
   .hero {
     display: block;

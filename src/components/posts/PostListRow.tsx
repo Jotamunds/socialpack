@@ -73,7 +73,7 @@ export function PostListRow({
         <button
           type="button"
           onClick={onCopy}
-          className="size-8 sm:h-8 sm:w-auto sm:px-2.5 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] text-[11px] font-medium text-[#d0d6e0] inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+          className="size-11 sm:h-8 sm:w-auto sm:px-2.5 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] text-[11px] font-medium text-[#d0d6e0] inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
           title="Copiar Legenda"
         >
           {isCopied ? <CheckIcon className="size-3 text-[#10b981]" /> : <CopyIcon className="size-3" />}
@@ -82,7 +82,7 @@ export function PostListRow({
         <button
           type="button"
           onClick={onDownload}
-          className="size-8 sm:h-8 sm:w-auto sm:px-3 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-[11px] font-medium inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+          className="size-11 sm:h-8 sm:w-auto sm:px-3 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-[11px] font-medium inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
           title="Baixar PNG"
         >
           <DownloadIcon className="size-3" />
@@ -92,7 +92,7 @@ export function PostListRow({
           <button
             type="button"
             onClick={onDelete}
-            className="size-8 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-red-500/10 border border-[rgba(255,255,255,0.08)] hover:border-red-500/20 text-[#8a8f98] hover:text-red-400 flex items-center justify-center cursor-pointer transition-colors"
+            className="size-11 sm:size-8 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-red-500/10 border border-[rgba(255,255,255,0.08)] hover:border-red-500/20 text-[#8a8f98] hover:text-red-400 flex items-center justify-center cursor-pointer transition-colors"
             title="Excluir Post"
           >
             <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={2}>

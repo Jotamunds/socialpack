@@ -53,7 +53,7 @@ export function HistoryFilters({
               name="empresa"
               value={empresa}
               onChange={(event) => onEmpresaChange(event.target.value)}
-              className="w-full h-9 appearance-none rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] text-[#f7f8f8] text-xs px-3 pr-8 transition-colors cursor-pointer"
+              className="w-full min-w-0 h-11 sm:h-9 appearance-none rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] text-[#f7f8f8] text-xs px-3 pr-8 transition-colors cursor-pointer"
             >
               <option value="" className="bg-[#0f1011] text-[#f7f8f8]">
                 Todas as empresas ({companies.length})
@@ -85,7 +85,7 @@ export function HistoryFilters({
               onChange={(event) => onBuscaChange(event.target.value)}
               placeholder="Ex: Pizza artesanal, promoção, dica..."
               maxLength={80}
-              className="w-full h-9 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] text-[#f7f8f8] text-xs px-3 pl-8 placeholder-[#62666d] transition-colors"
+              className="w-full min-w-0 h-11 sm:h-9 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] text-[#f7f8f8] text-xs px-3 pl-8 placeholder-[#62666d] transition-colors"
             />
             <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-[#8a8f98]">
               <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -106,7 +106,7 @@ export function HistoryFilters({
               name="periodo"
               value={periodo}
               onChange={(event) => onPeriodoChange(event.target.value)}
-              className="w-full h-9 appearance-none rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] text-[#f7f8f8] text-xs px-3 pr-8 transition-colors cursor-pointer"
+              className="w-full min-w-0 h-11 sm:h-9 appearance-none rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] text-[#f7f8f8] text-xs px-3 pr-8 transition-colors cursor-pointer"
             >
               <option value="" className="bg-[#0f1011] text-[#f7f8f8]">
                 Todo o histórico
@@ -136,7 +136,7 @@ export function HistoryFilters({
               name="nicho"
               value={nicho}
               onChange={(event) => onNichoChange(event.target.value)}
-              className="w-full h-9 appearance-none rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] text-[#f7f8f8] text-xs px-3 pr-8 transition-colors cursor-pointer"
+              className="w-full min-w-0 h-11 sm:h-9 appearance-none rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] text-[#f7f8f8] text-xs px-3 pr-8 transition-colors cursor-pointer"
             >
               <option value="" className="bg-[#0f1011] text-[#f7f8f8]">
                 Todos os nichos
