@@ -1,7 +1,9 @@
 .hero {
   position: relative;
+  display: flex;
+  flex-direction: column;
   min-height: 100svh;
-  overflow: hidden;
+  overflow: clip;
   background:
     radial-gradient(ellipse 55% 45% at 78% 42%, rgba(94, 106, 210, 0.28), transparent 68%),
     radial-gradient(ellipse 40% 35% at 18% 80%, rgba(113, 112, 255, 0.16), transparent 70%),
@@ -20,25 +22,82 @@
   pointer-events: none;
 }
 
+.copy {
+  order: 1;
+}
+
+/* Escurece logo e menu por cima do mural e some sem borda reta. */
+.hero::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 168px;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(8, 9, 10, 0.94) 0%,
+    rgba(8, 9, 10, 0.78) 32%,
+    rgba(8, 9, 10, 0.32) 68%,
+    transparent 100%
+  );
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 34%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 34%, transparent 100%);
+}
+
+.brand a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
 .mural {
+  order: 2;
   position: relative;
-  height: 460px;
-  overflow: hidden;
-  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+  z-index: 0;
+  height: min(60vh, 520px);
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  pointer-events: none;
+}
+
+.mural::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 35%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(8, 9, 10, 0.18) 36%,
+    rgba(8, 9, 10, 0.7) 70%,
+    #08090a 100%
+  );
+  pointer-events: none;
+  z-index: 2;
 }
 
 .board {
+  position: absolute;
+  inset: 4% -8% -16% -8%;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
-  height: 100%;
   transform: rotate(2.5deg);
   transform-origin: center center;
 }
 
 .lane {
   min-width: 0;
-  overflow: hidden;
+  min-height: 0;
+  overflow-x: visible;
+  overflow-y: clip;
 }
 
 .laneWide {
@@ -134,6 +193,7 @@
 .icons {
   position: absolute;
   inset: 0;
+  z-index: 1;
   pointer-events: none;
 }
 
@@ -169,11 +229,45 @@
 }
 
 @media (min-width: 1024px) {
+  .hero {
+    display: block;
+  }
+
+  /* O mural começa em 58%. O fade nessa caixa deixa uma borda reta nos cards girados. */
+  .mural::after {
+    content: none;
+  }
+
+  .hero::after {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 35%;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(8, 9, 10, 0.18) 36%,
+      rgba(8, 9, 10, 0.7) 70%,
+      #08090a 100%
+    );
+    pointer-events: none;
+  }
+
   .mural {
-    height: min(78vh, 720px);
+    position: absolute;
+    inset-block: 0;
+    right: 0;
+    left: 58%;
+    width: auto;
+    height: auto;
+    margin-inline: 0;
   }
 
   .board {
+    inset: -12% -8% -18% 0;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
     transform: rotate(7deg) scale(1.04);
