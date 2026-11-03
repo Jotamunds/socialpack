@@ -191,6 +191,7 @@ export function LandingHero() {
           </div>
 
           <div className={styles.mural} aria-hidden="true">
+            <div className={styles.fade}>
             <div className={styles.board}>
               {COLUMNS.map((cards, index) => (
                 <Column key={index} cards={cards} />
@@ -244,6 +245,7 @@ export function LandingHero() {
                   <path d="M8 7v10l9-5-9-5z" />
                 </svg>
               </SocialBadge>
+            </div>
             </div>
           </div>
         </div>
