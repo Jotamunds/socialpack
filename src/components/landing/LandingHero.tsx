@@ -140,16 +140,16 @@ export function LandingHero() {
       <div className={styles.glow} aria-hidden="true" />
 
       <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col px-4 pb-10">
-        <header className="flex h-16 items-center justify-between gap-4">
-          <Logo variant="with-label" href="/" className="h-8 w-auto" />
-          <nav aria-label="Seções da página" className="flex items-center gap-3 sm:gap-6">
-            <a href="#planos" className={`text-[12px] sm:text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors ${focusRing}`}>
+        <header className="flex min-h-16 items-center justify-between gap-2 py-1 min-w-0">
+          <Logo variant="with-label" href="/" className="h-7 w-auto shrink-0 sm:h-8" />
+          <nav aria-label="Seções da página" className="flex items-center gap-0.5 sm:gap-6 min-w-0">
+            <a href="#planos" className={`min-h-11 inline-flex items-center px-1.5 sm:px-0 text-[12px] sm:text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors ${focusRing}`}>
               Planos
             </a>
-            <a href="#funcionalidades" className={`text-[12px] sm:text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors ${focusRing}`}>
+            <a href="#funcionalidades" className={`min-h-11 inline-flex items-center px-1.5 sm:px-0 text-[12px] sm:text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors ${focusRing}`}>
               Funcionalidades
             </a>
-            <Link href="/login" className={`text-[12px] sm:text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors ${focusRing}`}>
+            <Link href="/login" className={`min-h-11 inline-flex items-center px-1.5 sm:px-0 text-[12px] sm:text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors ${focusRing}`}>
               Entrar
             </Link>
           </nav>
@@ -157,7 +157,7 @@ export function LandingHero() {
 
         <div className="grid flex-1 items-center gap-10 lg:grid-cols-2 lg:gap-6">
           <div className="max-w-xl pt-6 text-center lg:pt-0 lg:text-left">
-            <h1 className="text-4xl sm:text-5xl lg:text-[3.4rem] font-semibold tracking-[-0.035em] leading-[1.05] text-[#f7f8f8]">
+            <h1 className="text-[clamp(1.9rem,1.15rem+2.5vw,3.4rem)] font-semibold tracking-[-0.035em] leading-[1.05] text-[#f7f8f8]">
               A maneira mais rápida de criar artes para o seu negócio
             </h1>
             <p className="mt-5 text-base sm:text-lg text-[#d0d6e0] leading-relaxed">

@@ -8,7 +8,7 @@ export default async function HomePage() {
   const exemplos = await getDemoShowcase();
 
   return (
-    <div className="min-h-screen bg-[#08090a] text-[#f7f8f8] flex flex-col selection:bg-[#5e6ad2]/30 selection:text-white">
+    <div className="min-h-svh overflow-x-clip bg-[#08090a] text-[#f7f8f8] flex flex-col selection:bg-[#5e6ad2]/30 selection:text-white">
       <main className="flex-1">
         <LandingHero />
 
@@ -135,7 +135,7 @@ export default async function HomePage() {
                 <div className="pt-8">
                   <Link
                     href="/cadastro?plano=starter"
-                    className="w-full h-10 rounded-md bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.1)] text-[#f7f8f8] text-[13px] font-medium transition-colors inline-flex items-center justify-center"
+                    className="w-full min-h-11 sm:h-10 rounded-md bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.1)] text-[#f7f8f8] text-[13px] font-medium transition-colors inline-flex items-center justify-center"
                   >
                     Assinar Starter
                   </Link>
@@ -196,7 +196,7 @@ export default async function HomePage() {
                 <div className="pt-8">
                   <Link
                     href="/cadastro?plano=pro"
-                    className="w-full h-10 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-[13px] font-medium transition-all shadow-[0_1px_3px_rgba(0,0,0,0.5)] active:scale-[0.98] inline-flex items-center justify-center gap-2"
+                    className="w-full min-h-11 sm:h-10 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-[13px] font-medium transition-all shadow-[0_1px_3px_rgba(0,0,0,0.5)] active:scale-[0.98] inline-flex items-center justify-center gap-2"
                   >
                     <span>Assinar Plano Pro</span>
                     <ArrowRightIcon className="size-3.5" />
