@@ -8,6 +8,13 @@ import { SignInInputSchema } from "@/lib/schemas";
 import { Logo } from "@/components/Logo";
 import { SpinnerIcon } from "@/components/icons";
 import { safeInternalRedirect } from "@/lib/safe-redirect";
+import { t, type MessageKey } from "@/i18n";
+
+function signInError(path: PropertyKey | undefined): MessageKey {
+  if (path === "email") return "login.invalidEmail";
+  if (path === "password") return "login.passwordRequired";
+  return "login.checkFields";
+}
 
 function LoginForm() {
   const router = useRouter();
@@ -30,7 +37,7 @@ function LoginForm() {
 
     if (!validation.success) {
       const firstIssue = validation.error.issues[0];
-      setErrorMessage(firstIssue?.message || "Preencha e-mail e senha.");
+      setErrorMessage(t(signInError(firstIssue?.path[0])));
       return;
     }
 
@@ -44,11 +51,11 @@ function LoginForm() {
       });
 
       if (error) {
-        if (error.message.includes("Invalid login credentials")) {
-          setErrorMessage("E-mail ou senha incorretos. Verifique suas credenciais.");
-        } else {
-          setErrorMessage(error.message);
-        }
+        setErrorMessage(
+          error.message.includes("Invalid login credentials")
+            ? t("login.invalidCredentials")
+            : t("login.unexpected")
+        );
         setIsLoading(false);
         return;
       }
@@ -57,9 +64,8 @@ function LoginForm() {
         router.refresh();
         router.push(redirectTo);
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro inesperado ao realizar login.";
-      setErrorMessage(msg);
+    } catch {
+      setErrorMessage(t("login.unexpected"));
     } finally {
       setIsLoading(false);
     }
@@ -70,13 +76,13 @@ function LoginForm() {
       {/* Header Central com Logo */}
       <div className="text-center space-y-2">
         <div className="flex justify-center mb-6">
-          <Logo className="h-12 w-12" href="/" variant="icon" />
+          <Logo className="h-12 w-12" href="/" variant="icon" alt={t("brand.logoIcon")} />
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-[#f7f8f8]">
-          Bem-vindo de volta
+          {t("login.title")}
         </h1>
         <p className="text-xs text-[#8a8f98]">
-          Entre para gerenciar seus perfis e posts semanais
+          {t("login.subtitle")}
         </p>
       </div>
 
@@ -93,14 +99,14 @@ function LoginForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label htmlFor="email" className="block text-[12px] font-medium text-[#d0d6e0]">
-              E-mail
+              {t("login.email")}
             </label>
             <input
               id="email"
               name="email"
               type="email"
               required
-              placeholder="seu@email.com"
+              placeholder={t("login.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full h-9 px-3 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors"
@@ -110,7 +116,7 @@ function LoginForm() {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label htmlFor="password" className="block text-[12px] font-medium text-[#d0d6e0]">
-                Senha
+                {t("login.password")}
               </label>
             </div>
             <input
@@ -133,10 +139,10 @@ function LoginForm() {
             {isLoading ? (
               <>
                 <SpinnerIcon className="size-4" />
-                <span>Entrando...</span>
+                <span>{t("login.submitting")}</span>
               </>
             ) : (
-              <span>Entrar na Conta</span>
+              <span>{t("login.submit")}</span>
             )}
           </button>
         </form>
@@ -144,12 +150,12 @@ function LoginForm() {
 
       {/* Link para Cadastro */}
       <div className="text-center text-xs text-[#8a8f98]">
-        Ainda não tem conta?{" "}
+        {t("login.noAccount")}{" "}
         <Link
           href="/cadastro"
           className="text-[#7170ff] hover:text-[#828fff] font-medium transition-colors"
         >
-          Cadastre-se
+          {t("login.createOne")}
         </Link>
       </div>
     </div>
@@ -163,7 +169,7 @@ export default function LoginPage() {
         fallback={
           <div className="flex items-center justify-center p-8 text-[#8a8f98] text-xs">
             <SpinnerIcon className="size-5 mr-2 animate-spin text-[#5e6ad2]" />
-            Carregando login...
+            {t("login.loading")}
           </div>
         }
       >
