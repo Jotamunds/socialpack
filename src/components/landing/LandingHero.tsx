@@ -196,30 +196,32 @@ export function LandingHero() {
       </div>
 
       <div className={`${styles.copy} relative z-10 mx-auto flex w-full max-w-6xl flex-col px-4 pb-10 lg:min-h-[100svh]`}>
-        <header className="flex h-16 items-center justify-between gap-4">
-          <Logo variant="with-label" href="/" className="h-8 w-auto" />
-          <nav aria-label="Seções da página" className="flex items-center gap-3 sm:gap-6">
-            <a href="#planos" className={`text-[12px] sm:text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors ${focusRing}`}>
+        <header className="flex min-h-16 flex-wrap items-center justify-between gap-x-3 gap-y-1 py-1.5 sm:h-16 sm:flex-nowrap sm:py-0">
+          <div className={`${styles.brand} shrink-0`}>
+            <Logo variant="with-label" href="/" className="h-10 w-auto shrink-0" />
+          </div>
+          <nav aria-label="Seções da página" className="ml-auto flex shrink-0 items-center gap-2 sm:gap-6">
+            <a href="#planos" className={`inline-flex min-h-11 items-center text-[12px] sm:text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors ${focusRing}`}>
               Planos
             </a>
-            <a href="#funcionalidades" className={`text-[12px] sm:text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors ${focusRing}`}>
+            <a href="#funcionalidades" className={`inline-flex min-h-11 items-center text-[12px] sm:text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors ${focusRing}`}>
               Funcionalidades
             </a>
-            <Link href="/login" className={`text-[12px] sm:text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors ${focusRing}`}>
+            <Link href="/login" className={`inline-flex min-h-11 items-center text-[12px] sm:text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors ${focusRing}`}>
               Entrar
             </Link>
           </nav>
         </header>
 
         <div className="flex flex-1 items-center">
-          <div className="max-w-xl pt-6 text-center lg:pt-0 lg:text-left">
-            <h1 className="text-4xl sm:text-5xl lg:text-[3.4rem] font-semibold tracking-[-0.035em] leading-[1.05] text-[#f7f8f8]">
-              A maneira mais rápida de criar artes para o seu negócio
+          <div className="max-w-xl pt-8 text-center lg:pt-0 lg:text-left">
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.4rem] font-semibold tracking-[-0.035em] leading-[1.12] text-[#f7f8f8]">
+              Artes e legendas da semana para o seu negócio
             </h1>
-            <p className="mt-5 text-base sm:text-lg text-[#d0d6e0] leading-relaxed">
-              Cadastre o nicho e as cores da empresa. Receba 7 artes de 1080×1080 e as legendas da semana.
+            <p className="mt-7 text-base sm:text-lg text-[#d0d6e0] leading-relaxed">
+              Cadastre seu nicho e suas cores. Receba 7 artes 1080×1080 e as legendas.
             </p>
-            <div className="mt-8 flex justify-center lg:justify-start">
+            <div className="mt-11 flex justify-center lg:justify-start">
               <a
                 href="#planos"
                 className={`inline-flex h-12 items-center gap-2 rounded-full px-6 text-[14px] font-medium text-white transition-colors hover:bg-[rgba(255,255,255,0.12)] ${focusRing}`}
