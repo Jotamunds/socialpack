@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { MoonIcon, SunIcon, CheckIcon, SpinnerIcon } from "@/components/icons";
 import { updateThemePreferenceAction } from "@/app/actions/settings";
+import { t } from "@/i18n";
 
 type ThemeOption = "dark" | "light";
 
@@ -28,13 +29,18 @@ function applyThemeClass(theme: ThemeOption) {
 
 export function AppearanceSelector({ initialTheme = "dark" }: AppearanceSelectorProps) {
   const [theme, setTheme] = useState<ThemeOption>(initialTheme);
+  const [syncedTheme, setSyncedTheme] = useState<ThemeOption>(initialTheme);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    applyThemeClass(initialTheme);
+  if (syncedTheme !== initialTheme) {
+    setSyncedTheme(initialTheme);
     setTheme(initialTheme);
-  }, [initialTheme]);
+  }
+
+  useEffect(() => {
+    applyThemeClass(theme);
+  }, [theme]);
 
   const handleSelectTheme = (newTheme: ThemeOption) => {
     document.documentElement.classList.add("theme-transition");
@@ -45,7 +51,7 @@ export function AppearanceSelector({ initialTheme = "dark" }: AppearanceSelector
     startTransition(async () => {
       const res = await updateThemePreferenceAction(newTheme);
       if (!res.ok) {
-        setFeedback(res.error || "Não foi possível salvar o tema.");
+        setFeedback(res.error || t("settings.themeFailed"));
       }
       setTimeout(() => {
         document.documentElement.classList.remove("theme-transition");
@@ -57,20 +63,20 @@ export function AppearanceSelector({ initialTheme = "dark" }: AppearanceSelector
     <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] p-6 sm:p-7 space-y-6">
       <div className="space-y-1 pb-4 border-b border-[rgba(255,255,255,0.06)]">
         <h2 className="text-xl font-semibold tracking-tight text-[#f7f8f8]">
-          Aparência & Interface
+          {t("settings.appearanceTitle")}
         </h2>
         <p className="text-xs text-[#8a8f98]">
-          Personalize a estética visual da plataforma. A preferência é salva na sua conta.
+          {t("settings.appearanceBody")}
         </p>
       </div>
 
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-xs font-medium text-[#d0d6e0]">Tema do Sistema</span>
+          <span className="text-xs font-medium text-[#d0d6e0]">{t("settings.theme")}</span>
           {isPending && (
             <span className="inline-flex items-center gap-1.5 text-[11px] text-[#8a8f98]">
               <SpinnerIcon className="size-3" />
-              Salvando...
+              {t("settings.savingTheme")}
             </span>
           )}
         </div>
@@ -106,10 +112,10 @@ export function AppearanceSelector({ initialTheme = "dark" }: AppearanceSelector
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <MoonIcon className="size-4 text-[#5e6ad2]" />
-                  <h3 className="text-sm font-semibold text-[#f7f8f8]">Tema Escuro</h3>
+                  <h3 className="text-sm font-semibold text-[#f7f8f8]">{t("settings.dark")}</h3>
                 </div>
                 <p className="text-xs text-[#8a8f98] leading-relaxed">
-                  Design Linear/Apple Dark com menor fadiga ocular.
+                  {t("settings.darkBody")}
                 </p>
               </div>
               <div
@@ -154,10 +160,10 @@ export function AppearanceSelector({ initialTheme = "dark" }: AppearanceSelector
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <SunIcon className="size-4 text-amber-400" />
-                  <h3 className="text-sm font-semibold text-[#f7f8f8]">Tema Claro</h3>
+                  <h3 className="text-sm font-semibold text-[#f7f8f8]">{t("settings.light")}</h3>
                 </div>
                 <p className="text-xs text-[#8a8f98] leading-relaxed">
-                  Fundo limpo off-white para ambientes iluminados.
+                  {t("settings.lightBody")}
                 </p>
               </div>
               <div
@@ -177,7 +183,7 @@ export function AppearanceSelector({ initialTheme = "dark" }: AppearanceSelector
           <p className="text-xs text-red-400">{feedback}</p>
         )}
         <p className="text-[11px] text-[#62666d] pt-2">
-          A alteração é aplicada na interface e gravada em public.profiles.theme_preference.
+          {t("settings.themeNote")}
         </p>
       </div>
     </div>

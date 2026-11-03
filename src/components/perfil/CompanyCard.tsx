@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { findNiche, findTone } from "@/lib/catalog";
 import { MapPinIcon, SparklesIcon, SpinnerIcon } from "@/components/icons";
+import { t } from "@/i18n";
 
 export interface CompanyItem {
   id: string;
@@ -32,9 +33,9 @@ export function CompanyCard({ company, onDelete, isDeleting = false }: CompanyCa
   const toneLabel = findTone(company.tone_id)?.label || company.tone_id;
 
   const colors = [
-    { label: "Primária", hex: company.colors?.primary || "#5e6ad2" },
-    { label: "Secundária", hex: company.colors?.secondary || "#7170ff" },
-    { label: "Destaque", hex: company.colors?.accent || "#828fff" },
+    { label: t("profile.primary"), hex: company.colors?.primary || "#5e6ad2" },
+    { label: t("profile.secondary"), hex: company.colors?.secondary || "#7170ff" },
+    { label: t("profile.accent"), hex: company.colors?.accent || "#828fff" },
   ];
 
   return (
@@ -51,7 +52,7 @@ export function CompanyCard({ company, onDelete, isDeleting = false }: CompanyCa
                 @{company.instagram.replace(/^@+/, "")}
               </p>
             ) : (
-              <p className="text-xs text-[#62666d] mt-0.5">Sem Instagram cadastrado</p>
+              <p className="text-xs text-[#62666d] mt-0.5">{t("profile.noInstagram")}</p>
             )}
           </div>
 
@@ -70,7 +71,7 @@ export function CompanyCard({ company, onDelete, isDeleting = false }: CompanyCa
             {nicheLabel}
           </span>
           <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-[#5e6ad2]/10 text-[#7170ff] border border-[#5e6ad2]/20">
-            Tom: {toneLabel}
+            {t("profile.tone")}: {toneLabel}
           </span>
         </div>
       </div>
@@ -78,7 +79,7 @@ export function CompanyCard({ company, onDelete, isDeleting = false }: CompanyCa
       {/* Paleta de Cores da Marca */}
       <div className="space-y-1.5 pt-3 border-t border-[rgba(255,255,255,0.06)]">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-[#8a8f98]">
-          Paleta da Empresa
+          {t("profile.palette")}
         </span>
         <div className="flex items-center gap-2">
           {colors.map((c, i) => (
@@ -104,7 +105,7 @@ export function CompanyCard({ company, onDelete, isDeleting = false }: CompanyCa
           className="h-8 px-3.5 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-[12px] font-medium transition-all shadow-[0_1px_2px_rgba(0,0,0,0.4)] active:scale-[0.98] inline-flex items-center gap-1.5"
         >
           <SparklesIcon className="size-3.5" />
-          <span>Gerar Artes</span>
+          <span>{t("profile.generate")}</span>
         </Link>
 
         {onDelete && (
@@ -112,7 +113,7 @@ export function CompanyCard({ company, onDelete, isDeleting = false }: CompanyCa
             type="button"
             onClick={() => onDelete(company.id)}
             disabled={isDeleting}
-            title="Excluir Empresa"
+            title={t("profile.delete")}
             className="size-8 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-red-500/10 border border-[rgba(255,255,255,0.08)] hover:border-red-500/20 text-[#8a8f98] hover:text-red-400 transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50"
           >
             {isDeleting ? (
