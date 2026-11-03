@@ -4,38 +4,31 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CompanyCard, type CompanyItem } from "./CompanyCard";
 import { CompanyModal } from "./CompanyModal";
-import { UpsellModal } from "./UpsellModal";
 import { deleteCompanyAction } from "@/app/actions/companies";
-
-interface SubscriptionInfo {
-  plan?: string;
-  company_quota?: number;
-  status?: string;
-}
+import { COMPANY_LIMIT } from "@/lib/company-limit";
 
 interface PerfilClientProps {
   companies: CompanyItem[];
-  subscription: SubscriptionInfo | null;
 }
 
-export function PerfilClient({ companies, subscription }: PerfilClientProps) {
+export function PerfilClient({ companies }: PerfilClientProps) {
   const router = useRouter();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isUpsellOpen, setIsUpsellOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [quotaMessage, setQuotaMessage] = useState<string | null>(null);
 
-  const plan = subscription?.plan || "starter";
-  const maxQuota = subscription?.company_quota || (plan === "pro" ? 3 : 1);
   const usedCount = companies.length;
-  const isQuotaFull = usedCount >= maxQuota;
-  const percentage = Math.min(100, Math.round((usedCount / maxQuota) * 100));
+  const isQuotaFull = usedCount >= COMPANY_LIMIT;
+  const percentage = Math.min(100, Math.round((usedCount / COMPANY_LIMIT) * 100));
+  const quotaLabel = `Limite de ${COMPANY_LIMIT} empresas atingido.`;
 
   function handleAddCompanyClick() {
     if (isQuotaFull) {
-      setIsUpsellOpen(true);
-    } else {
-      setIsCreateOpen(true);
+      setQuotaMessage(quotaLabel);
+      return;
     }
+    setQuotaMessage(null);
+    setIsCreateOpen(true);
   }
 
   async function handleDeleteCompany(id: string) {
@@ -47,6 +40,7 @@ export function PerfilClient({ companies, subscription }: PerfilClientProps) {
     try {
       const res = await deleteCompanyAction(id);
       if (res.ok) {
+        setQuotaMessage(null);
         router.refresh();
       } else {
         alert(res.message || "Falha ao excluir empresa.");
@@ -60,7 +54,6 @@ export function PerfilClient({ companies, subscription }: PerfilClientProps) {
 
   return (
     <div className="space-y-8">
-      {/* Topo da Página: Título, Descrição e Indicador de Cota */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-[rgba(255,255,255,0.06)]">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#f7f8f8]">
@@ -71,17 +64,14 @@ export function PerfilClient({ companies, subscription }: PerfilClientProps) {
           </p>
         </div>
 
-        {/* Indicador de Uso da Cota */}
         <div className="flex items-center gap-3 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] px-3.5 py-2 rounded-lg">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-[11px] gap-3">
-              <span className="text-[#8a8f98]">Cota do Plano {plan.toUpperCase()}:</span>
+              <span className="text-[#8a8f98]">Empresas:</span>
               <span className="font-semibold text-[#f7f8f8]">
-                {usedCount} de {maxQuota} utilizados
+                {usedCount} de {COMPANY_LIMIT}
               </span>
             </div>
-
-            {/* Barra de Progresso Sutil */}
             <div className="w-32 h-1.5 rounded-full bg-[rgba(255,255,255,0.06)] overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
@@ -91,20 +81,15 @@ export function PerfilClient({ companies, subscription }: PerfilClientProps) {
               />
             </div>
           </div>
-
-          {isQuotaFull && (
-            <button
-              type="button"
-              onClick={() => setIsUpsellOpen(true)}
-              className="text-[11px] font-medium px-2 py-1 rounded bg-[#5e6ad2]/15 text-[#7170ff] hover:bg-[#5e6ad2]/25 border border-[#5e6ad2]/30 transition-colors cursor-pointer"
-            >
-              Upgrade
-            </button>
-          )}
         </div>
       </div>
 
-      {/* Grid de Empresas */}
+      {quotaMessage ? (
+        <p className="text-xs text-[#d0d6e0]" role="status">
+          {quotaMessage}
+        </p>
+      ) : null}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {companies.map((company) => (
           <CompanyCard
@@ -115,7 +100,6 @@ export function PerfilClient({ companies, subscription }: PerfilClientProps) {
           />
         ))}
 
-        {/* Card Tracejado para Nova Empresa */}
         <button
           type="button"
           onClick={handleAddCompanyClick}
@@ -129,26 +113,17 @@ export function PerfilClient({ companies, subscription }: PerfilClientProps) {
               Cadastrar nova empresa
             </span>
             <span className="text-[11px] text-[#8a8f98] mt-0.5 block">
-              {isQuotaFull
-                ? "Limite atingido (faça upgrade para o Plano Pro)"
-                : "Defina cores, nicho e cidade"}
+              {isQuotaFull ? quotaLabel : "Defina cores, nicho e cidade"}
             </span>
           </div>
         </button>
       </div>
 
-      {/* Modais */}
       <CompanyModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onSuccess={() => router.refresh()}
-        onQuotaExceeded={() => setIsUpsellOpen(true)}
-      />
-
-      <UpsellModal
-        isOpen={isUpsellOpen}
-        onClose={() => setIsUpsellOpen(false)}
-        currentQuota={maxQuota}
+        onQuotaExceeded={() => setQuotaMessage(quotaLabel)}
       />
     </div>
   );

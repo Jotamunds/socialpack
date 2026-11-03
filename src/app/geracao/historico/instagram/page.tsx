@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/supabase/require-page-access";
 import { Logo } from "@/components/Logo";
-import { SubscriptionInactiveState } from "@/components/SubscriptionInactiveState";
 import { LogOutIcon, SparklesIcon } from "@/components/icons";
 import { signOutAction } from "@/app/actions/companies";
 import { getHistoryPostsAction } from "@/app/actions/history";
@@ -27,7 +26,7 @@ export default async function HistoricoInstagramPage({
     busca?: string | string[];
   }>;
 }) {
-  const access = await requirePageAccess("/geracao/historico/instagram");
+  await requirePageAccess("/geracao/historico/instagram");
   const supabase = await createClient();
   const {
     data: { user },
@@ -41,15 +40,10 @@ export default async function HistoricoInstagramPage({
   const filters = parseHistoryFilters(await searchParams);
 
   // Empresas do usuário (RLS) e posts concluídos já filtrados no servidor.
-  const [companiesResult, historyResult] = access.ok
-    ? await Promise.all([
-        supabase
-          .from("companies")
-          .select("*")
-          .order("created_at", { ascending: false }),
-        getHistoryPostsAction(filters),
-      ])
-    : [{ data: [] }, { ok: false, posts: [] }];
+  const [companiesResult, historyResult] = await Promise.all([
+    supabase.from("companies").select("*").order("created_at", { ascending: false }),
+    getHistoryPostsAction(filters),
+  ]);
 
   const rawCompanies = companiesResult.data || [];
   const companies = rawCompanies.map((c) => ({
@@ -128,10 +122,6 @@ export default async function HistoricoInstagramPage({
       </header>
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 sm:py-10 space-y-6">
-        {!access.ok ? (
-          <SubscriptionInactiveState message={access.error} />
-        ) : (
-          <>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[rgba(255,255,255,0.06)]">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-xs text-[#8a8f98]">
@@ -161,8 +151,6 @@ export default async function HistoricoInstagramPage({
               niches={niches}
               filters={filters}
             />
-          </>
-        )}
       </main>
 
       {/* Footer Minimalista */}

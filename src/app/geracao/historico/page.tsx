@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/supabase/require-page-access";
 import { Logo } from "@/components/Logo";
-import { SubscriptionInactiveState } from "@/components/SubscriptionInactiveState";
 import { ArrowRightIcon, LogOutIcon, SparklesIcon } from "@/components/icons";
 import { signOutAction } from "@/app/actions/companies";
 
@@ -15,7 +14,7 @@ export const metadata = {
 };
 
 export default async function HistoricoSelectPage() {
-  const access = await requirePageAccess("/geracao/historico");
+  await requirePageAccess("/geracao/historico");
   const supabase = await createClient();
   const {
     data: { user },
@@ -84,10 +83,6 @@ export default async function HistoricoSelectPage() {
 
       {/* Conteúdo Principal */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-10 space-y-8">
-        {!access.ok ? (
-          <SubscriptionInactiveState message={access.error} />
-        ) : (
-          <>
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#f7f8f8]">
             Histórico de Criações
@@ -197,8 +192,6 @@ export default async function HistoricoSelectPage() {
             </div>
           </div>
         </div>
-          </>
-        )}
       </main>
 
       {/* Footer Minimalista */}

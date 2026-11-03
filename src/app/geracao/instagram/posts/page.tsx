@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/supabase/require-page-access";
 import { Logo } from "@/components/Logo";
 import { GeracaoClient } from "@/components/geracao/GeracaoClient";
-import { SubscriptionInactiveState } from "@/components/SubscriptionInactiveState";
 import { LogOutIcon, SparklesIcon } from "@/components/icons";
 import { signOutAction } from "@/app/actions/companies";
 
@@ -20,7 +19,7 @@ export default async function GeracaoInstagramPostsPage({
 }: {
   searchParams: Promise<{ empresa?: string }>;
 }) {
-  const access = await requirePageAccess("/geracao/instagram/posts");
+  await requirePageAccess("/geracao/instagram/posts");
   const supabase = await createClient();
   const {
     data: { user },
@@ -31,12 +30,10 @@ export default async function GeracaoInstagramPostsPage({
     redirect("/login?redirectTo=/geracao/instagram/posts");
   }
 
-  const { data: rawCompanies } = access.ok
-    ? await supabase
-        .from("companies")
-        .select("*")
-        .order("created_at", { ascending: false })
-    : { data: [] };
+  const { data: rawCompanies } = await supabase
+    .from("companies")
+    .select("*")
+    .order("created_at", { ascending: false });
 
   const resolvedParams = await searchParams;
   const targetCompanyId = resolvedParams?.empresa;
@@ -123,11 +120,7 @@ export default async function GeracaoInstagramPostsPage({
       </header>
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 sm:py-10">
-        {!access.ok ? (
-          <SubscriptionInactiveState message={access.error} />
-        ) : (
-          <GeracaoClient companies={companies} />
-        )}
+        <GeracaoClient companies={companies} />
       </main>
 
       {/* Footer Minimalista */}

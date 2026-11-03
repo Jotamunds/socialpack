@@ -7,11 +7,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { CreateCompanyInputSchema, normalizeCompanyInput } from "@/lib/schemas";
 import { sanitizePublicErrorMessage } from "@/lib/public-error";
 import { assertOwnedStoragePath, getOwnedStoragePathOrNull } from "@/lib/storage-path";
-import { assertValidSubscription } from "@/lib/supabase/subscription-guard";
+import { COMPANY_LIMIT } from "@/lib/company-limit";
 
 export type CompanyActionResponse = {
   ok: boolean;
-  code?: "QUOTA_EXCEEDED" | "SUBSCRIPTION_REQUIRED" | "UNAUTHORIZED" | "VALIDATION_ERROR" | "DATABASE_ERROR";
+  code?: "QUOTA_EXCEEDED" | "UNAUTHORIZED" | "VALIDATION_ERROR" | "DATABASE_ERROR";
   message?: string;
   company?: {
     id: string;
@@ -57,9 +57,6 @@ export async function createCompanyAction(input: unknown): Promise<CompanyAction
       };
     }
 
-    // Validação estrita no servidor: assinatura ativa obrigatória para criar empresa
-    await assertValidSubscription(user.id);
-
     const { data, error } = await supabase
       .from("companies")
       .insert({
@@ -85,20 +82,7 @@ export async function createCompanyAction(input: unknown): Promise<CompanyAction
         return {
           ok: false,
           code: "QUOTA_EXCEEDED",
-          message:
-            "Limite de empresas atingido para o seu plano. Faça upgrade para o Plano Pro para cadastrar mais empresas.",
-        };
-      }
-
-      if (
-        error.code === "P0002" ||
-        error.message?.includes("P0002") ||
-        error.message?.toLowerCase().includes("assinatura")
-      ) {
-        return {
-          ok: false,
-          code: "SUBSCRIPTION_REQUIRED",
-          message: "É necessária uma assinatura ativa para cadastrar empresas.",
+          message: `Limite de ${COMPANY_LIMIT} empresas atingido.`,
         };
       }
 
@@ -142,9 +126,6 @@ export async function deleteCompanyAction(companyId: string): Promise<{ ok: bool
     if (authError || !user) {
       return { ok: false, message: "Acesso não autorizado." };
     }
-
-    // Validação estrita no servidor: assinatura ativa obrigatória para deletar empresa
-    await assertValidSubscription(user.id);
 
     const admin = createAdminClient();
 

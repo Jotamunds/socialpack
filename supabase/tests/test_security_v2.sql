@@ -114,39 +114,24 @@ begin
   raise notice '✓ TESTE 3 PASS: Templates e funções definer isolados de anon/authenticated.';
 
   -- --------------------------------------------------------------------------
-  -- TESTE 4: P0002 sem assinatura ativa (usuário nasce incomplete)
+  -- TESTE 4: uso direto — assinatura incomplete não bloqueia a 1ª empresa
   -- --------------------------------------------------------------------------
-  begin
-    insert into public.companies (
-      user_id, name, category_id, niche_id, city, state, tone_id, colors
-    ) values (
-      v_test_user_id, 'Empresa Sem Assinatura Ativa', 'alimentacao', 'pizzaria',
-      'São Paulo', 'SP', 'profissional', v_brand_colors
-    );
-  exception
-    when sqlstate 'P0002' then
-      v_caught_p0002 := true;
-  end;
+  insert into public.companies (
+    user_id, name, category_id, niche_id, city, state, tone_id, colors
+  ) values (
+    v_test_user_id, 'Empresa Com Assinatura Incomplete', 'alimentacao', 'pizzaria',
+    'São Paulo', 'SP', 'profissional', v_brand_colors
+  ) returning id into v_company_id;
 
-  if not v_caught_p0002 then
-    raise exception 'FALHA DE SEGURANÇA: Empresa criada com assinatura incomplete (deveria P0002).';
+  if v_company_id is null then
+    raise exception 'FALHA: empresa não foi criada para usuário autenticado sem assinatura ativa.';
   end if;
 
-  raise notice '✓ TESTE 4 PASS: P0002 emitido para assinatura incomplete.';
+  raise notice '✓ TESTE 4 PASS: empresa criada sem depender de status de assinatura.';
 
   -- --------------------------------------------------------------------------
-  -- TESTE 5: Starter cota 1 → segunda empresa P0003 + cores inválidas
+  -- TESTE 5: cores inválidas + teto de 3 empresas (P0003 na 4ª)
   -- --------------------------------------------------------------------------
-  update public.subscriptions
-     set plan = 'starter',
-         status = 'active',
-         company_quota = 1,
-         cancel_at_period_end = false,
-         current_period_start = timezone('utc'::text, now()),
-         current_period_end = timezone('utc'::text, now()) + interval '30 days',
-         updated_at = timezone('utc'::text, now())
-   where user_id = v_test_user_id;
-
   begin
     insert into public.companies (
       user_id, name, category_id, niche_id, city, state, tone_id, colors
@@ -166,15 +151,22 @@ begin
   insert into public.companies (
     user_id, name, category_id, niche_id, city, state, tone_id, colors
   ) values (
-    v_test_user_id, 'Primeira Empresa Starter', 'alimentacao', 'pizzaria',
+    v_test_user_id, 'Segunda Empresa', 'alimentacao', 'hamburgueria',
+    'São Paulo', 'SP', 'descontraido', v_brand_colors
+  );
+
+  insert into public.companies (
+    user_id, name, category_id, niche_id, city, state, tone_id, colors
+  ) values (
+    v_test_user_id, 'Terceira Empresa', 'alimentacao', 'cafeteria',
     'São Paulo', 'SP', 'profissional', v_brand_colors
-  ) returning id into v_company_id;
+  );
 
   begin
     insert into public.companies (
       user_id, name, category_id, niche_id, city, state, tone_id, colors
     ) values (
-      v_test_user_id, 'Segunda Empresa Bloqueada', 'alimentacao', 'hamburgueria',
+      v_test_user_id, 'Quarta Empresa Bloqueada', 'alimentacao', 'padaria',
       'São Paulo', 'SP', 'descontraido', v_brand_colors
     );
   exception
@@ -183,10 +175,10 @@ begin
   end;
 
   if not v_caught_p0003 then
-    raise exception 'FALHA DE SEGURANÇA: Starter criou mais de 1 empresa (deveria P0003).';
+    raise exception 'FALHA DE SEGURANÇA: usuário criou mais de 3 empresas (deveria P0003).';
   end if;
 
-  raise notice '✓ TESTE 5 PASS: Cores inválidas rejeitadas e cota Starter (P0003) validada.';
+  raise notice '✓ TESTE 5 PASS: Cores inválidas rejeitadas e teto de 3 empresas (P0003) validado.';
 
   -- --------------------------------------------------------------------------
   -- TESTE 6: ciclo de vida — completed com campos obrigatórios + identidade

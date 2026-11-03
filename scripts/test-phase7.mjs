@@ -29,7 +29,6 @@ async function runPhase7Tests() {
     { name: "Server Actions de Settings", path: path.resolve(basePath, "src/app/actions/settings.ts") },
     { name: "Página /configuracoes", path: path.resolve(basePath, "src/app/configuracoes/page.tsx") },
     { name: "Componente SettingsTabs", path: path.resolve(basePath, "src/components/configuracoes/SettingsTabs.tsx") },
-    { name: "Componente SubscriptionPlanCard", path: path.resolve(basePath, "src/components/configuracoes/SubscriptionPlanCard.tsx") },
     { name: "Componente AccountForm", path: path.resolve(basePath, "src/components/configuracoes/AccountForm.tsx") },
     { name: "Componente AppearanceSelector", path: path.resolve(basePath, "src/components/configuracoes/AppearanceSelector.tsx") },
     { name: "Componente ConfiguracoesClient", path: path.resolve(basePath, "src/components/configuracoes/ConfiguracoesClient.tsx") },
@@ -106,18 +105,8 @@ async function runPhase7Tests() {
     throw new Error("updateProfileAction deve filtrar estritamente auth.uid() = id.");
   }
 
-  // upgradeToProAction
-  if (!settingsContent.includes("upgradeToProAction")) {
-    throw new Error("settings.ts deve exportar upgradeToProAction.");
-  }
-  if (!settingsContent.includes("from(\"subscriptions\")") || !settingsContent.includes(".update(")) {
-    throw new Error("upgradeToProAction deve atualizar registros na tabela subscriptions.");
-  }
-  const updatesProDirectly = settingsContent.includes("plan: \"pro\"") && (settingsContent.includes("company_quota: 3") || settingsContent.includes("max_companies: 3"));
-  const updatesProViaGateway = settingsContent.includes("pending_plan: \"pro\"") || settingsContent.includes("createPaymentLinkForPlan");
-
-  if (!updatesProDirectly && !updatesProViaGateway) {
-    throw new Error("upgradeToProAction deve atualizar registros de plano Pro ou iniciar upgrade pendente no gateway.");
+  if (settingsContent.includes("upgradeToProAction") || settingsContent.includes("cancelSubscriptionAction")) {
+    throw new Error("settings.ts não deve gerenciar upgrade ou cancelamento de assinatura.");
   }
 
   // Mandamento 3: PCI-DSS Invariants
@@ -134,7 +123,7 @@ async function runPhase7Tests() {
   }
 
   console.log("   ✓ Invariantes PCI-DSS comprovadas: 0 manipulação de dados de cartão de crédito no banco.");
-  console.log("   ✓ Isolamento de Tenant e RLS validados para updateProfileAction e upgradeToProAction.");
+  console.log("   ✓ Isolamento de tenant validado para updateProfileAction.");
 
   // ---------------------------------------------------------------------------
   // 4. Validar Design System & Theming Tokens (src/app/globals.css)
@@ -158,20 +147,11 @@ async function runPhase7Tests() {
 
   // SettingsTabs
   const tabsContent = fs.readFileSync(path.resolve(basePath, "src/components/configuracoes/SettingsTabs.tsx"), "utf-8");
-  if (!tabsContent.includes("plano") || !tabsContent.includes("conta") || !tabsContent.includes("aparencia")) {
-    throw new Error("SettingsTabs deve prover as 3 abas: plano, conta, aparencia.");
+  if (!tabsContent.includes("conta") || !tabsContent.includes("aparencia")) {
+    throw new Error("SettingsTabs deve prover as abas conta e aparencia.");
   }
-
-  // SubscriptionPlanCard
-  const planCardContent = fs.readFileSync(path.resolve(basePath, "src/components/configuracoes/SubscriptionPlanCard.tsx"), "utf-8");
-  if (!planCardContent.includes("h-2") || !planCardContent.includes("#5e6ad2")) {
-    throw new Error("SubscriptionPlanCard deve renderizar a barra de progresso horizontal h-2 com preenchimento #5e6ad2.");
-  }
-  if (!planCardContent.includes("Fazer Upgrade para Pro")) {
-    throw new Error("SubscriptionPlanCard deve conter o botão de upgrade para usuários Starter.");
-  }
-  if (!planCardContent.includes("upgradeToProAction")) {
-    throw new Error("SubscriptionPlanCard deve conectar o modal com upgradeToProAction.");
+  if (tabsContent.includes("plano")) {
+    throw new Error("SettingsTabs não deve expor aba de plano.");
   }
 
   // AccountForm
@@ -194,11 +174,17 @@ async function runPhase7Tests() {
 
   // /configuracoes/page.tsx
   const pageContent = fs.readFileSync(path.resolve(basePath, "src/app/configuracoes/page.tsx"), "utf-8");
-  if (!pageContent.includes("from(\"profiles\")") || !pageContent.includes("from(\"subscriptions\")") || !pageContent.includes("from(\"companies\")")) {
-    throw new Error("Página /configuracoes deve consultar em paralelo profiles, subscriptions e companies.");
+  if (!pageContent.includes("from(\"profiles\")")) {
+    throw new Error("Página /configuracoes deve consultar profiles.");
+  }
+  if (!pageContent.includes("auth.getUser()")) {
+    throw new Error("Página /configuracoes deve exigir sessão.");
+  }
+  if (pageContent.includes("from(\"subscriptions\")")) {
+    throw new Error("Página /configuracoes não deve consultar assinatura.");
   }
 
-  console.log("   ✓ Componentes das 3 abas, seletores de tema e proteção de campos validados.");
+  console.log("   ✓ Abas de conta e aparência, seletor de tema e proteção de campos validados.");
 
   console.log("\n=== FASE 7: TODOS OS TESTES PASSARAM COM SUCESSO (PASS)! ===");
 }

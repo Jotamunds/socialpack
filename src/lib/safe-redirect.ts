@@ -22,5 +22,10 @@ export function safeInternalRedirect(value: string | null | undefined): string {
     return FALLBACK_PATH;
   }
 
+  const pathOnly = path.split("?")[0]?.split("#")[0] ?? path;
+  if (pathOnly === "/planos" || pathOnly.startsWith("/planos/")) {
+    return FALLBACK_PATH;
+  }
+
   return path;
 }

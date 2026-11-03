@@ -164,7 +164,6 @@ export const SignUpInputSchema = z.object({
   password: z
     .string()
     .min(6, "A senha deve ter no mínimo 6 caracteres"),
-  plan: z.enum(["starter", "pro"]).default("starter"),
 });
 
 export type SignUpInput = z.infer<typeof SignUpInputSchema>;
