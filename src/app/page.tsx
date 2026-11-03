@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
-import { ArrowRightIcon, CheckIcon, SparklesIcon } from "@/components/icons";
+import { LandingHero } from "@/components/landing/LandingHero";
+import { ArrowRightIcon, CheckIcon } from "@/components/icons";
 import { getDemoShowcase, type DemoShowcaseItem } from "@/lib/demo-showcase";
 
 export default async function HomePage() {
@@ -8,181 +9,11 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#08090a] text-[#f7f8f8] flex flex-col selection:bg-[#5e6ad2]/30 selection:text-white">
-      {/* Header Fixo Minimalista */}
-      <header className="sticky top-0 z-50 w-full border-b border-[rgba(255,255,255,0.06)] bg-[#08090a]/80 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Logo variant="with-label" className="h-8 w-auto" href="/" />
-          <nav className="flex items-center gap-6">
-            <a
-              href="#planos"
-              className="hidden sm:inline-block text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors"
-            >
-              Planos
-            </a>
-            <Link
-              href="/login"
-              className="text-[13px] font-medium text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors"
-            >
-              Entrar
-            </Link>
-            <Link
-              href="/cadastro?plano=starter"
-              className="h-9 px-4 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-[13px] font-medium transition-all shadow-[0_1px_2px_rgba(0,0,0,0.4)] active:scale-[0.98] inline-flex items-center justify-center gap-1.5"
-            >
-              <span>Começar</span>
-              <ArrowRightIcon className="size-3.5" />
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      {/* Hero Section Fullscreen */}
       <main className="flex-1">
-        <section className="relative pt-20 pb-28 md:pt-28 md:pb-36 overflow-hidden">
-          {/* Efeito sutil de iluminação de fundo (Luminance Stacking Linear) */}
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-[#5e6ad2]/8 blur-[120px] rounded-full pointer-events-none" />
-
-          <div className="max-w-6xl mx-auto px-4 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-              {/* Lado Esquerdo: Headline e CTAs */}
-              <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[12px] font-medium bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] text-[#d0d6e0]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
-                  <span>Motor Determinístico de Conteúdo Local</span>
-                </div>
-
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-[-0.03em] leading-[1.08] text-[#f7f8f8]">
-                  Sua semana de posts no Instagram em{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#f7f8f8] via-[#d0d6e0] to-[#7170ff]">
-                    1 clique.
-                  </span>
-                </h1>
-
-                <p className="text-base sm:text-lg text-[#8a8f98] max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed tracking-[-0.011em]">
-                  Cadastre o nicho e as cores da sua empresa. Receba 7 artes
-                  editoriais de 1080×1080 com design cirúrgico, legendas
-                  estratégicas e zero dependência de IA imprevisível.
-                </p>
-
-                <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
-                  <a
-                    href="#planos"
-                    className="w-full sm:w-auto h-11 px-6 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-[14px] font-medium transition-all shadow-[0_1px_3px_rgba(0,0,0,0.5)] active:scale-[0.98] inline-flex items-center justify-center gap-2"
-                  >
-                    <span>Conhecer os Planos</span>
-                    <ArrowRightIcon className="size-4" />
-                  </a>
-                  <Link
-                    href="/login"
-                    className="w-full sm:w-auto h-11 px-5 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-[#d0d6e0] hover:text-[#f7f8f8] text-[14px] font-medium transition-colors inline-flex items-center justify-center"
-                  >
-                    Já tenho uma conta
-                  </Link>
-                </div>
-
-                {/* Métricas / Trust indicators */}
-                <div className="pt-6 grid grid-cols-3 gap-4 border-t border-[rgba(255,255,255,0.06)] max-w-md mx-auto lg:mx-0">
-                  <div>
-                    <div className="text-xl font-semibold text-[#f7f8f8]">36+</div>
-                    <div className="text-[12px] text-[#8a8f98]">Nichos do Catálogo</div>
-                  </div>
-                  <div>
-                    <div className="text-xl font-semibold text-[#f7f8f8]">7/7</div>
-                    <div className="text-[12px] text-[#8a8f98]">Dias de Posts Prontos</div>
-                  </div>
-                  <div>
-                    <div className="text-xl font-semibold text-[#f7f8f8]">1080px</div>
-                    <div className="text-[12px] text-[#8a8f98]">Resolução Cristalina</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Lado Direito: Mosaico Editorial com Prévia de Artes */}
-              <div className="lg:col-span-5 relative flex items-center justify-center">
-                <div className="relative w-full max-w-[380px] aspect-square">
-                  {/* Card Fundo 1 (Inclinado à esquerda) */}
-                  <div className="absolute inset-0 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0f1011] p-5 shadow-2xl rotate-[-4deg] opacity-60 scale-95 translate-y-3 pointer-events-none transition-transform">
-                    <div className="h-full flex flex-col justify-between">
-                      <div className="flex items-center justify-between text-[11px] text-[#8a8f98]">
-                        <span>SEXTA • OFERTA</span>
-                        <span>@pizzaria.premium</span>
-                      </div>
-                      <div className="my-auto space-y-2">
-                        <div className="text-lg font-semibold text-[#f7f8f8] leading-tight">
-                          A melhor pizza artesanal da cidade
-                        </div>
-                        <div className="text-xs text-[#8a8f98]">
-                          Fermentação lenta de 48h com ingredientes nobres.
-                        </div>
-                      </div>
-                      <div className="h-6 w-20 rounded bg-[#5e6ad2]/20 border border-[#5e6ad2]/40" />
-                    </div>
-                  </div>
-
-                  {/* Card Fundo 2 (Inclinado à direita) */}
-                  <div className="absolute inset-0 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0f1011] p-5 shadow-2xl rotate-[5deg] opacity-75 scale-98 translate-y-1 pointer-events-none transition-transform">
-                    <div className="h-full flex flex-col justify-between">
-                      <div className="flex items-center justify-between text-[11px] text-[#8a8f98]">
-                        <span>QUARTA • AUTORIDADE</span>
-                        <span>@estetica.glow</span>
-                      </div>
-                      <div className="my-auto space-y-2">
-                        <div className="text-lg font-semibold text-[#f7f8f8] leading-tight">
-                          Cuidados que realçam a sua beleza real
-                        </div>
-                        <div className="text-xs text-[#8a8f98]">
-                          Protocolos personalizados com tecnologia de ponta.
-                        </div>
-                      </div>
-                      <div className="h-6 w-24 rounded bg-[#10b981]/15 border border-[#10b981]/30" />
-                    </div>
-                  </div>
-
-                  {/* Card Principal Frontal */}
-                  <div className="relative rounded-xl border border-[rgba(255,255,255,0.12)] bg-[#121315] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-                    <div className="flex items-center justify-between pb-4 border-b border-[rgba(255,255,255,0.06)]">
-                      <div className="flex items-center gap-2">
-                        <span className="size-2 rounded-full bg-[#10b981]" />
-                        <span className="text-[11px] font-medium uppercase tracking-wider text-[#d0d6e0]">
-                          Segunda • 24/10
-                        </span>
-                      </div>
-                      <span className="text-[11px] text-[#8a8f98]">
-                        Layout Editorial 01
-                      </span>
-                    </div>
-
-                    <div className="py-8 space-y-3">
-                      <span className="inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-[#5e6ad2]/20 text-[#7170ff] border border-[#5e6ad2]/30">
-                        CONVITE ESPECIAL
-                      </span>
-                      <h3 className="text-2xl font-bold tracking-tight text-[#f7f8f8] leading-snug">
-                        Sua semana mais produtiva começa hoje
-                      </h3>
-                      <p className="text-xs text-[#8a8f98] leading-relaxed">
-                        Tudo planejado para você não se preocupar com postagens
-                        diárias. Qualidade, consistência e estratégia comercial.
-                      </p>
-                    </div>
-
-                    <div className="pt-4 border-t border-[rgba(255,255,255,0.06)] flex items-center justify-between">
-                      <span className="text-xs font-medium text-[#d0d6e0]">
-                        @suaempresa
-                      </span>
-                      <span className="h-8 px-3.5 rounded-md bg-[#5e6ad2] text-white text-[12px] font-medium inline-flex items-center gap-1.5">
-                        <SparklesIcon className="size-3.5" />
-                        <span>Gerado em 1s</span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <LandingHero />
 
         {/* Seção Como Funciona */}
-        <section className="py-20 border-t border-[rgba(255,255,255,0.06)] bg-[#08090a]">
+        <section id="funcionalidades" className="py-20 border-t border-[rgba(255,255,255,0.06)] bg-[#08090a]">
           <div className="max-w-6xl mx-auto px-4">
             <div className="text-center max-w-2xl mx-auto space-y-3 mb-16">
               <span className="text-xs font-bold uppercase tracking-wider text-[#7170ff]">
