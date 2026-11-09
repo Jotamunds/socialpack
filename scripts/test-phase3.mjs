@@ -17,8 +17,6 @@ async function runPhase3Tests() {
   const pageContent = fs.readFileSync(pagePath, "utf-8");
 
   const requiredLandingLinks = [
-    "/cadastro?plano=starter",
-    "/cadastro?plano=pro",
     "/login",
     "#planos",
     "49,90",
@@ -30,36 +28,28 @@ async function runPhase3Tests() {
       throw new Error(`Landing page ausente do elemento obrigatório: ${kw}`);
     }
   }
-  console.log("   ✓ Landing Page possui Hero, Mosaico, Seção #planos e links para Starter e Pro.");
+  if (pageContent.includes("/cadastro") || pageContent.includes("/planos")) {
+    throw new Error("Landing page não deve linkar para /cadastro nem /planos.");
+  }
+  console.log("   ✓ Landing Page permanece no ar, sem CTA de cadastro ou de plano que cria conta.");
 
-  // 2. Validar Tela de Cadastro (src/app/cadastro/page.tsx)
-  console.log("2. Validando Tela de Cadastro (/cadastro)...");
+  // 2. Validar que /cadastro não cria conta
+  console.log("2. Validando fechamento do cadastro público (/cadastro)...");
   if (!fs.existsSync(registerPath)) {
     throw new Error("src/app/cadastro/page.tsx não encontrado.");
   }
   const registerContent = fs.readFileSync(registerPath, "utf-8");
 
-  const requiredRegisterElements = [
-    "supabase.auth.signUp",
-    "full_name",
-    "phone",
-    "fullName",
-    "email",
-    "password",
-    "Suspense",
-    "createClient",
-  ];
-
-  for (const kw of requiredRegisterElements) {
-    if (!registerContent.includes(kw)) {
-      throw new Error(`Tela de cadastro ausente do elemento obrigatório: ${kw}`);
-    }
+  if (registerContent.includes("supabase.auth.signUp") || registerContent.includes(".signUp(")) {
+    throw new Error("Tela de cadastro ainda chama auth.signUp.");
   }
-
+  if (!registerContent.includes("redirect(") || !registerContent.includes("safeInternalRedirect")) {
+    throw new Error("Tela de cadastro deve redirecionar no servidor com safeInternalRedirect.");
+  }
   if (registerContent.includes("createAdminClient") || registerContent.includes("SUPABASE_SERVICE_ROLE_KEY")) {
     throw new Error("VIOLAÇÃO DE SEGURANÇA: Cliente admin ou SERVICE_ROLE_KEY presente em /cadastro/page.tsx");
   }
-  console.log("   ✓ Tela de cadastro integra signUp com options.data (full_name, phone) e cliente seguro.");
+  console.log("   ✓ /cadastro redireciona para o login e não chama auth.signUp.");
 
   // 3. Validar Tela de Login (src/app/login/page.tsx)
   console.log("3. Validando Tela de Login (/login)...");
@@ -83,6 +73,9 @@ async function runPhase3Tests() {
     }
   }
 
+  if (loginContent.includes("/cadastro")) {
+    throw new Error("Tela de login não deve linkar para /cadastro.");
+  }
   if (loginContent.includes("createAdminClient") || loginContent.includes("SUPABASE_SERVICE_ROLE_KEY")) {
     throw new Error("VIOLAÇÃO DE SEGURANÇA: Cliente admin ou SERVICE_ROLE_KEY presente em /login/page.tsx");
   }

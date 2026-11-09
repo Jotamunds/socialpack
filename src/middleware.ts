@@ -1,5 +1,21 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { safeInternalRedirect } from "@/lib/safe-redirect";
+
+function isClosedSignupRoute(pathname: string): boolean {
+  return pathname === "/cadastro" || pathname.startsWith("/cadastro/");
+}
+
+function redirectToLogin(request: NextRequest, supabaseResponse: NextResponse) {
+  const url = request.nextUrl.clone();
+  url.pathname = safeInternalRedirect("/login");
+  url.search = "";
+  const redirectResponse = NextResponse.redirect(url);
+  supabaseResponse.cookies.getAll().forEach((cookie) => {
+    redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+  });
+  return redirectResponse;
+}
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -19,8 +35,12 @@ export async function updateSession(request: NextRequest) {
   const isAuthRoute =
     pathname === "/login" || pathname === "/cadastro";
 
-  // Se não houver configuração de URL/Anon, redireciona rotas protegidas para /login
+  // Cadastro público fechado: /cadastro não renderiza formulário.
+  // Sem Supabase, o redirect acontece antes de qualquer sessão.
   if (!supabaseUrl || !supabaseAnonKey) {
+    if (isClosedSignupRoute(pathname)) {
+      return redirectToLogin(request, supabaseResponse);
+    }
     if (isProtectedRoute) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
@@ -51,6 +71,12 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Cadastro público fechado. Visitante sem sessão vai para /login.
+  // Quem já está autenticado segue no bloco abaixo, para a área do app.
+  if (!user && isClosedSignupRoute(pathname)) {
+    return redirectToLogin(request, supabaseResponse);
+  }
 
   // 1. Não autenticado acessando rota protegida -> /login?redirectTo=...
   if (!user && isProtectedRoute) {
