@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { calculateWeekSchedule, formatWeekRange } from "./date-utils";
-import { getCuratedPhoto } from "./curated-images";
+import { pickPackPhotos } from "./curated-images";
 import { findCategory, findNiche, findTone } from "./catalog";
 import { WeeklyPackContentSchema } from "./schemas";
 import { CAMPAIGN_LAYOUTS, type CampaignCategory } from "./campaign-layouts";
@@ -232,7 +232,7 @@ function buildLocalHashtags(
  * Resultado: um template só volta quando todos os outros compatíveis já saíram,
  * e nunca volta no pacote seguinte se houver pelo menos 7 alternativas.
  */
-function selectWeeklyTemplates(
+export function selectWeeklyTemplates(
   nichePosts: PostTemplate[],
   genericPosts: PostTemplate[],
   toneId: string,
@@ -279,12 +279,34 @@ function selectWeeklyTemplates(
     selected.push(candidate);
   }
 
-  // Fallback de emergência se pools forem insuficientes.
-  // (Corrige loop infinito da versão anterior: o tema agora muda a cada tentativa.)
-  for (let attempt = 1; selected.length < POSTS_PER_PACK && attempt <= 50; attempt++) {
-    const theme = `Destaque ${attempt}`;
-    if (usedThemes.has(theme.toLowerCase())) continue;
+  // Sem reposição: tema e slug já usados neste pacote ficam de fora.
+  // Se o catálogo não cobre os 7 dias, completa com temas de reserva únicos.
+  if (selected.length < POSTS_PER_PACK) {
+    console.warn(
+      `[generateWeek] Templates distintos insuficientes para o pacote (${selected.length}/${POSTS_PER_PACK}). Completando com temas de reserva, sem repetir template.`
+    );
+  }
+
+  let reserve = 0;
+  while (selected.length < POSTS_PER_PACK) {
+    reserve += 1;
+    let theme = `Destaque ${reserve}`;
+    let slug = buildTemplateSlug("_generic", theme);
+    if (usedThemes.has(theme.toLowerCase()) || usedSlugs.has(slug)) {
+      theme = `Reserva ${selected.length + 1}-${reserve}`;
+      slug = buildTemplateSlug("_generic", theme);
+    }
+    if (usedThemes.has(theme.toLowerCase()) || usedSlugs.has(slug)) {
+      if (reserve > 500) {
+        console.warn(
+          `[generateWeek] Tema de reserva "${theme}" já estava no pacote. A geração segue sem interromper.`
+        );
+        break;
+      }
+      continue;
+    }
     usedThemes.add(theme.toLowerCase());
+    usedSlugs.add(slug);
     selected.push({
       theme,
       headline: `{nome} em {cidade}`,
@@ -295,7 +317,7 @@ function selectWeeklyTemplates(
       hashtags: ["#novidade", "#destaque", "#qualidade"],
       pool: "generic",
       slugBase: "_generic",
-      slug: buildTemplateSlug("_generic", theme),
+      slug,
     });
   }
 
@@ -407,6 +429,25 @@ export function pickCampaignLayouts(
   return { layouts, categories: selectedCategories };
 }
 
+function reserveTemplate(index: number): RankedTemplate {
+  const theme = `Reserva dia ${index + 1}`;
+  console.warn(
+    `[generateWeek] Post ${index + 1} sem template após a seleção. Usando texto de reserva para não interromper a geração.`
+  );
+  return {
+    theme,
+    headline: `{nome} em {cidade}`,
+    subheadline: "Qualidade, dedicação e o melhor atendimento para você.",
+    cta: "Saiba mais",
+    caption:
+      "Conheça a {nome} em {cidade}! Atendimento diferenciado e soluções completas para você.\n\nFale conosco pelo direct!",
+    hashtags: ["#novidade", "#destaque", "#qualidade"],
+    pool: "generic",
+    slugBase: "_generic",
+    slug: buildTemplateSlug("_generic", theme),
+  };
+}
+
 /**
  * Motor determinístico de geração semanal (7 posts).
  * Filtra tom, prioriza templates menos usados pela empresa (nicho→genérico),
@@ -459,6 +500,7 @@ export function generateWeek(
   };
 
   const layoutPlan = pickCampaignLayouts(selected, company, history, seed);
+  const packPhotos = pickPackPhotos(company.nicheId, company.categoryId, POSTS_PER_PACK);
   const allowEmojis = Boolean(tone?.emojis);
   const signoff = tone?.signoff?.trim() || "";
 
@@ -466,10 +508,7 @@ export function generateWeek(
 
   for (let i = 0; i < POSTS_PER_PACK; i++) {
     const daySchedule = schedule[i];
-    const template = selected[i];
-    if (!template) {
-      throw new Error("Pacote semanal incompleto: não há templates suficientes.");
-    }
+    const template = selected[i] ?? reserveTemplate(i);
 
     let headline = interpolate(template.headline, vars);
     let subheadline = interpolate(template.subheadline, vars);
@@ -530,7 +569,7 @@ export function generateWeek(
       layoutCategory: layoutPlan.categories[i],
       format,
       generationSeed: seed,
-      imageUrl: getCuratedPhoto(company.nicheId, company.categoryId, i),
+      imageUrl: packPhotos[i] || packPhotos[0],
       templateSlug,
       templateVersion: 1,
     });

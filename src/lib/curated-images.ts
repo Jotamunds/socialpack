@@ -224,8 +224,68 @@ const DEFAULT_POOL = [
   "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=1080&q=80",
 ];
 
+/** Identidade da foto, ignorando query string. A mesma foto Unsplash não conta duas vezes. */
+export function photoIdentity(url: string): string {
+  const match = url.match(/photo-([A-Za-z0-9_-]+)/);
+  return match?.[1] || url.trim();
+}
+
+/**
+ * Escolhe `count` fotos sem reposição, na ordem dos pools recebidos.
+ * Pools seguintes só entram para preencher buracos (foto já usada ou repetida no pool).
+ * Se ainda faltar, reutiliza as distintas já escolhidas e avisa — a geração não para.
+ */
+export function pickDistinctPhotoUrls(
+  tiers: readonly (readonly string[])[],
+  count: number,
+  context = "pacote"
+): string[] {
+  const picked: string[] = [];
+  const used = new Set<string>();
+
+  for (const tier of tiers) {
+    for (const url of tier) {
+      if (!url) continue;
+      const id = photoIdentity(url);
+      if (!id || used.has(id)) continue;
+      used.add(id);
+      picked.push(url);
+      if (picked.length >= count) return picked;
+    }
+  }
+
+  if (picked.length < count) {
+    console.warn(
+      `[generateWeek] Imagens distintas insuficientes para o ${context} (${picked.length}/${count}). Reutilizando imagens para não interromper a geração.`
+    );
+    const base = [...picked];
+    if (base.length === 0) return picked;
+    let cursor = 0;
+    while (picked.length < count) {
+      picked.push(base[cursor % base.length]);
+      cursor += 1;
+    }
+  }
+
+  return picked;
+}
+
+/** Fotos de um pacote: nicho, depois categoria, depois o pool padrão. Sem repetir dentro do pacote. */
+export function pickPackPhotos(nicheId?: string, categoryId?: string, count = 7): string[] {
+  const tiers: string[][] = [];
+  if (nicheId && NICHE_PHOTO_POOLS[nicheId]?.length) tiers.push(NICHE_PHOTO_POOLS[nicheId]);
+  if (categoryId && CATEGORY_PHOTO_POOLS[categoryId]?.length) tiers.push(CATEGORY_PHOTO_POOLS[categoryId]);
+  tiers.push(DEFAULT_POOL);
+  return pickDistinctPhotoUrls(
+    tiers,
+    count,
+    `pacote (nicho=${nicheId || "-"}, categoria=${categoryId || "-"})`
+  );
+}
+
 /**
  * Retorna a imagem curada mais apropriada para o nicho/categoria com resolução 1080x1080.
+ * Uso pontual (preview). O pacote semanal usa `pickPackPhotos`, sem reposição.
  */
 export function getCuratedPhoto(
   nicheId?: string,

@@ -12,6 +12,7 @@
     "test:billing:security": "node scripts/test-billing-asaas.mjs",
     "test:phase7": "node scripts/test-phase7.mjs",
     "test:campaign-layouts": "tsx scripts/test-campaign-layouts.ts",
+    "test:pack-uniqueness": "tsx scripts/test-pack-uniqueness.ts",
     "previews:campaigns": "tsx scripts/render-campaign-gallery.ts"
   },
   "dependencies": {
