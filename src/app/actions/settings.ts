@@ -174,7 +174,7 @@ export async function upgradeToProAction(): Promise<SettingsActionResponse & { p
       };
     }
 
-    const guard = await requireValidSubscription(user.id);
+    const guard = await requireValidSubscription(user.id, { ownerBypass: false });
     if (!guard.isValid || !guard.subscription) {
       return {
         ok: false,
@@ -280,7 +280,7 @@ export async function cancelSubscriptionAction(): Promise<SettingsActionResponse
       return { ok: false, error: "Sessão expirada. Faça login novamente." };
     }
 
-    const guard = await requireValidSubscription(user.id);
+    const guard = await requireValidSubscription(user.id, { ownerBypass: false });
     if (!guard.isValid || !guard.subscription) {
       return {
         ok: false,

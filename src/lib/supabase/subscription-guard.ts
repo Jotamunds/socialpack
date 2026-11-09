@@ -1,5 +1,6 @@
 import "server-only";
 import { sanitizePublicErrorMessage } from "@/lib/public-error";
+import { isAppOwner } from "@/lib/owner";
 import { createAdminClient } from "./admin";
 import { createClient } from "./server";
 
@@ -54,11 +55,34 @@ export function subscriptionGrantsAccess(
   return false;
 }
 
+export type SubscriptionGuardOptions = {
+  /**
+   * false preserva o gate de assinatura até para o dono.
+   * Upgrade e cancelamento passam false.
+   */
+  ownerBypass?: boolean;
+};
+
+/** Registro só em memória. Não é gravado em subscriptions. */
+function ownerProductAccessSubscription(userId: string): SubscriptionRecord {
+  return {
+    id: "00000000-0000-0000-0000-000000000000",
+    user_id: userId,
+    status: "active",
+    plan: "starter",
+    current_period_end: "9999-12-31T00:00:00.000Z",
+    cancel_at_period_end: false,
+  };
+}
+
 /**
  * Valida no servidor se o usuário possui assinatura com direito de uso.
+ * Com ownerBypass (padrão), a conta em app_owners entra sem plano ativo.
+ * Se a leitura de app_owners falhar, a validação segue a regra atual.
  */
 export async function requireValidSubscription(
-  userId: string
+  userId: string,
+  options?: SubscriptionGuardOptions
 ): Promise<SubscriptionGuardResult> {
   if (!userId) {
     return {
@@ -73,6 +97,9 @@ export async function requireValidSubscription(
       ? createAdminClient()
       : await createClient();
 
+    const owner =
+      options?.ownerBypass === false ? false : await isAppOwner(supabase, userId);
+
     const { data, error } = await supabase
       .from("subscriptions")
       .select("*")
@@ -80,6 +107,15 @@ export async function requireValidSubscription(
       .order("current_period_end", { ascending: false })
       .limit(1)
       .maybeSingle();
+
+    if (owner) {
+      return {
+        isValid: true,
+        subscription: data
+          ? (data as SubscriptionRecord)
+          : ownerProductAccessSubscription(userId),
+      };
+    }
 
     if (error) {
       return {
@@ -139,9 +175,10 @@ export async function requireValidSubscription(
  * Lança exceção caso a assinatura não seja válida.
  */
 export async function assertValidSubscription(
-  userId: string
+  userId: string,
+  options?: SubscriptionGuardOptions
 ): Promise<SubscriptionRecord> {
-  const result = await requireValidSubscription(userId);
+  const result = await requireValidSubscription(userId, options);
   if (!result.isValid || !result.subscription) {
     throw new Error(result.error || "Acesso negado: assinatura inativa ou expirada.");
   }

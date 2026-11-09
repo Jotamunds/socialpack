@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isAppOwner } from "@/lib/owner";
 import { requireValidSubscription } from "@/lib/supabase/subscription-guard";
 import { generateWeek } from "@/lib/generator";
 import { renderPostToPngBuffer, sanitizePublicErrorMessage } from "@/lib/rendering/satori-renderer";
@@ -115,32 +116,35 @@ export async function POST(request: Request) {
     }
 
     const adminSupabase = createAdminClient();
+    const owner = await isAppOwner(supabase, user.id);
 
-    // Teto MVP: 4 pacotes/empresa/dia (28 posts criados no dia UTC)
-    const { count: postsToday, error: countError } = await adminSupabase
-      .from("posts")
-      .select("id", { count: "exact", head: true })
-      .eq("company_id", companyRecord.id)
-      .eq("user_id", user.id)
-      .gte("created_at", startOfUtcDayIso());
+    // Teto MVP: 4 pacotes/empresa/dia (28 posts criados no dia UTC). O dono não entra nele.
+    if (!owner) {
+      const { count: postsToday, error: countError } = await adminSupabase
+        .from("posts")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", companyRecord.id)
+        .eq("user_id", user.id)
+        .gte("created_at", startOfUtcDayIso());
 
-    if (countError) {
-      return NextResponse.json(
-        { ok: false, error: "Não foi possível verificar o limite diário de geração." },
-        { status: 500 }
-      );
-    }
+      if (countError) {
+        return NextResponse.json(
+          { ok: false, error: "Não foi possível verificar o limite diário de geração." },
+          { status: 500 }
+        );
+      }
 
-    const packsToday = Math.floor((postsToday || 0) / POSTS_PER_WEEKLY_PACK);
-    if (packsToday >= MAX_WEEKLY_PACKS_PER_COMPANY_PER_DAY) {
-      return NextResponse.json(
-        {
-          ok: false,
-          code: "DAILY_PACK_LIMIT",
-          error: `Limite diário atingido: no máximo ${MAX_WEEKLY_PACKS_PER_COMPANY_PER_DAY} pacotes por empresa por dia.`,
-        },
-        { status: 429 }
-      );
+      const packsToday = Math.floor((postsToday || 0) / POSTS_PER_WEEKLY_PACK);
+      if (packsToday >= MAX_WEEKLY_PACKS_PER_COMPANY_PER_DAY) {
+        return NextResponse.json(
+          {
+            ok: false,
+            code: "DAILY_PACK_LIMIT",
+            error: `Limite diário atingido: no máximo ${MAX_WEEKLY_PACKS_PER_COMPANY_PER_DAY} pacotes por empresa por dia.`,
+          },
+          { status: 429 }
+        );
+      }
     }
 
     const companyProfile: CompanyProfile = {
