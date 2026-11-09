@@ -4,7 +4,7 @@ import { alpha, contrastRatio, mix, readableBrand, readableOn } from "@/lib/colo
 import { getCuratedPhoto } from "@/lib/curated-images";
 import { getPostDimensions } from "@/lib/post-format";
 import type { CompanyProfile, GeneratedPost } from "@/lib/types";
-import { CAMPAIGN_LAYOUT_NAMES, isCampaignLayout } from "@/lib/campaign-layouts";
+import { CAMPAIGN_LAYOUT_NAMES, layoutDesignKey } from "@/lib/campaign-layouts";
 import { CampaignPostCard } from "./CampaignLayouts";
 
 /**
@@ -1494,12 +1494,12 @@ export function PostCard({
   layout,
   ...props
 }: TemplateProps & { layout: number }) {
-  if (isCampaignLayout(layout)) {
-    return <CampaignPostCard layout={layout} {...props} />;
+  const design = layoutDesignKey(layout);
+  if (design.startsWith("legacy:")) {
+    const Template = TEMPLATES[layout];
+    return <Template {...props} />;
   }
-  const safe = ((layout % TEMPLATES.length) + TEMPLATES.length) % TEMPLATES.length;
-  const Template = TEMPLATES[safe];
-  return <Template {...props} />;
+  return <CampaignPostCard layout={layout} {...props} />;
 }
 
 export function PostCanvas({

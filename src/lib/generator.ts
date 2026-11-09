@@ -4,7 +4,7 @@ import { calculateWeekSchedule, formatWeekRange } from "./date-utils";
 import { pickPackPhotos } from "./curated-images";
 import { findCategory, findNiche, findTone } from "./catalog";
 import { WeeklyPackContentSchema } from "./schemas";
-import { CAMPAIGN_LAYOUTS, type CampaignCategory } from "./campaign-layouts";
+import { CAMPAIGN_LAYOUTS, FIRST_CAMPAIGN_LAYOUT, layoutDesignKey, type CampaignCategory } from "./campaign-layouts";
 import { normalizePostFormat, type PostFormat } from "./post-format";
 import type {
   CompanyProfile,
@@ -379,49 +379,63 @@ function categoryForPost(post: Pick<PostTemplate, "theme" | "headline" | "subhea
   return best;
 }
 
+type LayoutCandidate = { id: number; category?: CampaignCategory };
+
+/** L0–L6 mais o catálogo de campanha. Um id novo no catálogo (>= 31) entra sozinho. */
+function layoutPool(): LayoutCandidate[] {
+  return [
+    ...Array.from({ length: FIRST_CAMPAIGN_LAYOUT }, (_, id) => ({ id })),
+    ...CAMPAIGN_LAYOUTS.map((layout) => ({ id: layout.id, category: layout.category })),
+  ];
+}
+
 /**
- * Escolhe layouts novos por conteúdo, priorizando uma categoria compatível e,
- * em seguida, a menor utilização no pacote. O nicho entra na permutação da
- * seed e o histórico evita tanto layout recente quanto o mesmo layout no dia.
+ * Sete desenhos diferentes por pacote: cada L0–L6 é um desenho, e L7–L30
+ * compartilham os 5 modos. O mesmo desenho não volta no mesmo índice do
+ * pacote anterior quando ainda há alternativa. Categoria e ids recentes
+ * só desempatam dentro do desenho escolhido.
  */
 export function pickCampaignLayouts(
   posts: Pick<PostTemplate, "theme" | "headline" | "subheadline">[],
   company: CompanyProfile,
   history: GenerationHistory,
   seed: string
-): { layouts: number[]; categories: CampaignCategory[] } {
+): { layouts: number[]; categories: (CampaignCategory | undefined)[] } {
   const random = seededRandom(`${seed}|${company.categoryId}|${company.nicheId}|${company.colors.primary}`);
-  const categories = shuffle(Object.keys(CATEGORY_KEYWORDS) as CampaignCategory[], random);
+  const pool = layoutPool();
   const recent = new Set(history.recentLayoutIds ?? []);
   const previous = history.previousLayouts ?? [];
   const used = new Set<number>();
-  const uses = new Map<CampaignCategory, number>();
   const layouts: number[] = [];
-  const selectedCategories: CampaignCategory[] = [];
+  const selectedCategories: (CampaignCategory | undefined)[] = [];
+  const allDesigns = [...new Set(pool.map((item) => layoutDesignKey(item.id)))];
+
+  const ofDesign = (design: string) => pool.filter((item) => !used.has(item.id) && layoutDesignKey(item.id) === design);
 
   for (let index = 0; index < POSTS_PER_PACK; index++) {
-    const post = posts[index];
-    const preferred = post ? categoryForPost(post) : undefined;
-    const orderedCategories = [
-      ...(preferred ? [preferred] : []),
-      ...categories.filter((category) => category !== preferred).sort((a, b) => (uses.get(a) ?? 0) - (uses.get(b) ?? 0)),
-    ];
+    const usedDesigns = new Set(layouts.map((id) => layoutDesignKey(id)));
+    const sameDayDesign = typeof previous[index] === "number" ? layoutDesignKey(previous[index]) : undefined;
+    const preferred = posts[index] ? categoryForPost(posts[index]) : undefined;
 
-    let chosenCategory = orderedCategories[0] || "institutional";
-    let candidates: typeof CAMPAIGN_LAYOUTS = [];
-    for (const category of orderedCategories) {
-      const pool = CAMPAIGN_LAYOUTS.filter((layout) => layout.category === category && !used.has(layout.id));
-      const fresh = pool.filter((layout) => !recent.has(layout.id) && previous[index] !== layout.id);
-      if (fresh.length > 0 || pool.length > 0) {
-        chosenCategory = category;
-        candidates = fresh.length > 0 ? fresh : pool;
-        break;
-      }
+    let designs = allDesigns.filter((design) => !usedDesigns.has(design) && ofDesign(design).length > 0);
+    const notSameDay = sameDayDesign ? designs.filter((design) => design !== sameDayDesign) : designs;
+    if (notSameDay.length > 0) designs = notSameDay;
+    const withFreshId = designs.filter((design) =>
+      ofDesign(design).some((item) => !recent.has(item.id) && item.id !== previous[index])
+    );
+    if (withFreshId.length > 0) designs = withFreshId;
+
+    const design = designs[Math.floor(random() * designs.length)] || allDesigns[index % allDesigns.length];
+    let options = ofDesign(design);
+    const fresh = options.filter((item) => !recent.has(item.id) && item.id !== previous[index]);
+    if (fresh.length > 0) options = fresh;
+    if (preferred) {
+      const matched = options.filter((item) => item.category === preferred);
+      if (matched.length > 0) options = matched;
     }
-    if (candidates.length === 0) candidates = CAMPAIGN_LAYOUTS.filter((layout) => !used.has(layout.id));
-    const choice = candidates[Math.floor(random() * candidates.length)] || CAMPAIGN_LAYOUTS[index % CAMPAIGN_LAYOUTS.length];
+
+    const choice = options[Math.floor(random() * options.length)] || pool[index % pool.length];
     used.add(choice.id);
-    uses.set(chosenCategory, (uses.get(chosenCategory) ?? 0) + 1);
     layouts.push(choice.id);
     selectedCategories.push(choice.category);
   }
@@ -452,7 +466,7 @@ function reserveTemplate(index: number): RankedTemplate {
  * Motor determinístico de geração semanal (7 posts).
  * Filtra tom, prioriza templates menos usados pela empresa (nicho→genérico),
  * evita tema repetido, injeta signoff, aplica regra de emoji, monta hashtags
- * locais e distribui layouts 0–6 sem repetir o dia do pacote anterior.
+ * locais e escolhe 7 desenhos diferentes (L0–L6 e os 5 modos de campanha).
  */
 export function generateWeek(
   company: CompanyProfile,
