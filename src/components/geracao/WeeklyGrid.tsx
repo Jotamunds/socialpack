@@ -24,6 +24,7 @@ function toDisplayPost(post: PreviewPostItem): DisplayPost {
     caption: post.caption,
     hashtags: post.hashtags,
     layout: post.layout,
+    format: post.format,
     imageSrc: post.signedUrl || post.imageUrl || null,
   };
 }

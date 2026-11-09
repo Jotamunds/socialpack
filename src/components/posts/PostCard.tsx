@@ -31,7 +31,8 @@ export function PostCard({
       <button
         type="button"
         onClick={onSelect}
-        className="relative w-full aspect-square overflow-hidden bg-[#08090a] cursor-pointer block"
+        className="relative w-full overflow-hidden bg-[#08090a] cursor-pointer block"
+        style={{ aspectRatio: post.format === "story" ? "9 / 16" : post.format === "portrait" ? "4 / 5" : "1 / 1" }}
       >
         {post.imageSrc ? (
           // eslint-disable-next-line @next/next/no-img-element

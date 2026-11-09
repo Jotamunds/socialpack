@@ -35,6 +35,7 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
   const [city, setCity] = useState("");
   const [state, setState] = useState("SP");
   const [instagram, setInstagram] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
   const [toneId, setToneId] = useState(tones[0]?.id || "profissional");
 
   const [primaryColor, setPrimaryColor] = useState("#5e6ad2");
@@ -77,6 +78,7 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
         state,
         instagram,
         instagram_handle: instagram,
+        logoUrl,
         toneId,
         primary_style: toneId as "descontraido" | "profissional" | "elegante" | "colorido" | "acolhedor",
         brand_colors: [primaryColor, secondaryColor, accentColor],
@@ -282,6 +284,24 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
                 ))}
               </select>
             </div>
+          </div>
+
+          {/* Logo opcional: a URL é incorporada ao render para preservar a marca no PNG. */}
+          <div className="space-y-1.5">
+            <label htmlFor="logoUrl" className="block text-[12px] font-medium text-[#d0d6e0]">
+              URL do logotipo <span className="text-[#62666d]">(opcional)</span>
+            </label>
+            <input
+              id="logoUrl"
+              type="url"
+              inputMode="url"
+              placeholder="https://suaempresa.com/logo.png"
+              value={logoUrl}
+              onChange={(event) => setLogoUrl(event.target.value)}
+              maxLength={2048}
+              className="w-full h-9 px-3 rounded-md bg-[#08090a] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors"
+            />
+            <p className="text-[10px] text-[#62666d]">PNG, JPG ou SVG público; quando vazio, a arte usa o monograma da marca.</p>
           </div>
 
           {/* Cores da Marca e Presets Rápidos */}

@@ -4,6 +4,8 @@ import { calculateWeekSchedule, formatWeekRange } from "./date-utils";
 import { getCuratedPhoto } from "./curated-images";
 import { findCategory, findNiche, findTone } from "./catalog";
 import { WeeklyPackContentSchema } from "./schemas";
+import { CAMPAIGN_LAYOUTS, type CampaignCategory } from "./campaign-layouts";
+import { normalizePostFormat, type PostFormat } from "./post-format";
 import type {
   CompanyProfile,
   GeneratedPost,
@@ -31,10 +33,21 @@ interface RankedTemplate extends PostTemplate {
 export interface GenerationHistory {
   recentTemplateSlugs?: string[];
   previousLayouts?: number[];
+  /** Layouts recentes, em ordem do mais recente para o mais antigo. */
+  recentLayoutIds?: number[];
 }
 
 export const POSTS_PER_PACK = 7;
+/** Total dos layouts históricos L0–L6; permanece para compatibilidade de testes e posts antigos. */
 export const LAYOUT_COUNT = 7;
+export const CAMPAIGN_LAYOUT_COUNT = CAMPAIGN_LAYOUTS.length;
+
+export type GenerationOptions = {
+  /** Uma mesma seed + empresa + conteúdo produz a mesma seleção e ordem de layouts. */
+  seed?: string;
+  /** O formato é aplicado ao pacote inteiro, evitando arquivos mistos dentro do ZIP. */
+  format?: PostFormat;
+};
 
 export function buildTemplateSlug(slugBase: string, theme: string): string {
   return `${slugBase}/${slugTag(theme.trim()) || "sem-tema"}`;
@@ -72,13 +85,33 @@ export function matchesTone(template: PostTemplate, toneId: string): boolean {
   return template.tones.includes(toneId);
 }
 
-function shuffle<T>(items: T[]): T[] {
+function shuffle<T>(items: T[], random: () => number = Math.random): T[] {
   const arr = [...items];
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
+}
+
+/** PRNG pequeno e serializável; não depende de IA nem de estado global. */
+function seededRandom(seed: string): () => number {
+  let state = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    state ^= seed.charCodeAt(i);
+    state = Math.imul(state, 16777619);
+  }
+  return () => {
+    state += 0x6d2b79f5;
+    let next = state;
+    next = Math.imul(next ^ (next >>> 15), next | 1);
+    next ^= next + Math.imul(next ^ (next >>> 7), next | 61);
+    return ((next ^ (next >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function defaultSeed(company: CompanyProfile, startDate?: string) {
+  return [company.id || company.name, company.categoryId, company.nicheId, startDate || "semana-atual"].join("|");
 }
 
 function clampText(value: string, min: number, max: number, fallback: string): string {
@@ -204,7 +237,8 @@ function selectWeeklyTemplates(
   genericPosts: PostTemplate[],
   toneId: string,
   nicheSlugBase: string,
-  recentTemplateSlugs: string[] = []
+  recentTemplateSlugs: string[] = [],
+  random: () => number = Math.random
 ): { selected: RankedTemplate[]; source: ContentSource } {
   // slug -> posição no histórico (0 = mais recente). Só a primeira ocorrência conta.
   const lastUse = new Map<string, number>();
@@ -224,7 +258,7 @@ function selectWeeklyTemplates(
   const niche = toRanked(nichePosts, "niche", nicheSlugBase);
   const generic = toRanked(genericPosts, "generic", "_generic");
 
-  const unused = (list: RankedTemplate[]) => shuffle(list.filter((t) => !lastUse.has(t.slug)));
+  const unused = (list: RankedTemplate[]) => shuffle(list.filter((t) => !lastUse.has(t.slug)), random);
   const used = [...niche, ...generic]
     .filter((t) => lastUse.has(t.slug))
     // maior índice = uso mais antigo = vem primeiro
@@ -294,6 +328,85 @@ export function pickLayouts(previousLayouts: number[] = []): number[] {
   return shuffle(base);
 }
 
+const CATEGORY_KEYWORDS: Record<CampaignCategory, string[]> = {
+  promotion: ["promo", "oferta", "desconto", "cupom", "preco", "preço", "liquid", "condicao", "condição", "frete"],
+  launch: ["lancamento", "lançamento", "novidade", "novo", "nova", "chegou", "inaugur"],
+  bundle: ["combo", "kit", "pacote", "selecao", "seleção", "juntos"],
+  testimonial: ["depoimento", "avaliacao", "avaliação", "cliente", "experiencia", "experiência", "historia", "história"],
+  institutional: ["valor", "proposito", "propósito", "historia", "história", "quem somos", "equipe", "missao", "missão"],
+  education: ["dica", "mito", "verdade", "como", "passo", "guia", "duvida", "dúvida", "pergunta", "checklist"],
+  catalog: ["catalogo", "catálogo", "colecao", "coleção", "produto", "servico", "serviço", "cardapio", "cardápio", "vitrine"],
+  seasonal: ["natal", "ano novo", "dia das", "dia dos", "pascoa", "páscoa", "black friday", "feriado", "verao", "verão", "inverno", "especial"],
+};
+
+function normalizeForMatch(value: string) {
+  return value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+}
+
+function categoryForPost(post: Pick<PostTemplate, "theme" | "headline" | "subheadline">): CampaignCategory | undefined {
+  const haystack = normalizeForMatch(`${post.theme} ${post.headline} ${post.subheadline}`);
+  let best: CampaignCategory | undefined;
+  let score = 0;
+  for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS) as [CampaignCategory, string[]][]) {
+    const matches = keywords.reduce((count, keyword) => count + (haystack.includes(normalizeForMatch(keyword)) ? 1 : 0), 0);
+    if (matches > score) {
+      best = category;
+      score = matches;
+    }
+  }
+  return best;
+}
+
+/**
+ * Escolhe layouts novos por conteúdo, priorizando uma categoria compatível e,
+ * em seguida, a menor utilização no pacote. O nicho entra na permutação da
+ * seed e o histórico evita tanto layout recente quanto o mesmo layout no dia.
+ */
+export function pickCampaignLayouts(
+  posts: Pick<PostTemplate, "theme" | "headline" | "subheadline">[],
+  company: CompanyProfile,
+  history: GenerationHistory,
+  seed: string
+): { layouts: number[]; categories: CampaignCategory[] } {
+  const random = seededRandom(`${seed}|${company.categoryId}|${company.nicheId}|${company.colors.primary}`);
+  const categories = shuffle(Object.keys(CATEGORY_KEYWORDS) as CampaignCategory[], random);
+  const recent = new Set(history.recentLayoutIds ?? []);
+  const previous = history.previousLayouts ?? [];
+  const used = new Set<number>();
+  const uses = new Map<CampaignCategory, number>();
+  const layouts: number[] = [];
+  const selectedCategories: CampaignCategory[] = [];
+
+  for (let index = 0; index < POSTS_PER_PACK; index++) {
+    const post = posts[index];
+    const preferred = post ? categoryForPost(post) : undefined;
+    const orderedCategories = [
+      ...(preferred ? [preferred] : []),
+      ...categories.filter((category) => category !== preferred).sort((a, b) => (uses.get(a) ?? 0) - (uses.get(b) ?? 0)),
+    ];
+
+    let chosenCategory = orderedCategories[0] || "institutional";
+    let candidates: typeof CAMPAIGN_LAYOUTS = [];
+    for (const category of orderedCategories) {
+      const pool = CAMPAIGN_LAYOUTS.filter((layout) => layout.category === category && !used.has(layout.id));
+      const fresh = pool.filter((layout) => !recent.has(layout.id) && previous[index] !== layout.id);
+      if (fresh.length > 0 || pool.length > 0) {
+        chosenCategory = category;
+        candidates = fresh.length > 0 ? fresh : pool;
+        break;
+      }
+    }
+    if (candidates.length === 0) candidates = CAMPAIGN_LAYOUTS.filter((layout) => !used.has(layout.id));
+    const choice = candidates[Math.floor(random() * candidates.length)] || CAMPAIGN_LAYOUTS[index % CAMPAIGN_LAYOUTS.length];
+    used.add(choice.id);
+    uses.set(chosenCategory, (uses.get(chosenCategory) ?? 0) + 1);
+    layouts.push(choice.id);
+    selectedCategories.push(choice.category);
+  }
+
+  return { layouts, categories: selectedCategories };
+}
+
 /**
  * Motor determinístico de geração semanal (7 posts).
  * Filtra tom, prioriza templates menos usados pela empresa (nicho→genérico),
@@ -303,7 +416,8 @@ export function pickLayouts(previousLayouts: number[] = []): number[] {
 export function generateWeek(
   company: CompanyProfile,
   startDate?: string,
-  history: GenerationHistory = {}
+  history: GenerationHistory = {},
+  options: GenerationOptions = {}
 ): GenerateResponse {
   const schedule = calculateWeekSchedule(startDate);
   const nicheMeta = findNiche(company.categoryId, company.nicheId);
@@ -319,12 +433,15 @@ export function generateWeek(
   } = loadNicheTemplates(company.categoryId, company.nicheId);
   const genericPosts = loadGenericTemplates();
 
+  const seed = options.seed?.trim() || defaultSeed(company, startDate);
+  const format = normalizePostFormat(options.format);
   const { selected, source } = selectWeeklyTemplates(
     nichePosts,
     genericPosts,
     company.toneId,
     slugBase,
-    history.recentTemplateSlugs ?? []
+    history.recentTemplateSlugs ?? [],
+    seededRandom(`${seed}|templates`)
   );
 
   const handle = company.instagram
@@ -341,7 +458,7 @@ export function generateWeek(
     tipo: tipoLabel,
   };
 
-  const layouts = pickLayouts(history.previousLayouts);
+  const layoutPlan = pickCampaignLayouts(selected, company, history, seed);
   const allowEmojis = Boolean(tone?.emojis);
   const signoff = tone?.signoff?.trim() || "";
 
@@ -409,7 +526,10 @@ export function generateWeek(
       cta,
       caption,
       hashtags,
-      layout: layouts[i],
+      layout: layoutPlan.layouts[i],
+      layoutCategory: layoutPlan.categories[i],
+      format,
+      generationSeed: seed,
       imageUrl: getCuratedPhoto(company.nicheId, company.categoryId, i),
       templateSlug,
       templateVersion: 1,
@@ -445,5 +565,7 @@ export function generateWeek(
     endDate: schedule[6].isoDate,
     weekRangeLabel: formatWeekRange(startDate),
     createdAt: new Date().toISOString(),
+    seed,
+    format,
   };
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CheckIcon, CopyIcon, DownloadIcon } from "@/components/icons";
+import type { PostFormat } from "@/lib/post-format";
 
 export interface PreviewPostItem {
   id: string;
@@ -14,6 +15,8 @@ export interface PreviewPostItem {
   caption: string;
   hashtags?: string[];
   layout?: number;
+  format?: PostFormat;
+  seed?: string;
   imageUrl?: string | null;
   signedUrl?: string | null;
 }
@@ -61,7 +64,7 @@ export function PostPreviewModal({ post, onClose, onDownload }: PostPreviewModal
             <img
               src={post.signedUrl || post.imageUrl || ""}
               alt={post.headline}
-              className="max-h-[380px] md:max-h-[500px] w-auto aspect-square object-contain rounded-lg border border-[rgba(255,255,255,0.08)] shadow-lg"
+              className="max-h-[380px] md:max-h-[500px] w-auto object-contain rounded-lg border border-[rgba(255,255,255,0.08)] shadow-lg"
             />
           ) : (
             <div className="w-full aspect-square rounded-lg bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-xs text-[#8a8f98]">
@@ -81,7 +84,16 @@ export function PostPreviewModal({ post, onClose, onDownload }: PostPreviewModal
               <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-[rgba(255,255,255,0.05)] text-[#d0d6e0] border border-[rgba(255,255,255,0.08)]">
                 Tema: {post.theme}
               </span>
+              {post.format && (
+                <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-[rgba(255,255,255,0.05)] text-[#d0d6e0] border border-[rgba(255,255,255,0.08)]">
+                  {post.format === "square" ? "1080×1080" : post.format === "portrait" ? "1080×1350" : "1080×1920"}
+                </span>
+              )}
             </div>
+
+            {post.seed && (
+              <p className="text-[10px] font-mono text-[#62666d] break-all">Configuração reproduzível: {post.seed}</p>
+            )}
 
             {/* Headline & Subheadline */}
             <div>

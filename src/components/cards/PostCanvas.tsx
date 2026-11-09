@@ -2,7 +2,10 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
 import { alpha, contrastRatio, mix, readableBrand, readableOn } from "@/lib/color";
 import { getCuratedPhoto } from "@/lib/curated-images";
+import { getPostDimensions } from "@/lib/post-format";
 import type { CompanyProfile, GeneratedPost } from "@/lib/types";
+import { CAMPAIGN_LAYOUT_NAMES, isCampaignLayout } from "@/lib/campaign-layouts";
+import { CampaignPostCard } from "./CampaignLayouts";
 
 /**
  * Sete layouts 1080×1080 portados dos frames do Figma
@@ -41,9 +44,10 @@ export const LAYOUT_NAMES = [
   "Split Passo a passo",
   "Glass Valores",
   "Brutalista Manchete",
+  ...CAMPAIGN_LAYOUT_NAMES,
 ];
 
-type CardProfile = Pick<CompanyProfile, "name" | "instagram" | "colors"> & {
+type CardProfile = Pick<CompanyProfile, "name" | "instagram" | "colors" | "logoUrl"> & {
   categoryId?: string;
   nicheId?: string;
 };
@@ -1490,6 +1494,9 @@ export function PostCard({
   layout,
   ...props
 }: TemplateProps & { layout: number }) {
+  if (isCampaignLayout(layout)) {
+    return <CampaignPostCard layout={layout} {...props} />;
+  }
   const safe = ((layout % TEMPLATES.length) + TEMPLATES.length) % TEMPLATES.length;
   const Template = TEMPLATES[safe];
   return <Template {...props} />;
@@ -1500,8 +1507,9 @@ export function PostCanvas({
   layout,
   ...props
 }: TemplateProps & { layout: number; ref?: Ref<HTMLDivElement> }) {
+  const dimensions = getPostDimensions(props.post.format);
   return (
-    <div ref={ref} style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}>
+    <div ref={ref} style={{ width: dimensions.width, height: dimensions.height }}>
       <PostCard layout={layout} {...props} />
     </div>
   );
