@@ -18,7 +18,11 @@ export const en = {
   },
   brand: {
     logoFull: "SocialPack logo",
+    logoComplete: "SocialPack Complete Logo",
     logoIcon: "SocialPack icon",
+    logoMinimal: "SocialPack Minimalist Icon",
+    logoWordmark: "SocialPack Wordmark",
+    home: "SocialPack Home",
   },
   hero: {
     navLabel: "Page sections",
@@ -142,6 +146,7 @@ export const en = {
     emptyBody: "Pick a company, set the Monday, and create 7 posts with captions.",
     engineOn: "Generator ready",
     generateFailed: "Couldn't create this week's posts.",
+    selectCompany: "Please select a company to generate the pack.",
   },
   preview: {
     close: "Close",
@@ -165,6 +170,9 @@ export const en = {
     gallery: "Gallery",
     list: "List",
     enlarge: "Enlarge image",
+    copied: "Copied!",
+    caption: "Caption",
+    copyFailed: "Failed to copy the caption.",
   },
   history: {
     metaTitle: "Your posts",

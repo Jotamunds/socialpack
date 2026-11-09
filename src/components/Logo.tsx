@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { t } from "@/i18n";
 
 export type LogoVariant = "with-label" | "icon" | "without-borders" | "only-label";
 
@@ -30,25 +31,25 @@ const SVG_VARIANTS: Record<LogoVariant, LogoAssetConfig> = {
     src: "/brand/socialpack-logo-with-label.svg",
     width: 154,
     height: 36,
-    alt: "SocialPack Logo Completa",
+    alt: t("brand.logoComplete"),
   },
   icon: {
     src: "/brand/socialpack-logo.svg",
     width: 40,
     height: 40,
-    alt: "SocialPack Ícone",
+    alt: t("brand.logoIcon"),
   },
   "without-borders": {
     src: "/brand/socialpack-logo-without-borders.svg",
     width: 36,
     height: 36,
-    alt: "SocialPack Ícone Minimalista",
+    alt: t("brand.logoMinimal"),
   },
   "only-label": {
     src: "/brand/socialpack-only-label.svg",
     width: 130,
     height: 32,
-    alt: "SocialPack Letreiro",
+    alt: t("brand.logoWordmark"),
   },
 };
 
@@ -77,7 +78,7 @@ export function Logo({
       <Link
         href={href}
         className="inline-flex items-center transition-opacity hover:opacity-90 focus:outline-none focus:ring-1 focus:ring-[#5e6ad2] rounded"
-        aria-label="SocialPack Início"
+        aria-label={t("brand.home")}
       >
         {imageElement}
       </Link>
