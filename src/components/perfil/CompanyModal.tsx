@@ -5,6 +5,7 @@ import { categories, tones } from "@/lib/catalog";
 import { citiesForUf } from "@/lib/brazil-cities";
 import { createCompanyAction } from "@/app/actions/companies";
 import { SpinnerIcon } from "@/components/icons";
+import { t } from "@/i18n";
 
 const BRAZIL_STATES = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
@@ -117,7 +118,7 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
         <button
           type="button"
           onClick={onClose}
-          aria-label="Fechar"
+          aria-label={t("profile.close")}
           className="absolute top-4 right-4 size-7 rounded-md bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.08)] text-[#8a8f98] hover:text-[#f7f8f8] flex items-center justify-center transition-colors cursor-pointer"
         >
           ✕
@@ -126,10 +127,10 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
         {/* Cabeçalho */}
         <div className="space-y-1">
           <h2 className="text-xl font-semibold tracking-tight text-[#f7f8f8]">
-            Cadastrar Nova Empresa
+            {t("profile.modalTitle")}
           </h2>
           <p className="text-xs text-[#8a8f98]">
-            Configure o perfil para gerar o calendário semanal de posts
+            {t("profile.modalSubtitle")}
           </p>
         </div>
 
@@ -143,13 +144,13 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
           {/* Nome da Empresa */}
           <div className="space-y-1.5">
             <label htmlFor="companyName" className="block text-[12px] font-medium text-[#d0d6e0]">
-              Nome da Empresa / Marca *
+              {t("profile.name")} *
             </label>
             <input
               id="companyName"
               type="text"
               required
-              placeholder="Ex: Forneria Bella Napoli"
+              placeholder={t("profile.namePlaceholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full h-9 px-3 rounded-md bg-[#08090a] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors"
@@ -160,7 +161,7 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label htmlFor="category" className="block text-[12px] font-medium text-[#d0d6e0]">
-                Segmento *
+                {t("profile.segment")} *
               </label>
               <select
                 id="category"
@@ -178,7 +179,7 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
 
             <div className="space-y-1.5">
               <label htmlFor="niche" className="block text-[12px] font-medium text-[#d0d6e0]">
-                Nicho de Atuação *
+                {t("profile.niche")} *
               </label>
               <select
                 id="niche"
@@ -199,7 +200,7 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="sm:col-span-2 space-y-1.5">
               <label htmlFor="city" className="block text-[12px] font-medium text-[#d0d6e0]">
-                Cidade *
+                {t("profile.city")} *
               </label>
               <input
                 id="city"
@@ -208,7 +209,7 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
                 required
                 minLength={2}
                 maxLength={100}
-                placeholder="São Paulo"
+                placeholder={t("profile.cityPlaceholder")}
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 className="w-full h-9 px-3 rounded-md bg-[#08090a] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] placeholder-[#62666d] outline-none focus:border-[#5e6ad2] transition-colors"
@@ -223,7 +224,7 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
 
             <div className="space-y-1.5">
               <label htmlFor="state" className="block text-[12px] font-medium text-[#d0d6e0]">
-                UF *
+                {t("profile.state")} *
               </label>
               <select
                 id="state"
@@ -244,7 +245,7 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label htmlFor="instagram" className="block text-[12px] font-medium text-[#d0d6e0]">
-                Instagram (@perfil)
+                {t("profile.instagram")}
               </label>
               <div className="relative flex items-center">
                 <span className="absolute left-3 text-xs text-[#8a8f98]">@</span>
@@ -255,7 +256,7 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
                   value={instagram}
                   pattern="[A-Za-z0-9._]{0,30}"
                   maxLength={30}
-                  title="Apenas letras, números, pontos e sublinhados (até 30)"
+                  title={t("profile.instagramHint")}
                   onChange={(e) =>
                     setInstagram(e.target.value.replace(/^@+/, "").replace(/[^A-Za-z0-9._]/g, "").slice(0, 30))
                   }
@@ -266,7 +267,7 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
 
             <div className="space-y-1.5">
               <label htmlFor="tone" className="block text-[12px] font-medium text-[#d0d6e0]">
-                Tom de Voz das Legendas *
+                {t("profile.voice")} *
               </label>
               <select
                 id="tone"
@@ -274,9 +275,9 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
                 onChange={(e) => setToneId(e.target.value)}
                 className="w-full h-9 px-3 rounded-md bg-[#08090a] border border-[rgba(255,255,255,0.08)] text-[13px] text-[#f7f8f8] outline-none focus:border-[#5e6ad2] transition-colors"
               >
-                {tones.map((t) => (
-                  <option key={t.id} value={t.id} className="bg-[#0f1011]">
-                    {t.label}
+                {tones.map((tone) => (
+                  <option key={tone.id} value={tone.id} className="bg-[#0f1011]">
+                    {tone.label}
                   </option>
                 ))}
               </select>
@@ -287,9 +288,9 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
           <div className="space-y-2 pt-2 border-t border-[rgba(255,255,255,0.06)]">
             <div className="flex items-center justify-between">
               <span className="text-[12px] font-medium text-[#d0d6e0]">
-                Cores da Identidade Visual
+                {t("profile.colors")}
               </span>
-              <span className="text-[10px] text-[#8a8f98]">Hexadecimais (#RRGGBB)</span>
+              <span className="text-[10px] text-[#8a8f98]">{t("profile.hex")}</span>
             </div>
 
             {/* Presets Rápidos */}
@@ -309,7 +310,7 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
 
             <div className="grid grid-cols-3 gap-2">
               <div className="space-y-1">
-                <span className="text-[11px] text-[#8a8f98]">Primária</span>
+                <span className="text-[11px] text-[#8a8f98]">{t("profile.primary")}</span>
                 <div className="flex items-center gap-1.5 h-8 px-2 rounded-md bg-[#08090a] border border-[rgba(255,255,255,0.08)]">
                   <input
                     type="color"
@@ -327,7 +328,7 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
               </div>
 
               <div className="space-y-1">
-                <span className="text-[11px] text-[#8a8f98]">Secundária</span>
+                <span className="text-[11px] text-[#8a8f98]">{t("profile.secondary")}</span>
                 <div className="flex items-center gap-1.5 h-8 px-2 rounded-md bg-[#08090a] border border-[rgba(255,255,255,0.08)]">
                   <input
                     type="color"
@@ -345,7 +346,7 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
               </div>
 
               <div className="space-y-1">
-                <span className="text-[11px] text-[#8a8f98]">Destaque</span>
+                <span className="text-[11px] text-[#8a8f98]">{t("profile.accent")}</span>
                 <div className="flex items-center gap-1.5 h-8 px-2 rounded-md bg-[#08090a] border border-[rgba(255,255,255,0.08)]">
                   <input
                     type="color"
@@ -372,7 +373,7 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
               disabled={isLoading}
               className="h-9 px-4 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-[#d0d6e0] text-xs font-medium transition-colors cursor-pointer"
             >
-              Cancelar
+              {t("profile.cancel")}
             </button>
             <button
               type="submit"
@@ -382,10 +383,10 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
               {isLoading ? (
                 <>
                   <SpinnerIcon className="size-3.5 animate-spin" />
-                  <span>Salvando...</span>
+                  <span>{t("profile.saving")}</span>
                 </>
               ) : (
-                <span>Salvar Empresa</span>
+                <span>{t("profile.save")}</span>
               )}
             </button>
           </div>
