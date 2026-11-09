@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { CheckIcon, ArrowRightIcon } from "@/components/icons";
+import { CheckIcon } from "@/components/icons";
 
 export function PricingSection() {
   const plans = [
@@ -17,7 +16,6 @@ export function PricingSection() {
         "Mais de 36 nichos de mercado",
         "Sem fidelidade, cancele quando quiser",
       ],
-      cta: "Assinar Starter",
       highlighted: false,
     },
     {
@@ -35,7 +33,6 @@ export function PricingSection() {
         "Suporte prioritário via WhatsApp",
         "Sem fidelidade, cancele quando quiser",
       ],
-      cta: "Assinar Pro",
       highlighted: true,
     },
   ];
@@ -105,25 +102,6 @@ export function PricingSection() {
                       <span>{feat}</span>
                     </div>
                   ))}
-                </div>
-              </div>
-
-              <div>
-                <Link
-                  href={`/cadastro?plano=${p.id}`}
-                  className={`w-full h-12 rounded-xl text-sm font-semibold transition-all inline-flex items-center justify-center gap-2 active:scale-[0.98] ${
-                    p.highlighted
-                      ? "bg-gradient-to-r from-[#0284c7] via-[#0ea5e9] to-[#38bdf8] text-white hover:brightness-110 shadow-[0_4px_20px_rgba(14,165,233,0.4)]"
-                      : "bg-white/[0.07] hover:bg-white/[0.12] border border-white/[0.15] text-white"
-                  }`}
-                >
-                  <span>{p.cta}</span>
-                  <ArrowRightIcon className="size-4" />
-                </Link>
-                <div className="mt-3 text-center">
-                  <span className="text-[11px] text-white/40">
-                    Cobrança segura via Asaas • Cancele a qualquer momento
-                  </span>
                 </div>
               </div>
             </div>

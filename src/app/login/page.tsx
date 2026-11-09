@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { SignInInputSchema } from "@/lib/schemas";
@@ -140,17 +139,6 @@ function LoginForm() {
             )}
           </button>
         </form>
-      </div>
-
-      {/* Link para Cadastro */}
-      <div className="text-center text-xs text-[#8a8f98]">
-        Ainda não tem conta?{" "}
-        <Link
-          href="/cadastro"
-          className="text-[#7170ff] hover:text-[#828fff] font-medium transition-colors"
-        >
-          Cadastre-se
-        </Link>
       </div>
     </div>
   );

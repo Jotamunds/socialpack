@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowRightIcon } from "@/components/icons";
 
 export function LandingHeader() {
   return (
@@ -38,13 +37,6 @@ export function LandingHeader() {
             className="text-xs font-medium text-white/70 hover:text-white transition-colors"
           >
             Entrar
-          </Link>
-          <Link
-            href="/cadastro?plano=starter"
-            className="h-8 sm:h-9 px-4 rounded-lg bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.16] backdrop-blur-md text-white text-xs font-medium transition-all inline-flex items-center gap-1.5 shadow-sm active:scale-[0.98]"
-          >
-            <span>Começar</span>
-            <ArrowRightIcon className="size-3" />
           </Link>
         </nav>
       </div>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { LandingHero } from "@/components/landing/LandingHero";
-import { ArrowRightIcon, CheckIcon } from "@/components/icons";
+import { CheckIcon } from "@/components/icons";
 import { getDemoShowcase, type DemoShowcaseItem } from "@/lib/demo-showcase";
 
 export default async function HomePage() {
@@ -131,15 +131,6 @@ export default async function HomePage() {
                     </li>
                   </ul>
                 </div>
-
-                <div className="pt-8">
-                  <Link
-                    href="/cadastro?plano=starter"
-                    className="w-full h-10 rounded-md bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.1)] text-[#f7f8f8] text-[13px] font-medium transition-colors inline-flex items-center justify-center"
-                  >
-                    Assinar Starter
-                  </Link>
-                </div>
               </div>
 
               {/* Card Plano Pro (Destaque) */}
@@ -192,16 +183,6 @@ export default async function HomePage() {
                     </li>
                   </ul>
                 </div>
-
-                <div className="pt-8">
-                  <Link
-                    href="/cadastro?plano=pro"
-                    className="w-full h-10 rounded-md bg-[#5e6ad2] hover:bg-[#7170ff] text-white text-[13px] font-medium transition-all shadow-[0_1px_3px_rgba(0,0,0,0.5)] active:scale-[0.98] inline-flex items-center justify-center gap-2"
-                  >
-                    <span>Assinar Plano Pro</span>
-                    <ArrowRightIcon className="size-3.5" />
-                  </Link>
-                </div>
               </div>
             </div>
           </div>
@@ -221,9 +202,6 @@ export default async function HomePage() {
             </a>
             <Link href="/login" className="hover:text-[#f7f8f8] transition-colors">
               Login
-            </Link>
-            <Link href="/cadastro" className="hover:text-[#f7f8f8] transition-colors">
-              Criar Conta
             </Link>
           </div>
         </div>

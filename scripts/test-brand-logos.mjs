@@ -89,7 +89,6 @@ async function testBrandLogos() {
   const checkPages = [
     { file: "src/app/page.tsx", required: ["variant=\"with-label\""] },
     { file: "src/app/login/page.tsx", required: ["variant=\"icon\""] },
-    { file: "src/app/cadastro/page.tsx", required: ["variant=\"icon\""] },
     { file: "src/app/perfil/page.tsx", required: ["variant=\"with-label\"", "href=\"/perfil\""] },
     { file: "src/components/cards/PostCanvas.tsx", required: ["variant=\"without-borders\"", "href={null}"] },
   ];
