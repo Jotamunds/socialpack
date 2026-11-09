@@ -18,14 +18,22 @@ type Props = {
   companyName: string;
 };
 
-function titleSize(headline: string, max: number) {
-  let size = max;
-  while (size > 34) {
-    const perLine = Math.max(8, Math.floor(720 / (size * 0.52)));
-    if (Math.ceil(headline.length / perLine) <= 3) return size;
-    size -= 2;
+function lineCount(text: string, size: number, box: number) {
+  const perLine = Math.max(8, Math.floor(box / (size * 0.52)));
+  return Math.max(1, Math.ceil(text.length / perLine));
+}
+
+function blockSize(headline: string, subheadline: string, room: number, titleMax: number, subtitleMax: number) {
+  let title = titleMax;
+  let subtitle = subtitleMax;
+  while (title > 34 || subtitle > 18) {
+    const titleLines = Math.min(3, lineCount(headline, title, 720));
+    const subtitleLines = lineCount(subheadline, subtitle, 500);
+    if (titleLines * title * 1.02 + 10 + subtitleLines * subtitle * 1.28 <= room) return { title, subtitle };
+    if (title > 34) title -= 2;
+    else subtitle -= 1;
   }
-  return 34;
+  return { title: 34, subtitle: 18 };
 }
 
 function initials(name: string) {
@@ -49,6 +57,12 @@ export function DiagonalBandLayout({
   const portrait = height > 1200;
   const titleColor = readableOn(primary);
   const subtitleColor = titleColor === "#ffffff" ? "rgba(255,255,255,.9)" : "rgba(13,13,20,.9)";
+  const topEdge = (x: number) => height * (0.46 - 0.2 * (x / width));
+  const bottomEdge = (x: number) => height * (0.74 - 0.2 * (x / width));
+  const textLeft = 64;
+  const textTop = topEdge(textLeft) + 44;
+  const room = bottomEdge(textLeft + 500) - 12 - textTop;
+  const type = blockSize(headline, subheadline, room, portrait ? 60 : 56, portrait ? 26 : 24);
   const bandPoints = `0,${height * 0.46} ${width},${height * 0.26} ${width},${height * 0.54} 0,${height * 0.74}`;
   const edgePoints = `0,${height * 0.46} ${width},${height * 0.26} ${width},${height * 0.26 + 16} 0,${height * 0.46 + 16}`;
 
@@ -60,7 +74,6 @@ export function DiagonalBandLayout({
       <div style={{ position: "absolute", display: "flex", left: 0, right: 0, top: 0, height: 220, background: "linear-gradient(180deg, rgba(8,9,10,.4), transparent)" }} />
       <div style={{ position: "absolute", display: "flex", left: 0, right: 0, bottom: 0, height: 260, background: "linear-gradient(180deg, transparent, rgba(8,9,10,.75))" }} />
       <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ position: "absolute", left: 0, top: 0 }}>
-        <polygon points={bandPoints} fill="rgba(0,0,0,.4)" transform="translate(0 14)" />
         <polygon points={bandPoints} fill={primary} />
         <polygon points={edgePoints} fill={secondary} />
       </svg>
@@ -71,9 +84,9 @@ export function DiagonalBandLayout({
           <span style={{ color: primary, fontFamily: DISPLAY, fontSize: 28, fontWeight: 700 }}>{initials(companyName)}</span>
         )}
       </div>
-      <div style={{ position: "absolute", left: 64, top: "45%", width: 720, display: "flex", flexDirection: "column" }}>
-        <div style={{ width: 720, color: titleColor, fontFamily: DISPLAY, fontSize: titleSize(headline, portrait ? 60 : 56), fontWeight: 700, lineHeight: 1.02, letterSpacing: "-0.4px" }}>{headline}</div>
-        <div style={{ width: 500, marginTop: 10, color: subtitleColor, fontSize: portrait ? 26 : 24, fontWeight: 500, lineHeight: 1.28 }}>{subheadline}</div>
+      <div style={{ position: "absolute", left: textLeft, top: textTop, width: 720, display: "flex", flexDirection: "column" }}>
+        <div style={{ width: 720, color: titleColor, fontFamily: DISPLAY, fontSize: type.title, fontWeight: 700, lineHeight: 1.02, letterSpacing: "-0.4px" }}>{headline}</div>
+        <div style={{ width: 500, marginTop: 10, color: subtitleColor, fontSize: type.subtitle, fontWeight: 500, lineHeight: 1.28 }}>{subheadline}</div>
       </div>
       <div style={{ position: "absolute", left: 48, bottom: 52, height: 58, padding: "0 28px", borderRadius: 999, backgroundColor: secondary, color: "#111", boxShadow: "0 10px 24px rgba(0,0,0,.28)", display: "flex", alignItems: "center", fontFamily: DISPLAY, fontSize: 22, fontWeight: 700 }}>{cta}</div>
       <div style={{ position: "absolute", display: "flex", right: 48, bottom: 58, color: "rgba(255,255,255,.92)", fontFamily: DISPLAY, fontSize: 22, fontWeight: 700 }}>{handle}</div>
