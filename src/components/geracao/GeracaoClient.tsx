@@ -59,9 +59,8 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
       }
 
       setPosts(data.posts || []);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro ao se comunicar com o servidor.";
-      setErrorMessage(msg);
+    } catch {
+      setErrorMessage("Could not reach the server. Please try again.");
     } finally {
       setIsGenerating(false);
     }

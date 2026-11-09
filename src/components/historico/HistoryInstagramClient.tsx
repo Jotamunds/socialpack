@@ -236,9 +236,8 @@ export function HistoryInstagramClient({
       } else {
         alert(result.message || t("history.deleteFailed"));
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro inesperado ao excluir.";
-      alert(msg);
+    } catch {
+      alert("Could not delete the post. Please try again.");
     } finally {
       setIsDeleting(false);
     }
