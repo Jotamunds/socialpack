@@ -44,6 +44,7 @@ export const CAMPAIGN_LAYOUTS: CampaignLayoutDefinition[] = [
   { id: 28, category: "seasonal", name: "Calendário Sazonal", style: "vibrante" },
   { id: 29, category: "seasonal", name: "Tag de Presente", style: "elegante" },
   { id: 30, category: "seasonal", name: "Celebração Circular", style: "promocional" },
+  { id: 31, category: "institutional", name: "Faixa Diagonal", style: "diagonal" },
   { id: 32, category: "institutional", name: "Disco", style: "disco" },
 ];
 

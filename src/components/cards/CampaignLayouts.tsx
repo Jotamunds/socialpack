@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import type { CSSProperties, ReactNode } from "react";
+import { DiagonalBandLayout } from "./DiagonalBandLayout";
 import { DiscLayout } from "./DiscLayout";
 import { alpha, readableOn } from "@/lib/color";
 import { CAMPAIGN_LAYOUTS, campaignLayoutForId, layoutDesignKey, type CampaignCategory } from "@/lib/campaign-layouts";
@@ -98,6 +99,23 @@ function Board({ data, profile, category }: { data: Data; profile: Profile; cate
 export function CampaignPostCard({ layout, post, profile, index }: Props) {
   const definition = campaignLayoutForId(layout) || CAMPAIGN_LAYOUTS[0];
   const data = dataFor(post, profile, index);
+  if (definition.id === 31) {
+    return (
+      <DiagonalBandLayout
+        width={data.width}
+        height={data.height}
+        photo={post.imageUrl}
+        headline={data.headline}
+        subheadline={data.subheadline}
+        cta={data.cta}
+        handle={data.handle}
+        primary={profile.colors.primary}
+        secondary={profile.colors.secondary}
+        logoUrl={profile.logoUrl}
+        companyName={profile.name}
+      />
+    );
+  }
   if (definition.id === 32) {
     return (
       <DiscLayout
