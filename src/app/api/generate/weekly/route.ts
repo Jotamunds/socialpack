@@ -53,7 +53,7 @@ function layoutsFromLatestCompletedPack(rows: RecentCompletedPost[]): number[] {
   const layouts = pack.map((row) => row.layout);
   const layoutsArePermutation =
     layouts.every(
-      (layout) => typeof layout === "number" && Number.isInteger(layout) && layout >= 0 && layout <= 30
+      (layout) => typeof layout === "number" && Number.isInteger(layout) && layout >= 0 && layout <= 31
     ) && new Set(layouts).size === POSTS_PER_WEEKLY_PACK;
 
   return layoutsArePermutation ? (layouts as number[]) : [];

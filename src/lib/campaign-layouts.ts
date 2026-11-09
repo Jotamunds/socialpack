@@ -44,12 +44,13 @@ export const CAMPAIGN_LAYOUTS: CampaignLayoutDefinition[] = [
   { id: 28, category: "seasonal", name: "Calendário Sazonal", style: "vibrante" },
   { id: 29, category: "seasonal", name: "Tag de Presente", style: "elegante" },
   { id: 30, category: "seasonal", name: "Celebração Circular", style: "promocional" },
+  { id: 31, category: "institutional", name: "Faixa Diagonal", style: "diagonal" },
 ];
 
 export const CAMPAIGN_LAYOUT_NAMES = CAMPAIGN_LAYOUTS.map((layout) => layout.name);
 
 export function isCampaignLayout(layout: number): boolean {
-  return Number.isInteger(layout) && layout >= FIRST_CAMPAIGN_LAYOUT && layout <= LAST_CAMPAIGN_LAYOUT;
+  return Number.isInteger(layout) && CAMPAIGN_LAYOUTS.some((item) => item.id === layout);
 }
 
 /**
