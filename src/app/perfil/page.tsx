@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { isAppOwner } from "@/lib/owner";
 import { requirePageAccess } from "@/lib/supabase/require-page-access";
 import { Logo } from "@/components/Logo";
 import { PerfilClient } from "@/components/perfil/PerfilClient";
@@ -21,12 +22,13 @@ export default async function PerfilPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [companiesResult, subscriptionResult] = access.ok
+  const [companiesResult, subscriptionResult, unlimitedCompanies] = access.ok
     ? await Promise.all([
         supabase.from("companies").select("*").order("created_at", { ascending: false }),
         supabase.from("subscriptions").select("*").eq("user_id", access.userId).maybeSingle(),
+        isAppOwner(supabase, access.userId),
       ])
-    : [{ data: [] }, { data: null }];
+    : [{ data: [] }, { data: null }, false];
 
   const companies = companiesResult.data || [];
   const rawSub = subscriptionResult.data;
@@ -103,7 +105,11 @@ export default async function PerfilPage() {
         {!access.ok ? (
           <SubscriptionInactiveState message={access.error} />
         ) : (
-          <PerfilClient companies={companies} subscription={subscription} />
+          <PerfilClient
+            companies={companies}
+            subscription={subscription}
+            unlimitedCompanies={unlimitedCompanies === true}
+          />
         )}
       </main>
 

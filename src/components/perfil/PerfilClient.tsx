@@ -16,9 +16,14 @@ interface SubscriptionInfo {
 interface PerfilClientProps {
   companies: CompanyItem[];
   subscription: SubscriptionInfo | null;
+  unlimitedCompanies?: boolean;
 }
 
-export function PerfilClient({ companies, subscription }: PerfilClientProps) {
+export function PerfilClient({
+  companies,
+  subscription,
+  unlimitedCompanies = false,
+}: PerfilClientProps) {
   const router = useRouter();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isUpsellOpen, setIsUpsellOpen] = useState(false);
@@ -27,7 +32,7 @@ export function PerfilClient({ companies, subscription }: PerfilClientProps) {
   const plan = subscription?.plan || "starter";
   const maxQuota = subscription?.company_quota || (plan === "pro" ? 3 : 1);
   const usedCount = companies.length;
-  const isQuotaFull = usedCount >= maxQuota;
+  const isQuotaFull = !unlimitedCompanies && usedCount >= maxQuota;
   const percentage = Math.min(100, Math.round((usedCount / maxQuota) * 100));
 
   function handleAddCompanyClick() {
@@ -75,21 +80,26 @@ export function PerfilClient({ companies, subscription }: PerfilClientProps) {
         <div className="flex items-center gap-3 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] px-3.5 py-2 rounded-lg">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-[11px] gap-3">
-              <span className="text-[#8a8f98]">Cota do Plano {plan.toUpperCase()}:</span>
+              <span className="text-[#8a8f98]">
+                {unlimitedCompanies ? "Empresas" : `Cota do Plano ${plan.toUpperCase()}:`}
+              </span>
               <span className="font-semibold text-[#f7f8f8]">
-                {usedCount} de {maxQuota} utilizados
+                {unlimitedCompanies
+                  ? `${usedCount} ${usedCount === 1 ? "empresa" : "empresas"}, sem limite`
+                  : `${usedCount} de ${maxQuota} utilizados`}
               </span>
             </div>
 
-            {/* Barra de Progresso Sutil */}
-            <div className="w-32 h-1.5 rounded-full bg-[rgba(255,255,255,0.06)] overflow-hidden">
-              <div
-                className={`h-full transition-all duration-300 ${
-                  isQuotaFull ? "bg-[#10b981]" : "bg-[#5e6ad2]"
-                }`}
-                style={{ width: `${percentage}%` }}
-              />
-            </div>
+            {!unlimitedCompanies && (
+              <div className="w-32 h-1.5 rounded-full bg-[rgba(255,255,255,0.06)] overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-300 ${
+                    isQuotaFull ? "bg-[#10b981]" : "bg-[#5e6ad2]"
+                  }`}
+                  style={{ width: `${percentage}%` }}
+                />
+              </div>
+            )}
           </div>
 
           {isQuotaFull && (
