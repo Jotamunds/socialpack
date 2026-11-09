@@ -2,12 +2,12 @@ import "server-only";
 import { z } from "zod";
 
 const serverEnvSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url("NEXT_PUBLIC_SUPABASE_URL deve ser uma URL válida"),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, "NEXT_PUBLIC_SUPABASE_ANON_KEY é obrigatória"),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url("NEXT_PUBLIC_SUPABASE_URL must be a valid URL"),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, "NEXT_PUBLIC_SUPABASE_ANON_KEY is required"),
   SUPABASE_SERVICE_ROLE_KEY: z
     .string()
-    .min(1, "SUPABASE_SERVICE_ROLE_KEY é obrigatória no ambiente de servidor"),
-  NEXT_PUBLIC_APP_URL: z.string().url("NEXT_PUBLIC_APP_URL deve ser uma URL válida").optional(),
+    .min(1, "SUPABASE_SERVICE_ROLE_KEY is required on the server"),
+  NEXT_PUBLIC_APP_URL: z.string().url("NEXT_PUBLIC_APP_URL must be a valid URL").optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -30,7 +30,7 @@ export function validateEnv(): ServerEnv {
 
   if (!parsed.success) {
     const details = parsed.error.issues.map((i) => i.message).join("; ");
-    throw new Error(`Configuração de ambiente inválida: ${details}`);
+    throw new Error(`Invalid environment configuration: ${details}`);
   }
 
   cachedEnv = parsed.data;

@@ -16,7 +16,7 @@ export type SettingsActionResponse = {
 };
 
 const PROFILE_MISSING_ERROR =
-  "Não encontramos o perfil desta conta, então nada foi salvo.";
+  "We couldn't find this account's profile, so nothing was saved.";
 
 export async function updateProfileAction(input: unknown): Promise<SettingsActionResponse> {
   const validation = UpdateProfileInputSchema.safeParse(input);
@@ -24,7 +24,7 @@ export async function updateProfileAction(input: unknown): Promise<SettingsActio
   if (!validation.success) {
     return {
       ok: false,
-      error: validation.error.issues[0]?.message || "Dados de perfil inválidos.",
+      error: validation.error.issues[0]?.message || "Invalid profile details.",
     };
   }
 
@@ -39,7 +39,7 @@ export async function updateProfileAction(input: unknown): Promise<SettingsActio
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return { ok: false, error: "Sessão expirada. Faça login novamente." };
+      return { ok: false, error: "Your session expired. Log in again." };
     }
 
     const { data: updatedRows, error: updateError } = await supabase
@@ -61,7 +61,7 @@ export async function updateProfileAction(input: unknown): Promise<SettingsActio
     }
 
     revalidatePath("/configuracoes");
-    return { ok: true, message: "Dados atualizados com sucesso." };
+    return { ok: true, message: "Profile updated." };
   } catch (err) {
     return { ok: false, error: sanitizePublicErrorMessage(err) };
   }
@@ -72,7 +72,7 @@ export async function changePasswordAction(input: unknown): Promise<SettingsActi
   if (!validation.success) {
     return {
       ok: false,
-      error: validation.error.issues[0]?.message || "Senha inválida.",
+      error: validation.error.issues[0]?.message || "Invalid password.",
     };
   }
 
@@ -84,7 +84,7 @@ export async function changePasswordAction(input: unknown): Promise<SettingsActi
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return { ok: false, error: "Sessão expirada. Faça login novamente." };
+      return { ok: false, error: "Your session expired. Log in again." };
     }
 
     const { error } = await supabase.auth.updateUser({
@@ -95,7 +95,7 @@ export async function changePasswordAction(input: unknown): Promise<SettingsActi
       return { ok: false, error: sanitizePublicErrorMessage(error.message) };
     }
 
-    return { ok: true, message: "Senha atualizada com sucesso." };
+    return { ok: true, message: "Password updated." };
   } catch (err) {
     return { ok: false, error: sanitizePublicErrorMessage(err) };
   }
@@ -106,7 +106,7 @@ export async function updateThemePreferenceAction(
 ): Promise<SettingsActionResponse> {
   const theme = ThemePreferenceSchema.safeParse(themeInput);
   if (!theme.success) {
-    return { ok: false, error: "Tema inválido. Use dark ou light." };
+    return { ok: false, error: "Invalid theme. Use dark or light." };
   }
 
   try {
@@ -117,7 +117,7 @@ export async function updateThemePreferenceAction(
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return { ok: false, error: "Sessão expirada. Faça login novamente." };
+      return { ok: false, error: "Your session expired. Log in again." };
     }
 
     const { data: updatedRows, error } = await supabase
@@ -138,7 +138,7 @@ export async function updateThemePreferenceAction(
     }
 
     revalidatePath("/configuracoes");
-    return { ok: true, message: "Preferência de tema salva." };
+    return { ok: true, message: "Theme preference saved." };
   } catch (err) {
     return { ok: false, error: sanitizePublicErrorMessage(err) };
   }

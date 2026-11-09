@@ -66,7 +66,7 @@ describe("rate limit decision", () => {
     assert.equal(decision.allowed, false);
     if (!decision.allowed) {
       assert.ok(decision.message.length <= 180);
-      assert.equal(decision.message, "Muitas solicitações. Tente novamente em alguns minutos.");
+      assert.equal(decision.message, "Too many requests. Try again in a few minutes.");
     }
   });
 

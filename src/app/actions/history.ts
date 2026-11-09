@@ -54,7 +54,7 @@ export async function getHistoryPostsAction(rawFilters?: unknown): Promise<{
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return { ok: false, posts: [], message: "Não autorizado. Faça login para acessar o histórico." };
+      return { ok: false, posts: [], message: "Unauthorized. Log in to view your history." };
     }
 
     const filters = parseHistoryFilters(rawFilters);
@@ -111,7 +111,7 @@ export async function getHistoryPostsAction(rawFilters?: unknown): Promise<{
           image_url: null,
           signedUrl,
           created_at: p.created_at,
-          company_name: comp?.name || "Empresa",
+          company_name: comp?.name || "Company",
         };
       })
     );
@@ -130,7 +130,7 @@ export async function deletePostOrchestratedAction(postId: string): Promise<{
   message?: string;
 }> {
   if (!postId) {
-    return { ok: false, message: "ID do post obrigatório para exclusão." };
+    return { ok: false, message: "Post ID is required to delete." };
   }
 
   try {
@@ -141,7 +141,7 @@ export async function deletePostOrchestratedAction(postId: string): Promise<{
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return { ok: false, message: "Acesso não autorizado." };
+      return { ok: false, message: "Unauthorized." };
     }
 
     const adminSupabase = createAdminClient();
@@ -154,7 +154,7 @@ export async function deletePostOrchestratedAction(postId: string): Promise<{
       .single();
 
     if (findError || !post) {
-      return { ok: false, message: "Post não encontrado ou você não tem permissão para excluí-lo." };
+      return { ok: false, message: "Post not found, or you don't have permission to delete it." };
     }
 
     const rawPath = post.image_storage_path || post.storage_path;
@@ -166,7 +166,7 @@ export async function deletePostOrchestratedAction(postId: string): Promise<{
       } catch {
         return {
           ok: false,
-          message: "Caminho de arquivo inválido. O registro no banco foi preservado.",
+          message: "Invalid file path. The record was kept.",
         };
       }
 
@@ -178,7 +178,7 @@ export async function deletePostOrchestratedAction(postId: string): Promise<{
         return {
           ok: false,
           message: sanitizePublicErrorMessage(
-            `Falha ao excluir arquivo no Storage: ${storageError.message}. O registro no banco foi preservado.`
+            `Couldn't delete the file: ${storageError.message}. The record was kept.`
           ),
         };
       }

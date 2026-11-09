@@ -94,16 +94,15 @@ export function CompanyModal({ isOpen, onClose, onSuccess, onQuotaExceeded }: Co
           return;
         }
 
-        setErrorMessage(response.message || "Erro ao cadastrar empresa.");
+        setErrorMessage(response.message || "Could not save the company. Please try again.");
         setIsLoading(false);
         return;
       }
 
       onSuccess();
       onClose();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro inesperado ao cadastrar.";
-      setErrorMessage(msg);
+    } catch {
+      setErrorMessage("Could not save the company. Please try again.");
     } finally {
       setIsLoading(false);
     }

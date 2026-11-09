@@ -24,11 +24,11 @@ const SAFE_ZIP_ENTRY = /^\d{3}-[A-Za-z0-9](?:[A-Za-z0-9-]{0,47})\.(png|webp)$/;
 const ENTRY_STEM_MAX = 48;
 
 export const HISTORY_ZIP_MESSAGES = {
-  unauthorized: "Faça login para baixar o histórico.",
-  empty: "Nenhuma arte encontrada com esses filtros.",
-  tooMany: `Há mais de ${HISTORY_ZIP_MAX_POSTS} artes nesse filtro. Refine empresa, nicho, período ou busca e tente de novo.`,
-  tooLarge: `As artes desse filtro passam de ${HISTORY_ZIP_MAX_BYTES / (1024 * 1024)} MB. Refine os filtros e tente de novo.`,
-  failed: "Não foi possível gerar o ZIP. Tente de novo.",
+  unauthorized: "Log in to download your history.",
+  empty: "No posts found for these filters.",
+  tooMany: `More than ${HISTORY_ZIP_MAX_POSTS} posts match this filter. Refine the company, niche, period, or search and try again.`,
+  tooLarge: `These posts are over ${HISTORY_ZIP_MAX_BYTES / (1024 * 1024)} MB. Refine the filters and try again.`,
+  failed: "Couldn't create the ZIP. Try again.",
 } as const;
 
 export function historyZipHref(filters: HistoryPostsFilter): string {
@@ -43,7 +43,7 @@ export function historyZipDownloadName(now: Date = new Date()): string {
   const day = String(now.getUTCDate()).padStart(2, "0");
   const name = `socialpack-historico-${year}-${month}-${day}.zip`;
   if (!HISTORY_ZIP_FILENAME.test(name)) {
-    throw new Error("Nome de download inválido.");
+    throw new Error("Invalid download name.");
   }
   return name;
 }
@@ -74,11 +74,11 @@ export function historyZipEntryName(
   extension: "png" | "webp"
 ): string {
   if (!Number.isInteger(index) || index < 0 || index > HISTORY_ZIP_MAX_POSTS - 1) {
-    throw new Error("Índice de arquivo inválido.");
+    throw new Error("Invalid file index.");
   }
   const name = `${String(index + 1).padStart(3, "0")}-${sanitizeZipEntryStem(stemSource)}.${extension}`;
   if (!isSafeHistoryZipEntryName(name)) {
-    throw new Error("Nome de arquivo inválido.");
+    throw new Error("Invalid file name.");
   }
   return name;
 }
