@@ -4,7 +4,7 @@ import { calculateWeekSchedule, formatWeekRange } from "./date-utils";
 import { pickPackPhotos } from "./curated-images";
 import { findCategory, findNiche, findTone } from "./catalog";
 import { WeeklyPackContentSchema } from "./schemas";
-import { CAMPAIGN_LAYOUTS, type CampaignCategory } from "./campaign-layouts";
+import { CAMPAIGN_LAYOUTS, FIRST_CAMPAIGN_LAYOUT, type CampaignCategory } from "./campaign-layouts";
 import { normalizePostFormat, type PostFormat } from "./post-format";
 import type {
   CompanyProfile,
@@ -379,10 +379,16 @@ function categoryForPost(post: Pick<PostTemplate, "theme" | "headline" | "subhea
   return best;
 }
 
+/** Mesma conta de `CampaignPostCard`: L7–L30 viram 5 desenhos (Ledger, Poster, Tiles, Immersive, Board). */
+function campaignDesign(layoutId: number): number {
+  return (layoutId - FIRST_CAMPAIGN_LAYOUT) % 5;
+}
+
 /**
- * Escolhe layouts novos por conteúdo, priorizando uma categoria compatível e,
- * em seguida, a menor utilização no pacote. O nicho entra na permutação da
- * seed e o histórico evita tanto layout recente quanto o mesmo layout no dia.
+ * Escolhe pelo desenho visual, não pelo id. Os 5 desenhos entram antes de
+ * qualquer repetição, e dias seguidos nunca compartilham desenho (inclusive
+ * os dias 6 e 7, que ainda não têm desenho próprio). Categoria e histórico
+ * só desempatam dentro dos desenhos permitidos.
  */
 export function pickCampaignLayouts(
   posts: Pick<PostTemplate, "theme" | "headline" | "subheadline">[],
@@ -398,6 +404,7 @@ export function pickCampaignLayouts(
   const uses = new Map<CampaignCategory, number>();
   const layouts: number[] = [];
   const selectedCategories: CampaignCategory[] = [];
+  const designCount = 5;
 
   for (let index = 0; index < POSTS_PER_PACK; index++) {
     const post = posts[index];
@@ -406,22 +413,37 @@ export function pickCampaignLayouts(
       ...(preferred ? [preferred] : []),
       ...categories.filter((category) => category !== preferred).sort((a, b) => (uses.get(a) ?? 0) - (uses.get(b) ?? 0)),
     ];
+    const usedDesigns = new Set(layouts.map((id) => campaignDesign(id)));
+    const previousDesign = index > 0 ? campaignDesign(layouts[index - 1]) : undefined;
+    const designAllowed = (layoutId: number) => {
+      const design = campaignDesign(layoutId);
+      if (previousDesign !== undefined && design === previousDesign) return false;
+      if (usedDesigns.size < designCount && usedDesigns.has(design)) return false;
+      return true;
+    };
 
-    let chosenCategory = orderedCategories[0] || "institutional";
-    let candidates: typeof CAMPAIGN_LAYOUTS = [];
+    const eligible = CAMPAIGN_LAYOUTS.filter((layout) => !used.has(layout.id) && designAllowed(layout.id));
+    const fresh = eligible.filter((layout) => !recent.has(layout.id) && previous[index] !== layout.id);
+    const source = fresh.length > 0 ? fresh : eligible;
+
+    let candidates = source;
     for (const category of orderedCategories) {
-      const pool = CAMPAIGN_LAYOUTS.filter((layout) => layout.category === category && !used.has(layout.id));
-      const fresh = pool.filter((layout) => !recent.has(layout.id) && previous[index] !== layout.id);
-      if (fresh.length > 0 || pool.length > 0) {
-        chosenCategory = category;
-        candidates = fresh.length > 0 ? fresh : pool;
+      const pool = source.filter((layout) => layout.category === category);
+      if (pool.length > 0) {
+        candidates = pool;
         break;
       }
     }
-    if (candidates.length === 0) candidates = CAMPAIGN_LAYOUTS.filter((layout) => !used.has(layout.id));
+    if (candidates.length === 0) {
+      const fallback = CAMPAIGN_LAYOUTS.filter(
+        (layout) => !used.has(layout.id) && (previousDesign === undefined || campaignDesign(layout.id) !== previousDesign)
+      );
+      candidates = fallback.length > 0 ? fallback : CAMPAIGN_LAYOUTS.filter((layout) => !used.has(layout.id));
+    }
+
     const choice = candidates[Math.floor(random() * candidates.length)] || CAMPAIGN_LAYOUTS[index % CAMPAIGN_LAYOUTS.length];
     used.add(choice.id);
-    uses.set(chosenCategory, (uses.get(chosenCategory) ?? 0) + 1);
+    uses.set(choice.category, (uses.get(choice.category) ?? 0) + 1);
     layouts.push(choice.id);
     selectedCategories.push(choice.category);
   }
