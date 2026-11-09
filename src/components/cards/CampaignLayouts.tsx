@@ -2,6 +2,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { DiagonalBandLayout } from "./DiagonalBandLayout";
 import { DiscLayout } from "./DiscLayout";
+import { MosaicDuoLayout } from "./MosaicDuoLayout";
 import { alpha, readableOn } from "@/lib/color";
 import { CAMPAIGN_LAYOUTS, campaignLayoutForId, layoutDesignKey, type CampaignCategory } from "@/lib/campaign-layouts";
 import { getCuratedPhoto } from "@/lib/curated-images";
@@ -119,6 +120,23 @@ export function CampaignPostCard({ layout, post, profile, index }: Props) {
   if (definition.id === 32) {
     return (
       <DiscLayout
+        width={data.width}
+        height={data.height}
+        photo={post.imageUrl}
+        headline={data.headline}
+        subheadline={data.subheadline}
+        cta={data.cta}
+        handle={data.handle}
+        primary={profile.colors.primary}
+        secondary={profile.colors.secondary}
+        logoUrl={profile.logoUrl}
+        companyName={profile.name}
+      />
+    );
+  }
+  if (definition.id === 35) {
+    return (
+      <MosaicDuoLayout
         width={data.width}
         height={data.height}
         photo={post.imageUrl}
