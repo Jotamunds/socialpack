@@ -1,0 +1,170 @@
+[
+  {
+    "file": "07-promotion.png",
+    "name": "Promoção Ticket",
+    "category": "promotion",
+    "style": "promocional",
+    "format": "square"
+  },
+  {
+    "file": "08-promotion.png",
+    "name": "Oferta Price Burst",
+    "category": "promotion",
+    "style": "vibrante",
+    "format": "square"
+  },
+  {
+    "file": "09-promotion.png",
+    "name": "Cupom em Camadas",
+    "category": "promotion",
+    "style": "comercial moderno",
+    "format": "square"
+  },
+  {
+    "file": "10-launch.png",
+    "name": "Lançamento Halo",
+    "category": "launch",
+    "style": "premium",
+    "format": "square"
+  },
+  {
+    "file": "11-launch.png",
+    "name": "Novidade Editorial",
+    "category": "launch",
+    "style": "editorial minimalista",
+    "format": "square"
+  },
+  {
+    "file": "12-launch.png",
+    "name": "Produto em Órbita",
+    "category": "launch",
+    "style": "geométrico",
+    "format": "square"
+  },
+  {
+    "file": "13-bundle.png",
+    "name": "Combo Trio",
+    "category": "bundle",
+    "style": "comercial moderno",
+    "format": "square"
+  },
+  {
+    "file": "14-bundle.png",
+    "name": "Combo Lateral",
+    "category": "bundle",
+    "style": "vibrante",
+    "format": "square"
+  },
+  {
+    "file": "15-bundle.png",
+    "name": "Combo Recibo",
+    "category": "bundle",
+    "style": "elegante",
+    "format": "portrait"
+  },
+  {
+    "file": "16-testimonial.png",
+    "name": "Depoimento Imersivo",
+    "category": "testimonial",
+    "style": "premium",
+    "format": "portrait"
+  },
+  {
+    "file": "17-testimonial.png",
+    "name": "Avaliação em Janela",
+    "category": "testimonial",
+    "style": "moderno",
+    "format": "portrait"
+  },
+  {
+    "file": "18-testimonial.png",
+    "name": "Carta de Cliente",
+    "category": "testimonial",
+    "style": "editorial",
+    "format": "portrait"
+  },
+  {
+    "file": "19-institutional.png",
+    "name": "Manifesto da Marca",
+    "category": "institutional",
+    "style": "institucional",
+    "format": "portrait"
+  },
+  {
+    "file": "20-institutional.png",
+    "name": "Pessoas & Propósito",
+    "category": "institutional",
+    "style": "premium",
+    "format": "portrait"
+  },
+  {
+    "file": "21-institutional.png",
+    "name": "Jornada em Linha",
+    "category": "institutional",
+    "style": "geométrico",
+    "format": "portrait"
+  },
+  {
+    "file": "22-education.png",
+    "name": "Dica Numerada",
+    "category": "education",
+    "style": "educativo",
+    "format": "portrait"
+  },
+  {
+    "file": "23-education.png",
+    "name": "Mito ou Verdade",
+    "category": "education",
+    "style": "contraste alto",
+    "format": "story"
+  },
+  {
+    "file": "24-education.png",
+    "name": "Checklist Prático",
+    "category": "education",
+    "style": "minimalista",
+    "format": "story"
+  },
+  {
+    "file": "25-catalog.png",
+    "name": "Catálogo em Grade",
+    "category": "catalog",
+    "style": "comercial",
+    "format": "story"
+  },
+  {
+    "file": "26-catalog.png",
+    "name": "Vitrine de Produto",
+    "category": "catalog",
+    "style": "premium",
+    "format": "story"
+  },
+  {
+    "file": "27-catalog.png",
+    "name": "Índice de Coleção",
+    "category": "catalog",
+    "style": "editorial",
+    "format": "story"
+  },
+  {
+    "file": "28-seasonal.png",
+    "name": "Calendário Sazonal",
+    "category": "seasonal",
+    "style": "vibrante",
+    "format": "story"
+  },
+  {
+    "file": "29-seasonal.png",
+    "name": "Tag de Presente",
+    "category": "seasonal",
+    "style": "elegante",
+    "format": "story"
+  },
+  {
+    "file": "30-seasonal.png",
+    "name": "Celebração Circular",
+    "category": "seasonal",
+    "style": "promocional",
+    "format": "story"
+  }
+]

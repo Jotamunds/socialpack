@@ -1,3 +1,5 @@
+import type { PostFormat } from "./post-format";
+
 export type BrandColors = {
   primary: string;
   secondary: string;
@@ -14,6 +16,8 @@ export type CompanyProfile = {
   instagram: string;
   toneId: string;
   colors: BrandColors;
+  /** URL pública ou Data URL do logotipo. Ausente em empresas cadastradas antes da migração. */
+  logoUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -41,8 +45,14 @@ export type GeneratedPost = {
   cta: string;
   caption: string;
   hashtags: string[];
-  /** Índice do template visual (0–6). */
+  /** Índice do template visual (L0–L30; os layouts antigos L0–L6 permanecem válidos). */
   layout: number;
+  /** Formato final do PNG. Registros legados assumem square. */
+  format?: PostFormat;
+  /** Categoria usada pelo seletor de composição para auditoria e reprodução. */
+  layoutCategory?: string;
+  /** Seed persistida no generation_config para reproduzir uma escolha visual. */
+  generationSeed?: string;
   badgeText?: string;
   templateSlug?: string;
   templateVersion?: number;
@@ -67,6 +77,8 @@ export type GenerateResponse = {
   startDate?: string;
   endDate?: string;
   weekRangeLabel?: string;
+  seed?: string;
+  format?: PostFormat;
 };
 
 export type SavedPack = {

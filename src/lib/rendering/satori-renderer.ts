@@ -4,6 +4,7 @@ import React from "react";
 import satori, { type Font } from "satori";
 import { Resvg } from "@resvg/resvg-js";
 import { PostCard } from "@/components/cards/PostCanvas";
+import { getPostDimensions } from "@/lib/post-format";
 import type { CompanyProfile, GeneratedPost } from "../types";
 
 export const CANVAS_SIZE = 1080;
@@ -139,6 +140,23 @@ export async function resolveImageAsDataUrl(
   }
 }
 
+/** Resolve um logo somente quando ele existe; ao falhar, o layout usa monograma. */
+async function resolveOptionalImageAsDataUrl(imageUrl?: string): Promise<string | undefined> {
+  if (!imageUrl) return undefined;
+  if (imageUrl.startsWith("data:")) return imageUrl;
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+    const response = await fetch(imageUrl, { signal: controller.signal, headers: { Accept: "image/*" } });
+    clearTimeout(timeoutId);
+    if (!response.ok) return undefined;
+    const contentType = response.headers.get("content-type") || "image/png";
+    return `data:${contentType};base64,${Buffer.from(await response.arrayBuffer()).toString("base64")}`;
+  } catch {
+    return undefined;
+  }
+}
+
 function createSvgFallbackPattern(c1: string, c2: string): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
     <defs>
@@ -182,12 +200,14 @@ export function buildSatoriPostElement(
       colors: { primary, secondary, accent },
       categoryId: company.categoryId,
       nicheId: company.nicheId,
+      logoUrl: company.logoUrl,
     },
   });
 }
 
 /**
- * Converte um post e os dados da empresa em um Buffer PNG de exatos 1080x1080px via Satori + Resvg.
+ * Converte um post e os dados da empresa em PNG via Satori + Resvg.
+ * L0–L6 continuam quadrados; L7–L30 respondem aos formatos square, portrait e story.
  */
 export async function renderPostToPngBuffer(
   post: GeneratedPost,
@@ -196,20 +216,24 @@ export async function renderPostToPngBuffer(
   const fonts = loadLayoutFonts();
   const primary = company.colors?.primary || "#5e6ad2";
   const secondary = company.colors?.secondary || "#7170ff";
+  const dimensions = getPostDimensions(post.format);
 
-  const imageDataUrl = await resolveImageAsDataUrl(post.imageUrl, primary, secondary);
-  const element = buildSatoriPostElement(post, company, imageDataUrl);
+  const [imageDataUrl, logoDataUrl] = await Promise.all([
+    resolveImageAsDataUrl(post.imageUrl, primary, secondary),
+    resolveOptionalImageAsDataUrl(company.logoUrl),
+  ]);
+  const element = buildSatoriPostElement(post, { ...company, logoUrl: logoDataUrl }, imageDataUrl);
 
   const svg = await satori(element, {
-    width: CANVAS_SIZE,
-    height: CANVAS_SIZE,
+    width: dimensions.width,
+    height: dimensions.height,
     fonts,
   });
 
   const resvg = new Resvg(svg, {
     fitTo: {
       mode: "width",
-      value: CANVAS_SIZE,
+      value: dimensions.width,
     },
     font: {
       loadSystemFonts: false,

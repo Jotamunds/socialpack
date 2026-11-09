@@ -1,3 +1,5 @@
+import type { PostFormat } from "@/lib/post-format";
+
 export type PostsViewMode = "gallery" | "list";
 
 export const POSTS_VIEW_STORAGE_KEY = "socialpack_posts_view";
@@ -14,6 +16,7 @@ export interface DisplayPost {
   caption: string;
   hashtags?: string[];
   layout?: number;
+  format?: PostFormat;
   /** URL de exibição (signedUrl preferencial). */
   imageSrc?: string | null;
   companyName?: string;

@@ -10,7 +10,9 @@
     "templates:check": "node scripts/check-niche-templates.mjs",
     "test:billing": "node scripts/test-billing-resilience.mjs",
     "test:billing:security": "node scripts/test-billing-asaas.mjs",
-    "test:phase7": "node scripts/test-phase7.mjs"
+    "test:phase7": "node scripts/test-phase7.mjs",
+    "test:campaign-layouts": "tsx scripts/test-campaign-layouts.ts",
+    "previews:campaigns": "tsx scripts/render-campaign-gallery.ts"
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
@@ -40,6 +42,7 @@
     "postcss": "^8.5.0",
     "supabase": "^2.122.0",
     "tailwindcss": "^4.0.0",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

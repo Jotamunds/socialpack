@@ -24,6 +24,7 @@ export type CompanyActionResponse = {
     instagram: string | null;
     tone_id: string;
     colors: { primary: string; secondary: string; accent: string };
+    logo_url?: string | null;
     created_at: string;
   };
 };
@@ -72,6 +73,7 @@ export async function createCompanyAction(input: unknown): Promise<CompanyAction
         instagram: normalized.instagram || null,
         tone_id: normalized.toneId,
         colors: normalized.colors,
+        logo_url: normalized.logoUrl || null,
       })
       .select()
       .single();

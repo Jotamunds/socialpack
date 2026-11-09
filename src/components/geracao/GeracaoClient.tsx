@@ -9,6 +9,7 @@ import { CompanySelector, type CompanyItem } from "./CompanySelector";
 import { WeeklyGrid } from "./WeeklyGrid";
 import { PostPreviewModal, type PreviewPostItem } from "./PostPreviewModal";
 import { getSignedPostDownloadUrlAction } from "@/app/actions/posts";
+import { POST_FORMAT_DIMENSIONS, type PostFormat } from "@/lib/post-format";
 
 interface GeracaoClientProps {
   companies: CompanyItem[];
@@ -20,6 +21,8 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
     companies[0]?.id || ""
   );
   const [startDate, setStartDate] = useState<string>(getMondayOfWeek());
+  const [format, setFormat] = useState<PostFormat>("square");
+  const [seed, setSeed] = useState("");
   const [posts, setPosts] = useState<PreviewPostItem[]>(initialPosts);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isZipping, setIsZipping] = useState(false);
@@ -47,6 +50,8 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
         body: JSON.stringify({
           companyId: selectedCompanyId,
           startDate,
+          format,
+          ...(seed.trim() ? { seed: seed.trim() } : {}),
         }),
       });
 
@@ -58,6 +63,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
       }
 
       setPosts(data.posts || []);
+      if (data.seed) setSeed(data.seed);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erro ao se comunicar com o servidor.";
       setErrorMessage(msg);
@@ -171,7 +177,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
             Geração Semanal — Instagram Feed
           </h1>
           <p className="text-xs sm:text-sm text-[#8a8f98]">
-            Motor determinístico: 7 artes 1080×1080px e legendas persuasivas geradas em 1 clique
+            Motor determinístico: 24 composições, PNGs em 1080×1080, 1080×1350 ou 1080×1920 e legendas em 1 clique
           </p>
         </div>
 
@@ -201,7 +207,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
       <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] p-5 sm:p-6 space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-end">
           {/* Seletor de Empresa */}
-          <div className="md:col-span-6">
+          <div className="md:col-span-5">
             <CompanySelector
               companies={companies}
               selectedId={selectedCompanyId}
@@ -211,7 +217,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
           </div>
 
           {/* Seletor de Segunda-Feira */}
-          <div className="md:col-span-3 space-y-1.5">
+          <div className="md:col-span-2 space-y-1.5">
             <label htmlFor="start-date" className="text-[11px] font-medium text-[#8a8f98] block">
               Início da Semana (Segunda-feira)
             </label>
@@ -223,6 +229,19 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
               disabled={isGenerating}
               className="w-full h-10 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] focus:ring-1 focus:ring-[#5e6ad2] text-[#f7f8f8] text-xs px-3 transition-colors disabled:opacity-50"
             />
+          </div>
+
+          <div className="md:col-span-2 space-y-1.5">
+            <label htmlFor="post-format" className="text-[11px] font-medium text-[#8a8f98] block">Formato</label>
+            <select
+              id="post-format"
+              value={format}
+              onChange={(event) => setFormat(event.target.value as PostFormat)}
+              disabled={isGenerating}
+              className="w-full h-10 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] focus:border-[#5e6ad2] focus:ring-1 focus:ring-[#5e6ad2] text-[#f7f8f8] text-xs px-3 transition-colors disabled:opacity-50"
+            >
+              {Object.entries(POST_FORMAT_DIMENSIONS).map(([value, dimensions]) => <option key={value} value={value}>{dimensions.label}</option>)}
+            </select>
           </div>
 
           {/* Botão Primário: Gerar Semana */}
@@ -246,6 +265,20 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
               )}
             </button>
           </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label htmlFor="generation-seed" className="text-[11px] font-medium text-[#8a8f98] block">Seed de reprodução <span className="text-[#62666d]">(opcional)</span></label>
+          <input
+            id="generation-seed"
+            value={seed}
+            onChange={(event) => setSeed(event.target.value)}
+            disabled={isGenerating}
+            maxLength={160}
+            placeholder="Ex.: campanha-inverno-2026"
+            className="w-full h-9 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.1)] focus:border-[#5e6ad2] text-[#f7f8f8] text-xs px-3 font-mono placeholder:font-sans placeholder:text-[#62666d]"
+          />
+          <p className="text-[10px] text-[#62666d]">A seed usada fica salva com a composição no histórico de geração.</p>
         </div>
 
         {errorMessage && (

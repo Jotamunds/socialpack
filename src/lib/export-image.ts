@@ -11,7 +11,7 @@ export function slugify(value: string) {
     .replace(/(^-|-$)/g, "");
 }
 
-/** Renderiza o nó (1080x1080) como PNG e dispara o download no navegador. */
+/** Renderiza o nó no tamanho nativo (quadrado, feed vertical ou story) e dispara o download. */
 export async function downloadNodeAsPng(node: HTMLElement, filename: string) {
   await document.fonts.ready;
 
@@ -30,8 +30,8 @@ export async function downloadNodeAsPng(node: HTMLElement, filename: string) {
   }
 
   const dataUrl = await toPng(node, {
-    width: 1080,
-    height: 1080,
+    width: node.clientWidth,
+    height: node.clientHeight,
     pixelRatio: 1,
     cacheBust: true,
   });

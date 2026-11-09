@@ -52,7 +52,7 @@ function layoutsFromLatestCompletedPack(rows: RecentCompletedPost[]): number[] {
   const layouts = pack.map((row) => row.layout);
   const layoutsArePermutation =
     layouts.every(
-      (layout) => typeof layout === "number" && Number.isInteger(layout) && layout >= 0 && layout <= 6
+      (layout) => typeof layout === "number" && Number.isInteger(layout) && layout >= 0 && layout <= 30
     ) && new Set(layouts).size === POSTS_PER_WEEKLY_PACK;
 
   return layoutsArePermutation ? (layouts as number[]) : [];
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { companyId, startDate } = bodyValidation.data;
+    const { companyId, startDate, seed, format } = bodyValidation.data;
 
     const { data: companyRecord, error: companyError } = await supabase
       .from("companies")
@@ -157,6 +157,7 @@ export async function POST(request: Request) {
         secondary: "#7170ff",
         accent: "#828fff",
       },
+      logoUrl: companyRecord.logo_url || undefined,
     };
 
     // Histórico para evitar repetição: últimos pacotes concluídos desta empresa.
@@ -191,7 +192,10 @@ export async function POST(request: Request) {
       weekData = generateWeek(companyProfile, startDate, {
         recentTemplateSlugs,
         previousLayouts,
-      });
+        recentLayoutIds: recentRows
+          .map((row) => row.layout)
+          .filter((layout): layout is number => typeof layout === "number"),
+      }, { seed, format });
     } catch (genErr) {
       return NextResponse.json(
         { ok: false, error: sanitizePublicErrorMessage(genErr) },
@@ -314,6 +318,9 @@ export async function POST(request: Request) {
           theme: planItem.theme,
           layout: planItem.layout,
           imageUrl: planItem.imageUrl,
+          format: planItem.format,
+          seed: planItem.generationSeed,
+          layoutCategory: planItem.layoutCategory,
         });
 
         const { error: completeError } = await adminSupabase
@@ -351,6 +358,8 @@ export async function POST(request: Request) {
           caption: planItem.caption,
           hashtags: planItem.hashtags,
           layout: planItem.layout,
+          format: planItem.format,
+          seed: planItem.generationSeed,
           status: "completed",
           imageUrl: signedUrl,
           signedUrl,
@@ -388,6 +397,8 @@ export async function POST(request: Request) {
       weekRangeLabel: weekData.weekRangeLabel,
       startDate: weekData.startDate,
       endDate: weekData.endDate,
+      format: weekData.format,
+      seed: weekData.seed,
       posts: finalResults,
     });
   } catch (err: unknown) {

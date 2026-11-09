@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { categories } from "@/lib/catalog";
+import { POST_FORMATS } from "@/lib/post-format";
 
 export const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{6}$/;
 export const UF_REGEX = /^[A-Z]{2}$/;
@@ -52,6 +53,7 @@ export const CreateCompanyInputSchema = z
           .regex(/^[A-Za-z0-9._]{0,30}$/, "Instagram deve conter apenas letras, números, pontos e sublinhados")
       )
       .optional(),
+    logoUrl: z.string().trim().url("Logo deve ser uma URL válida").max(2048).optional().or(z.literal("")),
     toneId: z.string().optional(),
     primary_style: z
       .enum(["descontraido", "profissional", "elegante", "colorido", "acolhedor", "inspirador", "sofisticado", "divertido"])
@@ -105,6 +107,7 @@ export function normalizeCompanyInput(input: CreateCompanyInput) {
     city: input.city,
     state: input.state.toUpperCase(),
     instagram,
+    logoUrl: input.logoUrl || undefined,
     toneId,
     colors,
   };
@@ -112,7 +115,7 @@ export function normalizeCompanyInput(input: CreateCompanyInput) {
 
 export const TemplateLayoutStructureSchema = z
   .object({
-    layout: z.number().int().min(0).max(6),
+    layout: z.number().int().min(0).max(30),
     theme: z.string().min(1),
     headline: z.string().min(1),
     subheadline: z.string().default(""),
@@ -230,6 +233,9 @@ export const GenerateWeeklyBodySchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "startDate deve estar no formato YYYY-MM-DD")
     .optional(),
+  /** Opcional: torna a seleção de conteúdo e layouts reproduzível. */
+  seed: z.string().trim().min(1).max(160).optional(),
+  format: z.enum(POST_FORMATS).optional(),
 });
 
 export type GenerateWeeklyBody = z.infer<typeof GenerateWeeklyBodySchema>;
@@ -243,7 +249,7 @@ export const WeeklyPackPostSchema = z.object({
   captionCopy: z.string().min(40).max(1200),
   hashtags: z.array(z.string().min(2)).min(3).max(8),
   theme: z.string().min(1),
-  layout: z.number().int().min(0).max(6),
+  layout: z.number().int().min(0).max(30),
   templateSlug: z.string().min(1),
   templateVersion: z.number().int().positive(),
 });
@@ -284,7 +290,10 @@ export const PostGenerationConfigSchema = z.object({
     handle: z.string().optional(),
   }),
   theme: z.string().optional(),
-  layout: z.number().int().min(0).max(6).optional(),
+  layout: z.number().int().min(0).max(30).optional(),
+  format: z.enum(POST_FORMATS).optional(),
+  seed: z.string().min(1).max(160).optional(),
+  layoutCategory: z.string().min(1).max(32).optional(),
   imageUrl: z.string().optional(),
 });
 
