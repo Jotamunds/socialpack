@@ -20,7 +20,7 @@ export interface SignedUrlResponse {
  */
 export async function getSignedPostDownloadUrlAction(postId: string): Promise<SignedUrlResponse> {
   if (!postId) {
-    return { ok: false, message: "ID do post obrigatório." };
+    return { ok: false, message: "Post ID is required." };
   }
 
   try {
@@ -31,7 +31,7 @@ export async function getSignedPostDownloadUrlAction(postId: string): Promise<Si
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return { ok: false, message: "Não autorizado." };
+      return { ok: false, message: "Unauthorized." };
     }
 
     const { data: post, error: postError } = await supabase
@@ -42,19 +42,19 @@ export async function getSignedPostDownloadUrlAction(postId: string): Promise<Si
       .single();
 
     if (postError || !post) {
-      return { ok: false, message: "Post não encontrado ou acesso não autorizado." };
+      return { ok: false, message: "Post not found or access denied." };
     }
 
     const rawPath = post.image_storage_path || post.storage_path;
     if (!rawPath) {
-      return { ok: false, message: "Arquivo de imagem ainda não disponível para este post." };
+      return { ok: false, message: "This post's image isn't ready yet." };
     }
 
     let path: string;
     try {
       path = assertOwnedStoragePath(user.id, rawPath);
     } catch {
-      return { ok: false, message: "Caminho de arquivo inválido para este usuário." };
+      return { ok: false, message: "Invalid file path for this account." };
     }
 
     const adminSupabase = createAdminClient();
@@ -65,7 +65,7 @@ export async function getSignedPostDownloadUrlAction(postId: string): Promise<Si
       });
 
     if (signedError || !data?.signedUrl) {
-      return { ok: false, message: "Falha ao gerar link de download." };
+      return { ok: false, message: "Couldn't create a download link." };
     }
 
     return {
@@ -94,7 +94,7 @@ export async function getWeeklyPostsAction(companyId: string, startDate?: string
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return { ok: false, message: "Não autorizado.", posts: [] };
+      return { ok: false, message: "Unauthorized.", posts: [] };
     }
 
     let query = supabase

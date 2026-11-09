@@ -12,10 +12,10 @@ export const RATE_LIMIT_DEFAULTS = {
 } as const;
 
 export const RATE_LIMIT_EXCEEDED_MESSAGE =
-  "Muitas solicitações. Tente novamente em alguns minutos.";
+  "Too many requests. Try again in a few minutes.";
 
 export const RATE_LIMIT_UNAVAILABLE_MESSAGE =
-  "Não foi possível processar a solicitação agora. Tente novamente em alguns minutos.";
+  "We couldn't process the request right now. Try again in a few minutes.";
 
 export const RATE_LIMIT_SCOPE = {
   weeklyGenerate: "weekly_generate",

@@ -13,11 +13,11 @@ export type HistoryZipSource = {
  */
 export function streamStoredZip(files: readonly HistoryZipSource[]): ReadableStream<Uint8Array> {
   if (files.length === 0) {
-    throw new Error("ZIP vazio.");
+    throw new Error("Empty ZIP.");
   }
   for (const file of files) {
     if (!isSafeHistoryZipEntryName(file.name)) {
-      throw new Error("Nome de arquivo inválido.");
+      throw new Error("Invalid file name.");
     }
   }
 
@@ -34,7 +34,7 @@ export function streamStoredZip(files: readonly HistoryZipSource[]): ReadableStr
 
   const fail = (error: unknown) => {
     if (failed) return;
-    failed = error instanceof Error ? error : new Error("Falha ao gerar o ZIP.");
+    failed = error instanceof Error ? error : new Error("Couldn't create the ZIP.");
     notify();
   };
 
@@ -58,7 +58,7 @@ export function streamStoredZip(files: readonly HistoryZipSource[]): ReadableStr
             const bytes = await file.load();
             if (failed) return;
             if (bytes.byteLength === 0) {
-              fail(new Error("Arquivo vazio."));
+              fail(new Error("Empty file."));
               return;
             }
             const entry = new ZipPassThrough(file.name);
@@ -93,7 +93,7 @@ export function streamStoredZip(files: readonly HistoryZipSource[]): ReadableStr
       }
     },
     cancel() {
-      fail(new Error("Download cancelado."));
+      fail(new Error("Download canceled."));
     },
   });
 }

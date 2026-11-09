@@ -9,26 +9,26 @@ export function assertOwnedStoragePath(
   path: string | null | undefined
 ): string {
   if (!userId) {
-    throw new Error("ID de usuário obrigatório para validar caminho de storage.");
+    throw new Error("Account ID is required to check this file path.");
   }
 
   if (typeof path !== "string" || !path.trim()) {
-    throw new Error("Caminho de storage ausente ou inválido.");
+    throw new Error("Missing or invalid file path.");
   }
 
   const normalized = path.trim().replace(/\\/g, "/");
 
   if (normalized.startsWith("/") || normalized.includes("://")) {
-    throw new Error("Caminho de storage absoluto ou remoto não permitido.");
+    throw new Error("That file path isn't allowed.");
   }
 
   if (normalized.split("/").some((segment) => segment === ".." || segment === "")) {
-    throw new Error("Caminho de storage contém segmentos inválidos.");
+    throw new Error("That file path isn't allowed.");
   }
 
   const firstSegment = normalized.split("/")[0];
   if (firstSegment !== userId) {
-    throw new Error("Caminho de storage não pertence ao usuário autenticado.");
+    throw new Error("That file doesn't belong to this account.");
   }
 
   return normalized;

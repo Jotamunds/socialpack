@@ -351,7 +351,7 @@ export function generateWeek(
     const daySchedule = schedule[i];
     const template = selected[i];
     if (!template) {
-      throw new Error("Pacote semanal incompleto: não há templates suficientes.");
+      throw new Error("Couldn't create all 7 posts.");
     }
 
     let headline = interpolate(template.headline, vars);
@@ -433,8 +433,8 @@ export function generateWeek(
   });
 
   if (!packValidation.success) {
-    const first = packValidation.error.issues[0]?.message || "Pacote semanal inválido.";
-    throw new Error(`Falha na validação do pacote semanal: ${first}`);
+    const first = packValidation.error.issues[0]?.message || "Invalid weekly pack.";
+    throw new Error(`Invalid weekly pack: ${first}`);
   }
 
   return {

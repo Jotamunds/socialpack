@@ -149,7 +149,7 @@ describe("history zip route", () => {
     assert.match(source, new RegExp(`export const maxDuration = ${HISTORY_ZIP_MAX_DURATION_SECONDS}`));
     assert.equal(HISTORY_ZIP_MAX_BYTES, 32 * 1024 * 1024);
     assert.match(HISTORY_ZIP_MESSAGES.tooMany, /Refine/);
-    assert.match(HISTORY_ZIP_MESSAGES.empty, /Nenhuma arte/);
+    assert.match(HISTORY_ZIP_MESSAGES.empty, /No posts/);
   });
 });
 

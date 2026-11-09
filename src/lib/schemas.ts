@@ -6,12 +6,12 @@ export const UF_REGEX = /^[A-Z]{2}$/;
 
 export const HexColorSchema = z
   .string()
-  .regex(HEX_COLOR_REGEX, "Cor deve estar no formato hexadecimal #RRGGBB (ex: #5E6AD2)");
+  .regex(HEX_COLOR_REGEX, "Use a hex color like #5E6AD2.");
 
 export const UfSchema = z
   .string()
   .toUpperCase()
-  .regex(UF_REGEX, "UF deve conter exatamente 2 letras maiúsculas (ex: SP)");
+  .regex(UF_REGEX, "Use a 2-letter state code (example: SP).");
 
 export const BrandColorsSchema = z.object({
   primary: HexColorSchema,
@@ -24,13 +24,13 @@ export const CreateCompanyInputSchema = z
     name: z
       .string()
       .trim()
-      .min(2, "Nome da empresa deve ter pelo menos 2 caracteres")
-      .max(120, "Máximo de 120 caracteres"),
+      .min(2, "Company name must be at least 2 characters.")
+      .max(120, "Use at most 120 characters."),
     categoryId: z.string().trim().min(1).max(80).optional(),
     segment: z.string().trim().min(1).max(80).optional(),
     nicheId: z.string().trim().min(1).max(80).optional(),
     niche: z.string().trim().min(1).max(80).optional(),
-    city: z.string().trim().min(1, "Cidade é obrigatória").max(100, "Máximo de 100 caracteres"),
+    city: z.string().trim().min(1, "City is required.").max(100, "Use at most 100 characters."),
     state: UfSchema,
     instagram: z
       .string()
@@ -39,7 +39,7 @@ export const CreateCompanyInputSchema = z
       .pipe(
         z
           .string()
-          .regex(/^[A-Za-z0-9._]{0,30}$/, "Instagram deve conter apenas letras, números, pontos e sublinhados")
+          .regex(/^[A-Za-z0-9._]{0,30}$/, "Instagram can only use letters, numbers, periods, and underscores.")
       )
       .optional(),
     instagram_handle: z
@@ -49,7 +49,7 @@ export const CreateCompanyInputSchema = z
       .pipe(
         z
           .string()
-          .regex(/^[A-Za-z0-9._]{0,30}$/, "Instagram deve conter apenas letras, números, pontos e sublinhados")
+          .regex(/^[A-Za-z0-9._]{0,30}$/, "Instagram can only use letters, numbers, periods, and underscores.")
       )
       .optional(),
     toneId: z.string().optional(),
@@ -59,17 +59,17 @@ export const CreateCompanyInputSchema = z
     colors: BrandColorsSchema.optional(),
     brand_colors: z
       .union([
-        z.array(HexColorSchema).min(1, "Selecione ao menos 1 cor").max(6, "Máximo de 6 cores"),
+        z.array(HexColorSchema).min(1, "Pick at least 1 color.").max(6, "Use at most 6 colors."),
         BrandColorsSchema,
       ])
       .optional(),
   })
   .refine((data) => Boolean(data.categoryId || data.segment), {
-    message: "Categoria ou segmento é obrigatório",
+    message: "Category or segment is required.",
     path: ["categoryId"],
   })
   .refine((data) => Boolean(data.nicheId || data.niche), {
-    message: "Nicho é obrigatório",
+    message: "Niche is required.",
     path: ["nicheId"],
   });
 
@@ -148,22 +148,22 @@ export const SignUpInputSchema = z.object({
   fullName: z
     .string()
     .trim()
-    .min(3, "Nome completo deve ter pelo menos 3 caracteres")
-    .max(80, "Nome muito longo"),
+    .min(3, "Full name must be at least 3 characters.")
+    .max(80, "Name is too long."),
   phone: z
     .string()
     .trim()
-    .min(10, "Telefone deve conter DDD + número (mínimo 10 dígitos)")
-    .max(20, "Telefone inválido")
-    .regex(/^[\d\s()+-]+$/, "Formato de telefone inválido"),
+    .min(10, "Enter a phone number with at least 10 digits.")
+    .max(20, "Invalid phone number.")
+    .regex(/^[\d\s()+-]+$/, "Invalid phone number format."),
   email: z
     .string()
     .trim()
-    .email("E-mail inválido")
+    .email("Enter a valid email.")
     .toLowerCase(),
   password: z
     .string()
-    .min(6, "A senha deve ter no mínimo 6 caracteres"),
+    .min(6, "Use at least 6 characters."),
 });
 
 export type SignUpInput = z.infer<typeof SignUpInputSchema>;
@@ -172,11 +172,11 @@ export const SignInInputSchema = z.object({
   email: z
     .string()
     .trim()
-    .email("E-mail inválido")
+    .email("Enter a valid email.")
     .toLowerCase(),
   password: z
     .string()
-    .min(1, "Digite sua senha"),
+    .min(1, "Enter your password."),
 });
 
 export type SignInInput = z.infer<typeof SignInInputSchema>;
@@ -186,24 +186,24 @@ export const UpdateProfileInputSchema = z
     fullName: z
       .string()
       .trim()
-      .min(2, "Nome deve ter pelo menos 2 caracteres")
-      .max(100, "Nome deve ter no máximo 100 caracteres")
+      .min(2, "Name must be at least 2 characters.")
+      .max(100, "Name must be at most 100 characters.")
       .optional(),
     full_name: z
       .string()
       .trim()
-      .min(2, "Nome deve ter pelo menos 2 caracteres")
-      .max(100, "Nome deve ter no máximo 100 caracteres")
+      .min(2, "Name must be at least 2 characters.")
+      .max(100, "Name must be at most 100 characters.")
       .optional(),
     phone: z
       .string()
       .trim()
-      .regex(/^(\(?\d{2}\)?\s?)?(\d{4,5}-?\d{4})?$/, "Telefone com formato inválido (ex: (11) 99999-9999)")
+      .regex(/^(\(?\d{2}\)?\s?)?(\d{4,5}-?\d{4})?$/, "Invalid phone format (example: (11) 99999-9999).")
       .optional()
       .or(z.literal("")),
   })
   .refine((data) => Boolean((data.fullName && data.fullName.length >= 2) || (data.full_name && data.full_name.length >= 2)), {
-    message: "Nome completo é obrigatório (mínimo 2 caracteres)",
+    message: "Full name is required (at least 2 characters).",
     path: ["fullName"],
   });
 
@@ -211,11 +211,11 @@ export type UpdateProfileInput = z.infer<typeof UpdateProfileInputSchema>;
 
 export const ChangePasswordInputSchema = z
   .object({
-    password: z.string().min(6, "A nova senha deve ter no mínimo 6 caracteres"),
-    confirmPassword: z.string().min(6, "Confirme a nova senha"),
+    password: z.string().min(6, "The new password must be at least 6 characters."),
+    confirmPassword: z.string().min(6, "Confirm the new password."),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "As senhas não coincidem",
+    message: "The passwords don't match.",
     path: ["confirmPassword"],
   });
 
@@ -224,10 +224,10 @@ export type ChangePasswordInput = z.infer<typeof ChangePasswordInputSchema>;
 export const ThemePreferenceSchema = z.enum(["dark", "light"]);
 
 export const GenerateWeeklyBodySchema = z.object({
-  companyId: z.string().uuid("companyId deve ser um UUID válido"),
+  companyId: z.string().uuid("companyId must be a valid UUID."),
   startDate: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "startDate deve estar no formato YYYY-MM-DD")
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "startDate must use YYYY-MM-DD.")
     .optional(),
 });
 
@@ -256,14 +256,14 @@ export const WeeklyPackContentSchema = z
       const days = data.posts.map((p) => p.dayIndex);
       return new Set(days).size === 7;
     },
-    { message: "O pacote deve conter exatamente os 7 dias (0–6) sem duplicatas." }
+    { message: "The pack must include each day from 0 to 6, once." }
   )
   .refine(
     (data) => {
       const themes = data.posts.map((p) => p.theme);
       return new Set(themes).size === themes.length;
     },
-    { message: "Temas do pacote semanal não podem se repetir." }
+    { message: "Weekly themes can't repeat." }
   );
 
 export type WeeklyPackContent = z.infer<typeof WeeklyPackContentSchema>;
@@ -300,7 +300,7 @@ const CATALOG_NICHE_IDS = new Set(
 /** Presets de período do histórico. Ausente na URL = todo o período. */
 export const HISTORY_PERIOD_VALUES = ["7d", "30d"] as const;
 
-export const HistoryCompanyIdSchema = z.string().trim().uuid("empresa deve ser um UUID");
+export const HistoryCompanyIdSchema = z.string().trim().uuid("Company filter must be a UUID.");
 
 export const HistorySearchSchema = z
   .string()
@@ -315,7 +315,7 @@ export const HistoryNicheIdSchema = z
   .trim()
   .min(1)
   .max(80)
-  .refine((id) => CATALOG_NICHE_IDS.has(id), "Nicho desconhecido");
+  .refine((id) => CATALOG_NICHE_IDS.has(id), "Unknown niche.");
 
 /**
  * Filtros normalizados do histórico.

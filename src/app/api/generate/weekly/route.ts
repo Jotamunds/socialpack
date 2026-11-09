@@ -68,7 +68,7 @@ export async function POST(request: Request) {
 
     if (authError || !user) {
       return NextResponse.json(
-        { ok: false, error: "Acesso não autorizado. Faça login para continuar." },
+        { ok: false, error: "Unauthorized. Log in to continue." },
         { status: 401 }
       );
     }
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
         {
           ok: false,
           code: "VALIDATION_ERROR",
-          error: bodyValidation.error.issues[0]?.message || "Payload de geração inválido.",
+          error: bodyValidation.error.issues[0]?.message || "Invalid generation request.",
         },
         { status: 400 }
       );
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
 
     if (companyError || !companyRecord) {
       return NextResponse.json(
-        { ok: false, error: "Empresa não encontrada ou não pertence ao seu usuário." },
+        { ok: false, error: "Company not found, or it isn't yours." },
         { status: 404 }
       );
     }
@@ -119,7 +119,7 @@ export async function POST(request: Request) {
 
     if (countError) {
       return NextResponse.json(
-        { ok: false, error: "Não foi possível verificar o limite diário de geração." },
+        { ok: false, error: "Couldn't check the daily generation limit." },
         { status: 500 }
       );
     }
@@ -130,7 +130,7 @@ export async function POST(request: Request) {
         {
           ok: false,
           code: "DAILY_PACK_LIMIT",
-          error: `Limite diário atingido: no máximo ${MAX_WEEKLY_PACKS_PER_COMPANY_PER_DAY} pacotes por empresa por dia.`,
+          error: `Daily limit reached: at most ${MAX_WEEKLY_PACKS_PER_COMPANY_PER_DAY} packs per company per day.`,
         },
         { status: 429 }
       );
@@ -220,7 +220,7 @@ export async function POST(request: Request) {
         {
           ok: false,
           error: sanitizePublicErrorMessage(
-            insertError?.message || "Falha ao inicializar registros de posts."
+            insertError?.message || "Couldn't create the posts."
           ),
         },
         { status: 500 }
@@ -284,7 +284,7 @@ export async function POST(request: Request) {
           });
 
         if (uploadError) {
-          throw new Error(`Erro no upload da arte: ${uploadError.message}`);
+          throw new Error(`Couldn't upload the image: ${uploadError.message}`);
         }
 
         const { data: signedData } = await adminSupabase.storage
@@ -328,7 +328,7 @@ export async function POST(request: Request) {
         if (completeError) {
           const rollbackPath = assertOwnedStoragePath(user.id, storagePath);
           await adminSupabase.storage.from("generated-arts").remove([rollbackPath]);
-          throw new Error(`Falha ao concluir post no banco: ${completeError.message}`);
+          throw new Error(`Couldn't finish saving the post: ${completeError.message}`);
         }
 
         finalResults.push({

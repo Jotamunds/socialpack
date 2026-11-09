@@ -33,7 +33,7 @@ export function loadInterFonts(): Font[] {
     cachedInter = fontConfigs.map(({ file, weight }) => {
       const filePath = path.join(fontsDir, file);
       if (!fs.existsSync(filePath)) {
-        throw new Error(`Arquivo de fonte não encontrado em ${filePath}`);
+        throw new Error(`Font file not found at ${filePath}`);
       }
       const data = fs.readFileSync(filePath);
       return {
@@ -84,7 +84,7 @@ export function loadLayoutFonts(): Font[] {
   cachedLayoutFonts = specs.map(({ file, name, weight, style }) => {
     const filePath = path.join(fontsDir, file);
     if (!fs.existsSync(filePath)) {
-      throw new Error(`Arquivo de fonte não encontrado em ${filePath}`);
+      throw new Error(`Font file not found at ${filePath}`);
     }
     return {
       name,

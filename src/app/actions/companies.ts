@@ -32,7 +32,7 @@ export async function createCompanyAction(input: unknown): Promise<CompanyAction
   const validation = CreateCompanyInputSchema.safeParse(input);
 
   if (!validation.success) {
-    const firstError = validation.error.issues[0]?.message || "Dados de empresa inválidos.";
+    const firstError = validation.error.issues[0]?.message || "Invalid company details.";
     return {
       ok: false,
       code: "VALIDATION_ERROR",
@@ -53,7 +53,7 @@ export async function createCompanyAction(input: unknown): Promise<CompanyAction
       return {
         ok: false,
         code: "UNAUTHORIZED",
-        message: "Você precisa estar conectado para cadastrar uma empresa.",
+        message: "Log in to add a company.",
       };
     }
 
@@ -82,14 +82,14 @@ export async function createCompanyAction(input: unknown): Promise<CompanyAction
         return {
           ok: false,
           code: "QUOTA_EXCEEDED",
-          message: `Limite de ${COMPANY_LIMIT} empresas atingido.`,
+          message: `Company limit reached: ${COMPANY_LIMIT} companies.`,
         };
       }
 
       return {
         ok: false,
         code: "DATABASE_ERROR",
-        message: sanitizePublicErrorMessage(error.message || "Erro ao salvar a empresa."),
+        message: sanitizePublicErrorMessage(error.message || "Couldn't save the company."),
       };
     }
 
@@ -113,7 +113,7 @@ export async function createCompanyAction(input: unknown): Promise<CompanyAction
  */
 export async function deleteCompanyAction(companyId: string): Promise<{ ok: boolean; message?: string }> {
   if (!companyId) {
-    return { ok: false, message: "ID da empresa obrigatório." };
+    return { ok: false, message: "Company ID is required." };
   }
 
   try {
@@ -124,7 +124,7 @@ export async function deleteCompanyAction(companyId: string): Promise<{ ok: bool
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return { ok: false, message: "Acesso não autorizado." };
+      return { ok: false, message: "Unauthorized." };
     }
 
     const admin = createAdminClient();
@@ -137,7 +137,7 @@ export async function deleteCompanyAction(companyId: string): Promise<{ ok: bool
       .maybeSingle();
 
     if (companyError || !company) {
-      return { ok: false, message: "Empresa não encontrada ou acesso negado." };
+      return { ok: false, message: "Company not found or access denied." };
     }
 
     const { data: posts } = await admin
@@ -158,7 +158,7 @@ export async function deleteCompanyAction(companyId: string): Promise<{ ok: bool
         return {
           ok: false,
           message: sanitizePublicErrorMessage(
-            `Falha ao excluir artes no Storage: ${storageError.message}`
+            `Couldn't delete the images: ${storageError.message}`
           ),
         };
       }
