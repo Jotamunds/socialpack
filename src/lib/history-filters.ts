@@ -197,5 +197,5 @@ export function historyNicheOptions(
   }
   if (selectedNicheId) add(selectedNicheId);
 
-  return [...byId.values()].sort((left, right) => left.label.localeCompare(right.label, "pt-BR"));
+  return [...byId.values()].sort((left, right) => left.label.localeCompare(right.label, "en-US"));
 }

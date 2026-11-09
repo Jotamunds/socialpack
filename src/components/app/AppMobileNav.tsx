@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { t } from "@/i18n";
 
 const LINKS = [
-  { id: "empresas", href: "/perfil", label: "Empresas" },
-  { id: "geracao", href: "/geracao/instagram/posts", label: "Geração" },
-  { id: "historico", href: "/geracao/historico", label: "Histórico" },
-  { id: "configuracoes", href: "/configuracoes", label: "Configurações" },
+  { id: "empresas", href: "/perfil", label: "app.navCompanies" },
+  { id: "geracao", href: "/geracao/instagram/posts", label: "app.navGenerate" },
+  { id: "historico", href: "/geracao/historico", label: "app.navHistory" },
+  { id: "configuracoes", href: "/configuracoes", label: "app.navSettings" },
 ] as const;
 
 export type AppSectionId = (typeof LINKS)[number]["id"];
@@ -12,7 +13,7 @@ export type AppSectionId = (typeof LINKS)[number]["id"];
 export function AppMobileNav({ active }: { active: AppSectionId }) {
   return (
     <nav
-      aria-label="Seções do aplicativo"
+      aria-label={t("app.navLabel")}
       className="md:hidden flex gap-1 overflow-x-auto px-4 pb-2 [scrollbar-width:none]"
     >
       {LINKS.map((link) => {
@@ -27,7 +28,7 @@ export function AppMobileNav({ active }: { active: AppSectionId }) {
                 : "text-[#8a8f98]"
             }`}
           >
-            {link.label}
+            {t(link.label)}
           </Link>
         );
       })}

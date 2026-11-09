@@ -1,5 +1,6 @@
 "use client";
 
+import { t } from "@/i18n";
 import { SparklesIcon, SpinnerIcon } from "@/components/icons";
 import { PostCollection, type DisplayPost, type PostsViewMode } from "@/components/posts";
 import type { PreviewPostItem } from "./PostPreviewModal";
@@ -41,7 +42,7 @@ export function WeeklyGrid({
         <div className="flex items-center gap-3 p-4 rounded-xl bg-[#5e6ad2]/10 border border-[#5e6ad2]/20 text-[#7170ff] text-xs">
           <SpinnerIcon className="size-4 animate-spin text-[#5e6ad2]" />
           <span>
-            <strong>Renderizando pacote semanal...</strong> O Satori e o Resvg estão processando os 7 posts em 1080×1080px e salvando no bucket privado.
+            <strong>{t("generate.rendering")}</strong> {t("generate.renderingDetail")}
           </span>
         </div>
 
@@ -73,10 +74,10 @@ export function WeeklyGrid({
         </div>
         <div className="space-y-1">
           <h3 className="text-base font-semibold text-[#f7f8f8]">
-            Pronto para gerar a semana de posts
+            {t("generate.emptyTitle")}
           </h3>
           <p className="text-xs text-[#8a8f98] max-w-md mx-auto">
-            Selecione a empresa acima, defina a segunda-feira de início e clique em &quot;Gerar Semana (7 Posts)&quot; para criar 7 artes exclusivas com legendas e fotos curadas.
+            {t("generate.emptyBody")}
           </p>
         </div>
       </div>

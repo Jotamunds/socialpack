@@ -7,12 +7,13 @@ import { GeracaoClient } from "@/components/geracao/GeracaoClient";
 import { LogOutIcon, SparklesIcon } from "@/components/icons";
 import { signOutAction } from "@/app/actions/companies";
 import { AppMobileNav } from "@/components/app/AppMobileNav";
+import { t } from "@/i18n";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Geração Semanal Instagram | SocialPack",
-  description: "Gere seu calendário editorial semanal com artes 1080x1080px e legendas prontas em 1 clique.",
+  title: t("generate.metaTitle"),
+  description: t("generate.metaDescription"),
 };
 
 export default async function GeracaoInstagramPostsPage({
@@ -77,26 +78,26 @@ export default async function GeracaoInstagramPostsPage({
                 href="/perfil"
                 className="text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors"
               >
-                Empresas
+                {t("app.navCompanies")}
               </Link>
               <Link
                 href="/geracao/instagram/posts"
                 className="text-[13px] font-medium text-[#f7f8f8] border-b-2 border-[#5e6ad2] pb-0.5 inline-flex items-center gap-1.5"
               >
                 <SparklesIcon className="size-3.5 text-[#5e6ad2]" />
-                <span>Geração</span>
+                <span>{t("app.navGenerate")}</span>
               </Link>
               <Link
                 href="/geracao/historico"
                 className="text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors"
               >
-                Histórico
+                {t("app.navHistory")}
               </Link>
               <Link
                 href="/configuracoes"
                 className="text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors"
               >
-                Configurações
+                {t("app.navSettings")}
               </Link>
             </nav>
           </div>
@@ -110,7 +111,7 @@ export default async function GeracaoInstagramPostsPage({
             <form action={signOutAction}>
               <button
                 type="submit"
-                title="Sair da Conta"
+                title={t("app.logOut")}
                 className="size-11 sm:size-8 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] text-[#8a8f98] hover:text-[#f7f8f8] transition-colors flex items-center justify-center cursor-pointer"
               >
                 <LogOutIcon className="size-3.5" />
@@ -128,10 +129,10 @@ export default async function GeracaoInstagramPostsPage({
       {/* Footer Minimalista */}
       <footer className="border-t border-[rgba(255,255,255,0.06)] bg-[#08090a] py-6">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#62666d]">
-          <p>© {new Date().getFullYear()} SocialPack. Todos os direitos reservados.</p>
+          <p>© {new Date().getFullYear()} SocialPack. {t("app.rights")}</p>
           <div className="flex items-center gap-2">
             <span className="inline-block size-1.5 rounded-full bg-[#10b981]" />
-            <span>Motor Determinístico Ativo</span>
+            <span>{t("generate.engineOn")}</span>
           </div>
         </div>
       </footer>
