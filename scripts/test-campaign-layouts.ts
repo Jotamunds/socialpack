@@ -54,6 +54,7 @@ assert.notEqual(layoutDesignKey(33), layoutDesignKey(31));
 assert.notEqual(layoutDesignKey(33), layoutDesignKey(32));
 for (let id = 0; id <= 30; id++) {
   assert.notEqual(layoutDesignKey(31), layoutDesignKey(id));
+  assert.notEqual(layoutDesignKey(32), layoutDesignKey(id));
   assert.notEqual(layoutDesignKey(33), layoutDesignKey(id));
 }
 
