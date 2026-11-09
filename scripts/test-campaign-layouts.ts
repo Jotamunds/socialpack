@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { layoutDesignKey } from "../src/lib/campaign-layouts";
 import { generateWeek } from "../src/lib/generator";
 import type { CompanyProfile } from "../src/lib/types";
 
@@ -21,28 +22,34 @@ const second = generateWeek(company, "2026-11-09", {}, options);
 assert.deepEqual(first.posts.map((post) => post.layout), second.posts.map((post) => post.layout), "A mesma seed deve reproduzir os layouts.");
 assert.deepEqual(first.posts.map((post) => post.templateSlug), second.posts.map((post) => post.templateSlug), "A mesma seed deve reproduzir os templates.");
 assert.equal(new Set(first.posts.map((post) => post.layout)).size, 7, "Um pacote não pode repetir composição.");
-assert.ok(first.posts.every((post) => post.layout >= 7 && post.layout <= 30), "Posts novos devem usar L7–L30.");
+assert.equal(new Set(first.posts.map((post) => layoutDesignKey(post.layout))).size, 7, "Um pacote usa 7 desenhos diferentes.");
+assert.ok(first.posts.every((post) => post.layout >= 0 && post.layout <= 30), "Posts novos usam L0–L30.");
 assert.ok(first.posts.every((post) => post.format === "portrait" && post.generationSeed === options.seed), "Formato e seed devem persistir no plano.");
 
-const withHistory = generateWeek(company, "2026-11-16", { recentLayoutIds: first.posts.map((post) => post.layout) }, { format: "story" });
-assert.ok(withHistory.posts.every((post) => !first.posts.some((previous) => previous.layout === post.layout)), "O pacote seguinte deve evitar layouts recentes quando há alternativas.");
+const previousIds = first.posts.map((post) => post.layout);
+const withHistory = generateWeek(company, "2026-11-16", { recentLayoutIds: previousIds, previousLayouts: previousIds }, { format: "story" });
 assert.ok(withHistory.posts.every((post) => post.format === "story"), "Stories devem chegar ao plano de renderização.");
+assert.equal(new Set(withHistory.posts.map((post) => layoutDesignKey(post.layout))).size, 7);
+withHistory.posts.forEach((post, index) => {
+  assert.notEqual(
+    layoutDesignKey(post.layout),
+    layoutDesignKey(previousIds[index]),
+    `Dia ${index + 1} repetiu o desenho do pacote anterior`
+  );
+});
 
-/** Mesma conta do renderer: (id - 7) % 5. */
-function designOf(layout: number) {
-  return (layout - 7) % 5;
-}
-
-function assertDesignSpread(label: string, layouts: number[]) {
-  const designs = layouts.map(designOf);
-  assert.equal(new Set(designs.slice(0, 5)).size, 5, `${label}: os cinco primeiros dias devem usar os 5 desenhos`);
-  for (let day = 1; day < designs.length; day++) {
-    assert.notEqual(designs[day], designs[day - 1], `${label}: dias ${day} e ${day + 1} repetiram o desenho ${designs[day]}`);
-  }
-}
-
-assertDesignSpread("cafeteria", first.posts.map((post) => post.layout));
-assertDesignSpread("histórico", withHistory.posts.map((post) => post.layout));
+assert.deepEqual(
+  [0, 1, 2, 3, 4, 5, 6].map(layoutDesignKey),
+  ["legacy:0", "legacy:1", "legacy:2", "legacy:3", "legacy:4", "legacy:5", "legacy:6"]
+);
+assert.equal(layoutDesignKey(7), layoutDesignKey(12));
+assert.equal(layoutDesignKey(7), layoutDesignKey(27));
+assert.notEqual(layoutDesignKey(7), layoutDesignKey(8));
+assert.notEqual(layoutDesignKey(0), layoutDesignKey(7));
+assert.equal(layoutDesignKey(31), "layout:31");
+assert.equal(layoutDesignKey(32), "layout:32");
+assert.notEqual(layoutDesignKey(31), layoutDesignKey(32));
+for (let id = 0; id <= 30; id++) assert.notEqual(layoutDesignKey(31), layoutDesignKey(id));
 
 const pizzaria: CompanyProfile = {
   ...company,
@@ -50,9 +57,16 @@ const pizzaria: CompanyProfile = {
   nicheId: "pizzaria",
   instagram: "pizzarianapoli",
 };
+let sawLegacy = false;
+let sawCampaign = false;
 for (let n = 0; n < 12; n++) {
   const week = generateWeek(pizzaria, "2026-11-09", {}, { seed: `napoli-${n}` });
-  assertDesignSpread(`pizzaria napoli-${n}`, week.posts.map((post) => post.layout));
+  const designs = week.posts.map((post) => layoutDesignKey(post.layout));
+  assert.equal(new Set(designs).size, 7, `pizzaria napoli-${n} repetiu desenho`);
+  sawLegacy = sawLegacy || week.posts.some((post) => post.layout <= 6);
+  sawCampaign = sawCampaign || week.posts.some((post) => post.layout >= 7 && post.layout <= 30);
 }
+assert.ok(sawLegacy, "Pacotes novos devem voltar a usar os layouts L0–L6.");
+assert.ok(sawCampaign, "Pacotes novos devem continuar usando os desenhos de campanha.");
 
 console.log("Campaign layout selection: OK");

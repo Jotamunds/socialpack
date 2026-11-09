@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import type { CSSProperties, ReactNode } from "react";
 import { alpha, readableOn } from "@/lib/color";
-import { CAMPAIGN_LAYOUTS, FIRST_CAMPAIGN_LAYOUT, campaignLayoutForId, type CampaignCategory } from "@/lib/campaign-layouts";
+import { CAMPAIGN_LAYOUTS, campaignLayoutForId, layoutDesignKey, type CampaignCategory } from "@/lib/campaign-layouts";
 import { getCuratedPhoto } from "@/lib/curated-images";
 import { getPostDimensions, normalizePostFormat } from "@/lib/post-format";
 import type { CompanyProfile, GeneratedPost } from "@/lib/types";
@@ -97,7 +97,8 @@ function Board({ data, profile, category }: { data: Data; profile: Profile; cate
 export function CampaignPostCard({ layout, post, profile, index }: Props) {
   const definition = campaignLayoutForId(layout) || CAMPAIGN_LAYOUTS[0];
   const data = dataFor(post, profile, index);
-  const mode = (definition.id - FIRST_CAMPAIGN_LAYOUT) % 5;
+  const design = layoutDesignKey(definition.id);
+  const mode = design.startsWith("campaign:") ? Number(design.slice("campaign:".length)) : 0;
   if (mode === 0) return <Ledger data={data} profile={profile} category={definition.category} />;
   if (mode === 1) return <Poster data={data} profile={profile} category={definition.category} />;
   if (mode === 2) return <Tiles data={data} profile={profile} category={definition.category} />;

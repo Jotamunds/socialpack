@@ -52,6 +52,20 @@ export function isCampaignLayout(layout: number): boolean {
   return Number.isInteger(layout) && layout >= FIRST_CAMPAIGN_LAYOUT && layout <= LAST_CAMPAIGN_LAYOUT;
 }
 
+/**
+ * Identidade visual de um id. L0–L6 são um desenho cada; L7–L30 colapsam nos
+ * 5 modos de campanha; qualquer id >= 31 é um desenho próprio, sem mudar o seletor.
+ */
+export function layoutDesignKey(layoutId: number): string {
+  if (Number.isInteger(layoutId) && layoutId >= 0 && layoutId < FIRST_CAMPAIGN_LAYOUT) {
+    return `legacy:${layoutId}`;
+  }
+  if (Number.isInteger(layoutId) && layoutId >= FIRST_CAMPAIGN_LAYOUT && layoutId <= LAST_CAMPAIGN_LAYOUT) {
+    return `campaign:${(layoutId - FIRST_CAMPAIGN_LAYOUT) % 5}`;
+  }
+  return `layout:${layoutId}`;
+}
+
 export function campaignLayoutForId(layout: number) {
   return CAMPAIGN_LAYOUTS.find((item) => item.id === layout);
 }
