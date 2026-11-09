@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { layoutDesignKey } from "../src/lib/campaign-layouts";
+import { layoutDesignKey, MAX_LAYOUT_ID } from "../src/lib/campaign-layouts";
 import { generateWeek } from "../src/lib/generator";
 import type { CompanyProfile } from "../src/lib/types";
 
@@ -23,7 +23,7 @@ assert.deepEqual(first.posts.map((post) => post.layout), second.posts.map((post)
 assert.deepEqual(first.posts.map((post) => post.templateSlug), second.posts.map((post) => post.templateSlug), "A mesma seed deve reproduzir os templates.");
 assert.equal(new Set(first.posts.map((post) => post.layout)).size, 7, "Um pacote não pode repetir composição.");
 assert.equal(new Set(first.posts.map((post) => layoutDesignKey(post.layout))).size, 7, "Um pacote usa 7 desenhos diferentes.");
-assert.ok(first.posts.every((post) => post.layout >= 0 && post.layout <= 30), "Posts novos usam L0–L30.");
+assert.ok(first.posts.every((post) => post.layout >= 0 && post.layout <= MAX_LAYOUT_ID), "Posts novos usam um id até o maior do catálogo.");
 assert.ok(first.posts.every((post) => post.format === "portrait" && post.generationSeed === options.seed), "Formato e seed devem persistir no plano.");
 
 const previousIds = first.posts.map((post) => post.layout);

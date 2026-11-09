@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { categories } from "@/lib/catalog";
+import { MAX_LAYOUT_ID } from "@/lib/campaign-layouts";
 import { POST_FORMATS } from "@/lib/post-format";
 
 export const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{6}$/;
@@ -115,7 +116,7 @@ export function normalizeCompanyInput(input: CreateCompanyInput) {
 
 export const TemplateLayoutStructureSchema = z
   .object({
-    layout: z.number().int().min(0).max(30),
+    layout: z.number().int().min(0).max(MAX_LAYOUT_ID),
     theme: z.string().min(1),
     headline: z.string().min(1),
     subheadline: z.string().default(""),
@@ -249,7 +250,7 @@ export const WeeklyPackPostSchema = z.object({
   captionCopy: z.string().min(40).max(1200),
   hashtags: z.array(z.string().min(2)).min(3).max(8),
   theme: z.string().min(1),
-  layout: z.number().int().min(0).max(30),
+  layout: z.number().int().min(0).max(MAX_LAYOUT_ID),
   templateSlug: z.string().min(1),
   templateVersion: z.number().int().positive(),
 });
@@ -290,7 +291,7 @@ export const PostGenerationConfigSchema = z.object({
     handle: z.string().optional(),
   }),
   theme: z.string().optional(),
-  layout: z.number().int().min(0).max(30).optional(),
+  layout: z.number().int().min(0).max(MAX_LAYOUT_ID).optional(),
   format: z.enum(POST_FORMATS).optional(),
   seed: z.string().min(1).max(160).optional(),
   layoutCategory: z.string().min(1).max(32).optional(),
