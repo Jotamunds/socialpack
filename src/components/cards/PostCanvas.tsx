@@ -317,14 +317,16 @@ function EditorialTemplate({ post, profile, index }: TemplateProps) {
   const { headline, subheadline, cta, handle, badge, photo, edition } = contentOf(post, profile, index);
   const kicker = `EDIÇÃO DA SEMANA  ·  ${badge.toUpperCase()}`;
   const kickerFit = fitTracking(kicker, 900, 22, 4, 0.64);
-  const headlineSize = fitBlock(headline, {
+  let headlineSize = fitBlock(headline, {
     maxWidth: 460,
     maxHeight: 420,
     maxSize: 84,
     minSize: 36,
     lineHeight: 1.05,
-    ratio: 0.5,
+    ratio: 0.62,
   });
+  const longestWord = Math.max(...headline.split(/\s+/).map((word) => word.length), 1);
+  while (headlineSize > 36 && longestWord * headlineSize * 0.72 > 440) headlineSize -= 2;
   const subSize = fitBlock(subheadline, {
     maxWidth: 450,
     maxHeight: 220,
@@ -462,8 +464,8 @@ function PolaroidTemplate({ post, profile, index }: TemplateProps) {
     ratio: 0.56,
   });
   const headlineLines = estimateLines(headline, 540, headlineSize, 0.56);
-  const headlineH = headlineLines * headlineSize * 1.12;
-  const photoH = Math.min(500, Math.max(360, Math.round(640 - headlineH)));
+  const headlineH = Math.ceil(headlineLines * headlineSize * 1.12);
+  const photoH = Math.max(200, Math.min(500, 640 - 18 - headlineH - 12 - 36));
   const ctaSize = 28;
   const ctaWidth = cta.length * ctaSize * 0.56 + 64;
   const sideBySide = ctaWidth + 520 < 900;
@@ -511,7 +513,7 @@ function PolaroidTemplate({ post, profile, index }: TemplateProps) {
             ...col,
             width: 560,
             marginTop: 18,
-            maxHeight: 130,
+            height: headlineH,
             overflow: "hidden",
             fontFamily: DISPLAY,
             fontWeight: 700,
@@ -658,9 +660,11 @@ function QuoteTemplate({ post, profile, index }: TemplateProps) {
     maxHeight: 230,
     maxSize: 88,
     minSize: 40,
-    lineHeight: 1.05,
-    ratio: 0.5,
+    lineHeight: 1.12,
+    ratio: 0.62,
   });
+  const headlineH = Math.ceil(estimateLines(headline, 880, headlineSize, 0.62) * headlineSize * 1.12);
+  const subTop = 500 + headlineH + 18;
   const subSize = fitBlock(subheadline, {
     maxWidth: 880,
     maxHeight: 120,
@@ -686,6 +690,7 @@ function QuoteTemplate({ post, profile, index }: TemplateProps) {
             "linear-gradient(to bottom, rgba(20,20,31,0.18) 0%, rgba(20,20,31,0.5) 46%, rgba(20,20,31,0.92) 100%)",
         })}
       />
+      <div style={abs({ top: 460, left: 0, width: 1080, height: 620, backgroundColor: "rgba(20,20,31,0.64)" })} />
       <div
         style={abs({
           top: 80,
@@ -732,12 +737,12 @@ function QuoteTemplate({ post, profile, index }: TemplateProps) {
           left: 80,
           top: 500,
           width: 880,
-          maxHeight: 230,
+          height: headlineH,
           overflow: "hidden",
           fontFamily: SERIF,
           fontWeight: 700,
           fontSize: headlineSize,
-          lineHeight: 1.05,
+          lineHeight: 1.12,
           color: "#ffffff",
           wordBreak: "break-word",
         })}
@@ -747,7 +752,7 @@ function QuoteTemplate({ post, profile, index }: TemplateProps) {
       <div
         style={abs({
           left: 80,
-          top: 748,
+          top: subTop,
           width: 880,
           maxHeight: 120,
           overflow: "hidden",
