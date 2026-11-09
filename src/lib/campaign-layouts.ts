@@ -47,6 +47,7 @@ export const CAMPAIGN_LAYOUTS: CampaignLayoutDefinition[] = [
   { id: 31, category: "institutional", name: "Faixa Diagonal", style: "diagonal" },
   { id: 32, category: "institutional", name: "Disco", style: "disco" },
   { id: 33, category: "institutional", name: "Moldura", style: "moldura" },
+  { id: 34, category: "institutional", name: "Titular", style: "titular" },
 ];
 
 export const CAMPAIGN_LAYOUT_NAMES = CAMPAIGN_LAYOUTS.map((layout) => layout.name);
