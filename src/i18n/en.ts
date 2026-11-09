@@ -278,7 +278,7 @@ export const en = {
     fullNamePlaceholder: "Your full name",
     nameTooShort: "Enter at least 2 characters for your name.",
     phone: "Phone",
-    phonePlaceholder: "(555) 555-0100",
+    phonePlaceholder: "(00) 00000-0000",
     phoneHint: "Used for account notices.",
     saveFailed: "Couldn't save your changes.",
     saved: "Saved",

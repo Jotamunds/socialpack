@@ -29,18 +29,14 @@ function applyThemeClass(theme: ThemeOption) {
 
 export function AppearanceSelector({ initialTheme = "dark" }: AppearanceSelectorProps) {
   const [theme, setTheme] = useState<ThemeOption>(initialTheme);
-  const [syncedTheme, setSyncedTheme] = useState<ThemeOption>(initialTheme);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  if (syncedTheme !== initialTheme) {
-    setSyncedTheme(initialTheme);
-    setTheme(initialTheme);
-  }
-
   useEffect(() => {
-    applyThemeClass(theme);
-  }, [theme]);
+    applyThemeClass(initialTheme);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- mesma sincronização da sale/direct-use
+    setTheme(initialTheme);
+  }, [initialTheme]);
 
   const handleSelectTheme = (newTheme: ThemeOption) => {
     document.documentElement.classList.add("theme-transition");
