@@ -4,6 +4,7 @@ import { useState } from "react";
 import { PostCard } from "./PostCard";
 import { PostListRow } from "./PostListRow";
 import type { DisplayPost, PostsViewMode } from "./types";
+import { t } from "@/i18n";
 
 interface PostCollectionProps {
   posts: DisplayPost[];
@@ -31,7 +32,7 @@ export function PostCollection({
       setCopiedId(post.id);
       setTimeout(() => setCopiedId(null), 2000);
     } catch {
-      alert("Falha ao copiar legenda.");
+      alert(t("posts.copyFailed"));
     }
   }
 

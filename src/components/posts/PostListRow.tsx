@@ -78,7 +78,7 @@ export function PostListRow({
           title={t("posts.copyCaption")}
         >
           {isCopied ? <CheckIcon className="size-3 text-[#10b981]" /> : <CopyIcon className="size-3" />}
-          <span className="hidden sm:inline">{isCopied ? "Copiado!" : "Legenda"}</span>
+          <span className="hidden sm:inline">{isCopied ? t("posts.copied") : t("posts.caption")}</span>
         </button>
         <button
           type="button"

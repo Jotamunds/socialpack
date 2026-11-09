@@ -34,7 +34,7 @@ export function GeracaoClient({ companies, initialPosts = [] }: GeracaoClientPro
 
   async function handleGenerateWeek() {
     if (!selectedCompanyId) {
-      setErrorMessage("Por favor, selecione uma empresa para gerar o pacote.");
+      setErrorMessage(t("generate.selectCompany"));
       return;
     }
 

@@ -79,7 +79,7 @@ export function PostCard({
             title={t("posts.copyCaption")}
           >
             {isCopied ? <CheckIcon className="size-3 text-[#10b981]" /> : <CopyIcon className="size-3" />}
-            <span>{isCopied ? "Copiado!" : "Legenda"}</span>
+            <span>{isCopied ? t("posts.copied") : t("posts.caption")}</span>
           </button>
           <button
             type="button"
