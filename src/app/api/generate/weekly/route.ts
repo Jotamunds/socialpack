@@ -12,6 +12,7 @@ import {
   POSTS_PER_WEEKLY_PACK,
   PostGenerationConfigSchema,
 } from "@/lib/schemas";
+import { MAX_LAYOUT_ID } from "@/lib/campaign-layouts";
 import type { CompanyProfile } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -53,7 +54,7 @@ function layoutsFromLatestCompletedPack(rows: RecentCompletedPost[]): number[] {
   const layouts = pack.map((row) => row.layout);
   const layoutsArePermutation =
     layouts.every(
-      (layout) => typeof layout === "number" && Number.isInteger(layout) && layout >= 0 && layout <= 31
+      (layout) => typeof layout === "number" && Number.isInteger(layout) && layout >= 0 && layout <= MAX_LAYOUT_ID
     ) && new Set(layouts).size === POSTS_PER_WEEKLY_PACK;
 
   return layoutsArePermutation ? (layouts as number[]) : [];

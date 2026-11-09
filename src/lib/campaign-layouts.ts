@@ -45,9 +45,13 @@ export const CAMPAIGN_LAYOUTS: CampaignLayoutDefinition[] = [
   { id: 29, category: "seasonal", name: "Tag de Presente", style: "elegante" },
   { id: 30, category: "seasonal", name: "Celebração Circular", style: "promocional" },
   { id: 31, category: "institutional", name: "Faixa Diagonal", style: "diagonal" },
+  { id: 32, category: "institutional", name: "Disco", style: "disco" },
 ];
 
 export const CAMPAIGN_LAYOUT_NAMES = CAMPAIGN_LAYOUTS.map((layout) => layout.name);
+
+/** Maior id registrado. O Zod e o histórico usam este teto em vez de um número fixo. */
+export const MAX_LAYOUT_ID = Math.max(...CAMPAIGN_LAYOUTS.map((layout) => layout.id));
 
 export function isCampaignLayout(layout: number): boolean {
   return Number.isInteger(layout) && CAMPAIGN_LAYOUTS.some((item) => item.id === layout);
