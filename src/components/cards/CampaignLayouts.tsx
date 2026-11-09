@@ -2,7 +2,9 @@
 import type { CSSProperties, ReactNode } from "react";
 import { DiagonalBandLayout } from "./DiagonalBandLayout";
 import { DiscLayout } from "./DiscLayout";
+import { FrameLabelLayout } from "./FrameLabelLayout";
 import { MosaicDuoLayout } from "./MosaicDuoLayout";
+import { TitularLayout } from "./TitularLayout";
 import { alpha, readableOn } from "@/lib/color";
 import { CAMPAIGN_LAYOUTS, campaignLayoutForId, layoutDesignKey, type CampaignCategory } from "@/lib/campaign-layouts";
 import { getCuratedPhoto } from "@/lib/curated-images";
@@ -59,13 +61,27 @@ function fit(headline: string, width: number, height: number, max: number, min: 
   const roughLines = Math.max(1, Math.ceil(headline.length / chars));
   return roughLines * max * 1.02 <= height ? max : Math.max(min, Math.floor(height / (roughLines * 1.02)));
 }
+function fitReflow(text: string, width: number, height: number, max: number, min: number, lineHeight: number, ratio: number) {
+  let size = max;
+  while (size > min) {
+    const perLine = Math.max(4, Math.floor(width / (size * ratio)));
+    const lines = Math.max(1, Math.ceil(text.length / perLine));
+    if (lines * size * lineHeight <= height) return size;
+    size -= 2;
+  }
+  return min;
+}
+function lineCount(text: string, size: number, width: number, ratio: number) {
+  const perLine = Math.max(4, Math.floor(width / (size * ratio)));
+  return Math.max(1, Math.ceil(text.length / perLine));
+}
 function Canvas({ data, children, style }: { data: Data; children: ReactNode; style?: CSSProperties }) { return <div lang="pt-BR" style={{ ...column, position: "relative", width: data.width, height: data.height, overflow: "hidden", fontFamily: SANS, ...style }}>{children}</div>; }
 function Photo({ data, width, height, style }: { data: Data; width: number; height: number; style?: CSSProperties }) { return <div style={{ ...row, width, height, overflow: "hidden", flexShrink: 0, ...style }}><img src={data.photo} alt="" width={width} height={height} crossOrigin="anonymous" style={{ width, height, objectFit: "cover" }} /></div>; }
 function Mark({ profile, color = "#ffffff", size = 44 }: { profile: Profile; color?: string; size?: number }) {
   const initials = profile.name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]).join("").toUpperCase() || "SP";
   return <div style={{ ...row, width: size, height: size, borderRadius: size / 2, justifyContent: "center", overflow: "hidden", backgroundColor: alpha(color, 0.16), border: `2px solid ${alpha(color, 0.7)}`, flexShrink: 0 }}>{profile.logoUrl ? <img src={profile.logoUrl} alt="" width={size} height={size} style={{ width: size, height: size, objectFit: "contain", backgroundColor: "#ffffff" }} /> : <span style={{ color, fontFamily: DISPLAY, fontSize: Math.round(size * 0.34), fontWeight: 800 }}>{initials}</span>}</div>;
 }
-function Title({ data, color, width, height, serif = false }: { data: Data; color: string; width: number; height: number; serif?: boolean }) { return <div style={{ color, width, fontFamily: serif ? SERIF : DISPLAY, fontSize: fit(data.headline, width, height, serif ? 84 : 80, 34), lineHeight: serif ? 0.99 : 0.94, fontWeight: serif ? 900 : 800, wordBreak: "break-word" }}>{data.headline}</div>; }
+function Title({ data, color, width, height, serif = false, size, lineHeight }: { data: Data; color: string; width: number; height: number; serif?: boolean; size?: number; lineHeight?: number }) { return <div style={{ color, width, fontFamily: serif ? SERIF : DISPLAY, fontSize: size ?? fit(data.headline, width, height, serif ? 84 : 80, 34), lineHeight: lineHeight ?? (serif ? 0.99 : 0.94), fontWeight: serif ? 900 : 800, wordBreak: "break-word" }}>{data.headline}</div>; }
 function Pill({ children, background, color }: { children: ReactNode; background: string; color: string }) { return <span style={{ ...row, alignSelf: "flex-start", padding: "11px 18px", borderRadius: 999, backgroundColor: background, color, fontSize: 17, lineHeight: 1, fontWeight: 800, letterSpacing: 0.8 }}>{children}</span>; }
 function Header({ data, profile, category, dark = false }: { data: Data; profile: Profile; category: CampaignCategory; dark?: boolean }) {
   const color = dark ? "#ffffff" : INK;
@@ -75,7 +91,11 @@ function Header({ data, profile, category, dark = false }: { data: Data; profile
 function Ledger({ data, profile, category }: { data: Data; profile: Profile; category: CampaignCategory }) {
   const { primary, secondary, accent } = profile.colors;
   const photoHeight = data.height > 1200 ? 940 : 720;
-  return <Canvas data={data} style={{ backgroundColor: PAPER }}><div style={{ position: "absolute", left: 0, top: 0, width: 120, height: data.height, backgroundColor: secondary }} /><Photo data={data} width={460} height={photoHeight} style={{ position: "absolute", right: 0, top: 130, borderRadius: "220px 0 0 0", borderLeft: `14px solid ${accent}` }} /><Header data={data} profile={profile} category={category} /><div style={{ ...column, position: "absolute", left: 54, top: 185, width: 525 }}><Title data={data} color={primary} width={510} height={data.height > 1200 ? 330 : 260} serif /><div style={{ marginTop: 26, color: INK, width: 450, fontSize: 25, lineHeight: 1.3 }}>{data.subheadline}</div></div><div style={{ ...row, position: "absolute", left: 54, bottom: 62, gap: 18 }}><Pill background={INK} color="#ffffff">{data.cta}</Pill><span style={{ color: primary, fontSize: 20, fontWeight: 800 }}>{data.handle}</span></div></Canvas>;
+  const titleLh = 1.08;
+  const titleBudget = data.height > 1200 ? 330 : 260;
+  const titleSize = fitReflow(data.headline, 510, titleBudget, 84, 34, titleLh, 0.62);
+  const titleBlock = Math.ceil(lineCount(data.headline, titleSize, 510, 0.62) * titleSize * titleLh);
+  return <Canvas data={data} style={{ backgroundColor: PAPER }}><div style={{ position: "absolute", left: 0, top: 0, width: 120, height: data.height, backgroundColor: secondary }} /><Photo data={data} width={460} height={photoHeight} style={{ position: "absolute", right: 0, top: 130, borderRadius: "220px 0 0 0", borderLeft: `14px solid ${accent}` }} /><Header data={data} profile={profile} category={category} /><div style={{ ...column, position: "absolute", left: 54, top: 185, width: 525 }}><div style={{ ...column, height: titleBlock }}><Title data={data} color={primary} width={510} height={titleBudget} serif size={titleSize} lineHeight={titleLh} /></div><div style={{ marginTop: 26, color: INK, width: 450, fontSize: 25, lineHeight: 1.3 }}>{data.subheadline}</div></div><div style={{ ...row, position: "absolute", left: 54, bottom: 62, gap: 18 }}><Pill background={INK} color="#ffffff">{data.cta}</Pill><span style={{ color: primary, fontSize: 20, fontWeight: 800 }}>{data.handle}</span></div></Canvas>;
 }
 function Poster({ data, profile, category }: { data: Data; profile: Profile; category: CampaignCategory }) {
   const { primary, secondary, accent } = profile.colors;
@@ -89,7 +109,12 @@ function Tiles({ data, profile, category }: { data: Data; profile: Profile; cate
 }
 function Immersive({ data, profile, category }: { data: Data; profile: Profile; category: CampaignCategory }) {
   const { accent } = profile.colors;
-  return <Canvas data={data} style={{ backgroundColor: INK }}><Photo data={data} width={1080} height={data.height} style={{ position: "absolute", top: 0, left: 0 }} /><div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${alpha(INK, 0.12)}, ${alpha(INK, 0.92)})` }} /><Header data={data} profile={profile} category={category} dark /><div style={{ ...column, position: "absolute", left: 54, right: 54, bottom: data.height > 1200 ? 185 : 145 }}><div style={{ color: accent, fontFamily: SERIF, fontSize: 130, height: 66, lineHeight: 0.7 }}>“</div><Title data={data} color="#ffffff" width={850} height={data.height > 1200 ? 305 : 220} serif /><div style={{ marginTop: 22, color: alpha("#ffffff", 0.82), width: 760, fontSize: 27, lineHeight: 1.28 }}>{data.subheadline}</div></div><div style={{ ...row, position: "absolute", left: 54, bottom: 54, color: "#ffffff", fontSize: 22, fontWeight: 800 }}><Mark profile={profile} size={36} /><span style={{ marginLeft: 12 }}>{data.handle}</span><span style={{ marginLeft: 22, color: "#ffffff" }}>{data.cta} →</span></div></Canvas>;
+  const titleLh = 1.12;
+  const titleBudget = data.height > 1200 ? 305 : 220;
+  const titleSize = fitReflow(data.headline, 850, titleBudget, 84, 34, titleLh, 0.62);
+  const titleBlock = Math.ceil(lineCount(data.headline, titleSize, 850, 0.62) * titleSize * titleLh);
+  const scrimH = Math.round(data.height * 0.56);
+  return <Canvas data={data} style={{ backgroundColor: INK }}><Photo data={data} width={1080} height={data.height} style={{ position: "absolute", top: 0, left: 0 }} /><div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${alpha(INK, 0.12)}, ${alpha(INK, 0.92)})` }} /><div style={{ position: "absolute", left: 0, bottom: 0, width: 1080, height: scrimH, backgroundColor: "rgba(20,20,31,0.64)" }} /><Header data={data} profile={profile} category={category} dark /><div style={{ ...column, position: "absolute", left: 54, right: 54, bottom: data.height > 1200 ? 185 : 145 }}><div style={{ color: accent, fontFamily: SERIF, fontSize: 130, height: 66, lineHeight: 0.7 }}>“</div><div style={{ ...column, height: titleBlock }}><Title data={data} color="#ffffff" width={850} height={titleBudget} serif size={titleSize} lineHeight={titleLh} /></div><div style={{ marginTop: 22, color: "#ffffff", width: 760, fontSize: 27, lineHeight: 1.28 }}>{data.subheadline}</div></div><div style={{ ...row, position: "absolute", left: 54, bottom: 54, color: "#ffffff", fontSize: 22, fontWeight: 800 }}><Mark profile={profile} size={36} /><span style={{ marginLeft: 12 }}>{data.handle}</span><span style={{ marginLeft: 22, color: "#ffffff" }}>{data.cta} →</span></div></Canvas>;
 }
 function Board({ data, profile, category }: { data: Data; profile: Profile; category: CampaignCategory }) {
   const { primary, secondary, accent } = profile.colors;
@@ -120,6 +145,40 @@ export function CampaignPostCard({ layout, post, profile, index }: Props) {
   if (definition.id === 32) {
     return (
       <DiscLayout
+        width={data.width}
+        height={data.height}
+        photo={post.imageUrl}
+        headline={data.headline}
+        subheadline={data.subheadline}
+        cta={data.cta}
+        handle={data.handle}
+        primary={profile.colors.primary}
+        secondary={profile.colors.secondary}
+        logoUrl={profile.logoUrl}
+        companyName={profile.name}
+      />
+    );
+  }
+  if (definition.id === 33) {
+    return (
+      <FrameLabelLayout
+        width={data.width}
+        height={data.height}
+        photo={post.imageUrl}
+        headline={data.headline}
+        subheadline={data.subheadline}
+        cta={data.cta}
+        handle={data.handle}
+        primary={profile.colors.primary}
+        secondary={profile.colors.secondary}
+        logoUrl={profile.logoUrl}
+        companyName={profile.name}
+      />
+    );
+  }
+  if (definition.id === 34) {
+    return (
+      <TitularLayout
         width={data.width}
         height={data.height}
         photo={post.imageUrl}

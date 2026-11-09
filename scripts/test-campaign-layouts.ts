@@ -48,13 +48,24 @@ assert.notEqual(layoutDesignKey(7), layoutDesignKey(8));
 assert.notEqual(layoutDesignKey(0), layoutDesignKey(7));
 assert.equal(layoutDesignKey(31), "layout:31");
 assert.equal(layoutDesignKey(32), "layout:32");
+assert.equal(layoutDesignKey(33), "layout:33");
+assert.equal(layoutDesignKey(34), "layout:34");
 assert.equal(layoutDesignKey(35), "layout:35");
 assert.notEqual(layoutDesignKey(31), layoutDesignKey(32));
+assert.notEqual(layoutDesignKey(33), layoutDesignKey(31));
+assert.notEqual(layoutDesignKey(33), layoutDesignKey(32));
+assert.notEqual(layoutDesignKey(34), layoutDesignKey(31));
+assert.notEqual(layoutDesignKey(34), layoutDesignKey(32));
+assert.notEqual(layoutDesignKey(34), layoutDesignKey(33));
 assert.notEqual(layoutDesignKey(35), layoutDesignKey(31));
 assert.notEqual(layoutDesignKey(35), layoutDesignKey(32));
+assert.notEqual(layoutDesignKey(35), layoutDesignKey(33));
+assert.notEqual(layoutDesignKey(35), layoutDesignKey(34));
 for (let id = 0; id <= 30; id++) {
   assert.notEqual(layoutDesignKey(31), layoutDesignKey(id));
   assert.notEqual(layoutDesignKey(32), layoutDesignKey(id));
+  assert.notEqual(layoutDesignKey(33), layoutDesignKey(id));
+  assert.notEqual(layoutDesignKey(34), layoutDesignKey(id));
   assert.notEqual(layoutDesignKey(35), layoutDesignKey(id));
 }
 

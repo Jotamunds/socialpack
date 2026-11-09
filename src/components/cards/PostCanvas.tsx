@@ -317,14 +317,16 @@ function EditorialTemplate({ post, profile, index }: TemplateProps) {
   const { headline, subheadline, cta, handle, badge, photo, edition } = contentOf(post, profile, index);
   const kicker = `EDIÇÃO DA SEMANA  ·  ${badge.toUpperCase()}`;
   const kickerFit = fitTracking(kicker, 900, 22, 4, 0.64);
-  const headlineSize = fitBlock(headline, {
+  let headlineSize = fitBlock(headline, {
     maxWidth: 460,
     maxHeight: 420,
     maxSize: 84,
     minSize: 36,
     lineHeight: 1.05,
-    ratio: 0.5,
+    ratio: 0.62,
   });
+  const longestWord = Math.max(...headline.split(/\s+/).map((word) => word.length), 1);
+  while (headlineSize > 36 && longestWord * headlineSize * 0.72 > 440) headlineSize -= 2;
   const subSize = fitBlock(subheadline, {
     maxWidth: 450,
     maxHeight: 220,
@@ -442,6 +444,20 @@ function EditorialTemplate({ post, profile, index }: TemplateProps) {
   );
 }
 
+/** Altura do título do Polaroid: linhas × tamanho × 1,12, mais 12px para os descendentes. */
+export function polaroidHeadlineBox(headline: string) {
+  const size = fitBlock(headline, {
+    maxWidth: 540,
+    maxHeight: 200,
+    maxSize: 46,
+    minSize: 26,
+    lineHeight: 1.12,
+    ratio: 0.66,
+  });
+  const lines = estimateLines(headline, 540, size, 0.66);
+  return { size, lines, height: Math.ceil(lines * size * 1.12) + 12, gap: 16 };
+}
+
 /* =========================================================================
    1 — Polaroid "Mural"
    ========================================================================= */
@@ -453,17 +469,10 @@ function PolaroidTemplate({ post, profile, index }: TemplateProps) {
     contrastRatio(secondary, accent) >= 1.35 ? secondary : mix(secondary, onAccent, 0.45);
   const kicker = badge.toUpperCase();
   const kickerFit = fitTracking(kicker, 540, 20, 3, 0.64);
-  const headlineSize = fitBlock(headline, {
-    maxWidth: 540,
-    maxHeight: 120,
-    maxSize: 46,
-    minSize: 26,
-    lineHeight: 1.12,
-    ratio: 0.56,
-  });
-  const headlineLines = estimateLines(headline, 540, headlineSize, 0.56);
-  const headlineH = headlineLines * headlineSize * 1.12;
-  const photoH = Math.min(500, Math.max(360, Math.round(640 - headlineH)));
+  const headlineBox = polaroidHeadlineBox(headline);
+  const headlineSize = headlineBox.size;
+  const headlineH = headlineBox.height;
+  const photoH = Math.max(180, Math.min(500, 640 - headlineBox.gap - headlineH - 12 - 36));
   const ctaSize = 28;
   const ctaWidth = cta.length * ctaSize * 0.56 + 64;
   const sideBySide = ctaWidth + 520 < 900;
@@ -510,9 +519,8 @@ function PolaroidTemplate({ post, profile, index }: TemplateProps) {
           style={{
             ...col,
             width: 560,
-            marginTop: 18,
-            maxHeight: 130,
-            overflow: "hidden",
+            marginTop: headlineBox.gap,
+            minHeight: headlineH,
             fontFamily: DISPLAY,
             fontWeight: 700,
             fontSize: headlineSize,
@@ -658,9 +666,11 @@ function QuoteTemplate({ post, profile, index }: TemplateProps) {
     maxHeight: 230,
     maxSize: 88,
     minSize: 40,
-    lineHeight: 1.05,
-    ratio: 0.5,
+    lineHeight: 1.12,
+    ratio: 0.62,
   });
+  const headlineH = Math.ceil(estimateLines(headline, 880, headlineSize, 0.62) * headlineSize * 1.12);
+  const subTop = 500 + headlineH + 18;
   const subSize = fitBlock(subheadline, {
     maxWidth: 880,
     maxHeight: 120,
@@ -686,6 +696,7 @@ function QuoteTemplate({ post, profile, index }: TemplateProps) {
             "linear-gradient(to bottom, rgba(20,20,31,0.18) 0%, rgba(20,20,31,0.5) 46%, rgba(20,20,31,0.92) 100%)",
         })}
       />
+      <div style={abs({ top: 460, left: 0, width: 1080, height: 620, backgroundColor: "rgba(20,20,31,0.64)" })} />
       <div
         style={abs({
           top: 80,
@@ -732,12 +743,12 @@ function QuoteTemplate({ post, profile, index }: TemplateProps) {
           left: 80,
           top: 500,
           width: 880,
-          maxHeight: 230,
+          height: headlineH,
           overflow: "hidden",
           fontFamily: SERIF,
           fontWeight: 700,
           fontSize: headlineSize,
-          lineHeight: 1.05,
+          lineHeight: 1.12,
           color: "#ffffff",
           wordBreak: "break-word",
         })}
@@ -747,7 +758,7 @@ function QuoteTemplate({ post, profile, index }: TemplateProps) {
       <div
         style={abs({
           left: 80,
-          top: 748,
+          top: subTop,
           width: 880,
           maxHeight: 120,
           overflow: "hidden",
