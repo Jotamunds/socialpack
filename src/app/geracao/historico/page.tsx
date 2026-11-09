@@ -5,6 +5,7 @@ import { requirePageAccess } from "@/lib/supabase/require-page-access";
 import { Logo } from "@/components/Logo";
 import { ArrowRightIcon, LogOutIcon, SparklesIcon } from "@/components/icons";
 import { signOutAction } from "@/app/actions/companies";
+import { AppMobileNav } from "@/components/app/AppMobileNav";
 import { t } from "@/i18n";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +28,7 @@ export default async function HistoricoSelectPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#08090a] text-[#f7f8f8] flex flex-col selection:bg-[#5e6ad2]/30 selection:text-white">
+    <div className="min-h-svh overflow-x-clip bg-[#08090a] text-[#f7f8f8] flex flex-col selection:bg-[#5e6ad2]/30 selection:text-white">
       {/* Header Fixo Minimalista do App */}
       <header className="sticky top-0 z-40 w-full border-b border-[rgba(255,255,255,0.06)] bg-[#08090a]/85 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -73,13 +74,14 @@ export default async function HistoricoSelectPage() {
               <button
                 type="submit"
                 title={t("app.logOut")}
-                className="size-8 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] text-[#8a8f98] hover:text-[#f7f8f8] transition-colors flex items-center justify-center cursor-pointer"
+                className="size-11 sm:size-8 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] text-[#8a8f98] hover:text-[#f7f8f8] transition-colors flex items-center justify-center cursor-pointer"
               >
                 <LogOutIcon className="size-3.5" />
               </button>
             </form>
           </div>
         </div>
+        <AppMobileNav active="historico" />
       </header>
 
       {/* Conteúdo Principal */}

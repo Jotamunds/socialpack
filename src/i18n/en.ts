@@ -115,6 +115,7 @@ export const en = {
     navHistory: "History",
     navSettings: "Settings",
     logOut: "Log out",
+    navLabel: "App sections",
     rights: "All rights reserved.",
   },
   generate: {
