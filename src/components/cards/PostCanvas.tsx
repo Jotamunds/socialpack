@@ -444,6 +444,20 @@ function EditorialTemplate({ post, profile, index }: TemplateProps) {
   );
 }
 
+/** Altura do título do Polaroid: linhas × tamanho × 1,12, mais 12px para os descendentes. */
+export function polaroidHeadlineBox(headline: string) {
+  const size = fitBlock(headline, {
+    maxWidth: 540,
+    maxHeight: 200,
+    maxSize: 46,
+    minSize: 26,
+    lineHeight: 1.12,
+    ratio: 0.66,
+  });
+  const lines = estimateLines(headline, 540, size, 0.66);
+  return { size, lines, height: Math.ceil(lines * size * 1.12) + 12, gap: 16 };
+}
+
 /* =========================================================================
    1 — Polaroid "Mural"
    ========================================================================= */
@@ -455,17 +469,10 @@ function PolaroidTemplate({ post, profile, index }: TemplateProps) {
     contrastRatio(secondary, accent) >= 1.35 ? secondary : mix(secondary, onAccent, 0.45);
   const kicker = badge.toUpperCase();
   const kickerFit = fitTracking(kicker, 540, 20, 3, 0.64);
-  const headlineSize = fitBlock(headline, {
-    maxWidth: 540,
-    maxHeight: 120,
-    maxSize: 46,
-    minSize: 26,
-    lineHeight: 1.12,
-    ratio: 0.56,
-  });
-  const headlineLines = estimateLines(headline, 540, headlineSize, 0.56);
-  const headlineH = Math.ceil(headlineLines * headlineSize * 1.12);
-  const photoH = Math.max(200, Math.min(500, 640 - 18 - headlineH - 12 - 36));
+  const headlineBox = polaroidHeadlineBox(headline);
+  const headlineSize = headlineBox.size;
+  const headlineH = headlineBox.height;
+  const photoH = Math.max(180, Math.min(500, 640 - headlineBox.gap - headlineH - 12 - 36));
   const ctaSize = 28;
   const ctaWidth = cta.length * ctaSize * 0.56 + 64;
   const sideBySide = ctaWidth + 520 < 900;
@@ -512,9 +519,8 @@ function PolaroidTemplate({ post, profile, index }: TemplateProps) {
           style={{
             ...col,
             width: 560,
-            marginTop: 18,
-            height: headlineH,
-            overflow: "hidden",
+            marginTop: headlineBox.gap,
+            minHeight: headlineH,
             fontFamily: DISPLAY,
             fontWeight: 700,
             fontSize: headlineSize,

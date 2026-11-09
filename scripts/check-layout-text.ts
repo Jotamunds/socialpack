@@ -1,4 +1,5 @@
 import { crc32, deflateSync, inflateSync } from "node:zlib";
+import { polaroidHeadlineBox } from "../src/components/cards/PostCanvas";
 import { CAMPAIGN_LAYOUTS } from "../src/lib/campaign-layouts";
 import type { PostFormat } from "../src/lib/post-format";
 import { renderPostToPngBuffer } from "../src/lib/rendering/satori-renderer";
@@ -223,6 +224,50 @@ function inspect(full: Rgba, blank: Rgba) {
   return kinds;
 }
 
+/** Título do Polaroid no cartão girado 4°. Falha se a tinta passar da altura reservada ou da borda branca. */
+function polaroidTitleOverflow(full: Rgba, reserved: number) {
+  const { w, h, px } = full;
+  const cx = 515;
+  const cy = 446;
+  const cos = Math.cos((4 * Math.PI) / 180);
+  const sin = Math.sin((4 * Math.PI) / 180);
+  const points: Array<[number, number]> = [];
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      if (!(px[i] < 50 && px[i + 1] < 55 && px[i + 2] < 80)) continue;
+      let white = 0;
+      for (const [nx, ny] of [[x + 6, y], [x - 6, y], [x, y + 6], [x, y - 6]] as const) {
+        if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+        const j = (ny * w + nx) * 4;
+        if (px[j] > 235 && px[j + 1] > 235 && px[j + 2] > 225) white++;
+      }
+      if (white < 3) continue;
+      const dx = x + 0.5 - cx;
+      const dy = y + 0.5 - cy;
+      points.push([dx * cos + dy * sin + 310, -dx * sin + dy * cos + 350]);
+    }
+  }
+  points.sort((a, b) => a[1] - b[1]);
+  const clusters: Array<Array<[number, number]>> = [];
+  for (const point of points) {
+    const current = clusters[clusters.length - 1];
+    if (!current || point[1] - current[current.length - 1][1] > 24) clusters.push([point]);
+    else current.push(point);
+  }
+  const title = clusters.filter((cluster) => cluster.length > 80).sort((a, b) => b.length - a.length)[0];
+  const kinds: string[] = [];
+  if (!title) return ["altura"];
+  const ys = title.map((point) => point[1]);
+  const height = Math.max(...ys) - Math.min(...ys) + 1;
+  if (height > reserved + 1) kinds.push("altura");
+  const escaped = clusters.some(
+    (cluster) => cluster.length > 40 && cluster.some(([lx, ly]) => lx < -1 || ly < -1 || lx > 621 || ly > 701),
+  );
+  if (escaped) kinds.push("cartao");
+  return kinds;
+}
+
 function formatsFor(layout: number): PostFormat[] {
   return layout <= 6 ? ["square"] : ["square", "portrait", "story"];
 }
@@ -257,7 +302,14 @@ async function main() {
           if (FIXED.has(layout)) fixedFailures++;
           continue;
         }
-        const kinds = inspect(decode(png), blank);
+        const decoded = decode(png);
+        const kinds = inspect(decoded, blank);
+        if (layout === 1) {
+          const box = polaroidHeadlineBox(headline.text);
+          for (const kind of polaroidTitleOverflow(decoded, box.height)) {
+            if (!kinds.includes(kind)) kinds.push(kind);
+          }
+        }
         const label = `layout ${layout} ${format} ${headline.kind}`;
         if (kinds.length === 0) {
           console.log(`${label}: ok`);
