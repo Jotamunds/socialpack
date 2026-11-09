@@ -131,13 +131,17 @@ describe("history zip stream", () => {
 });
 
 describe("history zip route", () => {
-  it("não usa service role nem URL pública e aplica os filtros do histórico", () => {
+  it("não baixa com service role, limita pelo user.id da sessão e aplica os filtros", () => {
     const source = readFileSync(new URL("../app/api/historico/instagram/zip/route.ts", import.meta.url), "utf8");
     assert.equal(source.includes("createAdminClient"), false);
     assert.equal(source.includes("SERVICE_ROLE"), false);
     assert.equal(source.includes("getPublicUrl"), false);
     assert.equal(source.includes("createSignedUrl"), false);
     assert.match(source, /auth\.getUser\(/);
+    const unauthorizedAt = source.indexOf("HISTORY_ZIP_MESSAGES.unauthorized");
+    const limitAt = source.indexOf("consumeUserRateLimit(user.id, RATE_LIMIT_SCOPE.historyZip)");
+    const queryAt = source.indexOf('.from("posts")');
+    assert.ok(unauthorizedAt !== -1 && limitAt > unauthorizedAt && queryAt > limitAt);
     assert.match(source, /\.eq\("user_id", user\.id\)/);
     assert.match(source, /applyHistoryPostFilters/);
     assert.match(source, /parseHistoryFilters/);
