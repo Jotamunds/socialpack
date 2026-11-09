@@ -23,7 +23,7 @@ assert.deepEqual(first.posts.map((post) => post.layout), second.posts.map((post)
 assert.deepEqual(first.posts.map((post) => post.templateSlug), second.posts.map((post) => post.templateSlug), "A mesma seed deve reproduzir os templates.");
 assert.equal(new Set(first.posts.map((post) => post.layout)).size, 7, "Um pacote não pode repetir composição.");
 assert.equal(new Set(first.posts.map((post) => layoutDesignKey(post.layout))).size, 7, "Um pacote usa 7 desenhos diferentes.");
-assert.ok(first.posts.every((post) => post.layout >= 0 && post.layout <= 30), "Posts novos usam L0–L30.");
+assert.ok(first.posts.every((post) => post.layout >= 0 && post.layout <= 31), "Posts novos usam L0–L31.");
 assert.ok(first.posts.every((post) => post.format === "portrait" && post.generationSeed === options.seed), "Formato e seed devem persistir no plano.");
 
 const previousIds = first.posts.map((post) => post.layout);

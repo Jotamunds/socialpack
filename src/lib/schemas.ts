@@ -115,7 +115,7 @@ export function normalizeCompanyInput(input: CreateCompanyInput) {
 
 export const TemplateLayoutStructureSchema = z
   .object({
-    layout: z.number().int().min(0).max(30),
+    layout: z.number().int().min(0).max(31),
     theme: z.string().min(1),
     headline: z.string().min(1),
     subheadline: z.string().default(""),
@@ -249,7 +249,7 @@ export const WeeklyPackPostSchema = z.object({
   captionCopy: z.string().min(40).max(1200),
   hashtags: z.array(z.string().min(2)).min(3).max(8),
   theme: z.string().min(1),
-  layout: z.number().int().min(0).max(30),
+  layout: z.number().int().min(0).max(31),
   templateSlug: z.string().min(1),
   templateVersion: z.number().int().positive(),
 });
@@ -290,7 +290,7 @@ export const PostGenerationConfigSchema = z.object({
     handle: z.string().optional(),
   }),
   theme: z.string().optional(),
-  layout: z.number().int().min(0).max(30).optional(),
+  layout: z.number().int().min(0).max(31).optional(),
   format: z.enum(POST_FORMATS).optional(),
   seed: z.string().min(1).max(160).optional(),
   layoutCategory: z.string().min(1).max(32).optional(),
